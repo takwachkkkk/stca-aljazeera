@@ -168,7 +168,7 @@ class _AnalyseLaboratoireCeoPageState extends State<AnalyseLaboratoireCeoPage>
     } else if (_activeFilter == 'Analyse en attente') {
       result = result.where((e) => e.analyse == null).toList();
     }
-    return result;
+    return DegDateUtils.plusRecentsDabord(result, (e) => e.dateAjout);
   }
 
   Future<void> _showDateFilter() async {

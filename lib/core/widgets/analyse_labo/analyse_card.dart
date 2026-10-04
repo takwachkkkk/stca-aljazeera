@@ -1,3 +1,4 @@
+import 'package:project3/core/widgets/details_echantillon.dart';
 import 'package:flutter/material.dart';
 
 import 'package:project3/core/analyses/ligne_analyse_labo.dart';
@@ -104,17 +105,6 @@ class _AnalyseCardState extends State<AnalyseCard> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 5),
-                          Text(
-                            _statutLabel(analyse),
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: analyse.recuPhysiquement
-                                  ? _accentColor(analyse.statut)
-                                  : Colors.grey.shade700,
-                            ),
-                          ),
                           const SizedBox(height: 4),
                           Row(
                             children: [
@@ -131,31 +121,15 @@ class _AnalyseCardState extends State<AnalyseCard> {
                               ),
                               if (widget.onUrgentLabo != null) ...[
                                 const SizedBox(width: 8),
-                                if (!analyse.recuPhysiquement)
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      _UrgentLaboBtn(
-                                        isUrgent: false,
-                                        onTap: null,
-                                      ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        'Disponible après la réception physique',
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          color: Colors.grey.shade500,
-                                        ),
-                                      ),
-                                    ],
-                                  )
-                                else
-                                  _UrgentLaboBtn(
-                                    isUrgent: widget.isUrgentLabo,
-                                    onTap: widget.isUrgentLabo
-                                        ? null
-                                        : widget.onUrgentLabo,
-                                  ),
+                                _UrgentLaboBtn(
+                                  isUrgent: widget.isUrgentLabo,
+                                  // The lab only sees received samples.
+                                  onTap:
+                                      !analyse.recuPhysiquement ||
+                                          widget.isUrgentLabo
+                                      ? null
+                                      : widget.onUrgentLabo,
+                                ),
                               ],
                             ],
                           ),
@@ -186,18 +160,6 @@ class _AnalyseCardState extends State<AnalyseCard> {
   }
 }
 
-String _statutLabel(LigneAnalyseLabo analyse) {
-  if (!analyse.recuPhysiquement) return 'Pas encore reçu dans la société';
-  switch (analyse.statut) {
-    case StatutAnalyse.enAttente:
-      return 'En attente d\'analyse';
-    case StatutAnalyse.enCours:
-      return 'Analyse en cours';
-    case StatutAnalyse.soumise:
-      return 'Analyse soumise';
-  }
-}
-
 class _UrgentLaboBtn extends StatelessWidget {
   final bool isUrgent;
   final VoidCallback? onTap;
@@ -212,35 +174,19 @@ class _UrgentLaboBtn extends StatelessWidget {
     onTap: onTap,
     child: AnimatedContainer(
       duration: const Duration(milliseconds: 250),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
         color: isUrgent ? urgentBg : Colors.transparent,
-        borderRadius: BorderRadius.circular(20),
+        shape: BoxShape.circle,
         border: Border.all(
           color: isUrgent ? urgent : const Color(0xFFE0E0E0),
           width: 1.2,
         ),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            isUrgent
-                ? Icons.notifications_active
-                : Icons.notifications_outlined,
-            size: 13,
-            color: isUrgent ? urgent : Colors.grey.shade400,
-          ),
-          const SizedBox(width: 4),
-          Text(
-            'Urgent',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: isUrgent ? FontWeight.w700 : FontWeight.w500,
-              color: isUrgent ? urgent : Colors.grey.shade400,
-            ),
-          ),
-        ],
+      child: Icon(
+        isUrgent ? Icons.notifications_active : Icons.notifications_outlined,
+        size: 15,
+        color: isUrgent ? urgent : Colors.grey.shade400,
       ),
     ),
   );
@@ -360,11 +306,7 @@ class _DetailPanel extends StatelessWidget {
     );
   }
 
-  bool get _aDesInformationsEchantillon =>
-      analyse.fournisseurNom != null ||
-      analyse.gouvernorat != null ||
-      analyse.collecteurNom != null ||
-      analyse.variete != null;
+  bool get _aDesInformationsEchantillon => true;
 }
 
 class _InformationsEchantillon extends StatelessWidget {
@@ -405,27 +347,21 @@ class _InformationsEchantillon extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         GrilleDetails(
-          items: [
-            if (analyse.fournisseurNom != null)
-              DetailItem('Fournisseur', analyse.fournisseurNom!),
-            if (analyse.variete != null)
-              DetailItem('Variété', analyse.variete!),
-            if (analyse.gouvernorat != null)
-              DetailItem(
-                'Gouvernorat',
-                analyse.delegation != null
-                    ? '${analyse.gouvernorat} — ${analyse.delegation}'
-                    : analyse.gouvernorat!,
-              ),
-            if (analyse.collecteurNom != null)
-              DetailItem('Collecteur', analyse.collecteurNom!),
-            if (analyse.quantiteEstimee != null)
-              DetailItem('Quantité estimée', '${analyse.quantiteEstimee} T'),
-            DetailItem(
-              'Enregistré le',
-              DegDateUtils.formaterDateHeureOuTiret(analyse.dateAjout),
-            ),
-          ],
+          items: detailsEchantillon(
+            numero: analyse.numero,
+            referenceBouteille: analyse.referenceBouteille,
+            fournisseur: analyse.fournisseurNom,
+            variete: analyse.variete,
+            gouvernorat: analyse.gouvernorat,
+            delegation: analyse.delegation,
+            collecteur: analyse.collecteurNom,
+            numCiterne: analyse.numCiterne,
+            dateAjout: analyse.dateAjout,
+            recuPhysiquement: analyse.recuPhysiquement,
+            dateArrivee: analyse.dateArriveeEchantillon,
+            dateReception: analyse.dateReceptionEchantillon,
+            dateLivraisonStock: analyse.dateLivraisonStock,
+          ),
         ),
       ],
     ),

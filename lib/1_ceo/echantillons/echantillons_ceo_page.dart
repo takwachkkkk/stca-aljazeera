@@ -177,7 +177,7 @@ class _EchantillonsCeoPageState extends State<EchantillonsCeoPage>
   }
 
   List<CollecteurGroup> get _groups {
-    final filtered = _applyFilters(_allEchantillons);
+    final filtered = DegDateUtils.plusRecentsDabord(_applyFilters(_allEchantillons), (e) => e.dateAjout);
     final Map<String, List<EchantillonCeoView>> byCollecteur = {};
 
     for (final e in filtered) {

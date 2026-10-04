@@ -3,6 +3,7 @@
 // PURPOSE : THE BRAIN — owns all state, filter logic, navigation
 // ═════════════════════════════════════════════════════════════════════════════
 
+import 'package:project3/core/utils/date_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../tableau_de_bord/homepage_page.dart';
@@ -170,7 +171,7 @@ class _EvaluationEchantillonsPageState extends State<EvaluationEchantillonsPage>
   }
 
   List<Echantillon> get _echantillonsFiltres {
-    return _echantillons.where((e) {
+    return DegDateUtils.plusRecentsDabord(_echantillons.where((e) {
       final q = _recherche.toLowerCase();
       final matchRecherche =
           _recherche.isEmpty ||
@@ -192,7 +193,7 @@ class _EvaluationEchantillonsPageState extends State<EvaluationEchantillonsPage>
       );
 
       return matchRecherche && matchStatut && matchDate;
-    }).toList();
+    }), (e) => e.dateAjout);
   }
 
   // ── ACTION ────────────────────────────────────────────────────────────────────

@@ -1,3 +1,4 @@
+import 'package:project3/core/utils/date_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../tableau_de_bord/homepage_page.dart';
@@ -138,7 +139,7 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
       return matchRecherche && matchStatut && matchDate;
     }).toList();
 
-    return liste.reversed.toList();
+    return DegDateUtils.plusRecentsDabord(liste, (e) => e.dateAjout);
   }
 
   int get _prochainNumero => _echantillons.length + 1;

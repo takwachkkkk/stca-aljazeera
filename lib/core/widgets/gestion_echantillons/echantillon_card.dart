@@ -4,6 +4,7 @@
 //           expandable detail panel with all attributes + delivery date.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import 'package:project3/core/widgets/details_echantillon.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:project3/core/models/echantillon.dart';
@@ -384,42 +385,21 @@ class _DetailPanel extends StatelessWidget {
 
               // ── Attribute grid ─────────────────────────────────────────
               GrilleDetails(
-                items: [
-                  DetailItem('N° échantillon', e.numero),
-                  DetailItem('Réf. bouteille', e.referenceBouteille),
-                  if (e.fournisseurAffichage.isNotEmpty)
-                    DetailItem('Fournisseur', e.fournisseurAffichage),
-                  if (e.variete != null && e.variete!.isNotEmpty)
-                    DetailItem('Variété', e.variete!),
-                  DetailItem(
-                    'Gouvernorat',
-                    e.delegation != null
-                        ? '${e.gouvernorat} — ${e.delegation}'
-                        : e.gouvernorat,
-                  ),
-                  if (e.collecteurNom != null && e.collecteurNom!.isNotEmpty)
-                    DetailItem('Collecteur', e.collecteurNom!),
-                  if (e.numCiterne != null && e.numCiterne!.isNotEmpty)
-                    DetailItem('N° citerne', e.numCiterne!),
-                  DetailItem('Enregistré le', _dateOuTiret(e.dateAjout)),
-                  DetailItem(
-                    'Reçu physiquement',
-                    e.recuPhysiquement ? 'Oui' : 'Non',
-                  ),
-                  DetailItem(
-                    'Arrivée prévue',
-                    _dateOuTiret(e.dateArriveeEchantillon),
-                  ),
-                  if (e.dateReceptionEchantillon != null)
-                    DetailItem(
-                      'Reçu le',
-                      _dateOuTiret(e.dateReceptionEchantillon),
-                    ),
-                  DetailItem(
-                    'Livraison du stock',
-                    _dateOuTiret(e.dateLivraisonStock),
-                  ),
-                ],
+                items: detailsEchantillon(
+                  numero: e.numero,
+                  referenceBouteille: e.referenceBouteille,
+                  fournisseur: e.fournisseurAffichage,
+                  variete: e.variete,
+                  gouvernorat: e.gouvernorat,
+                  delegation: e.delegation,
+                  collecteur: e.collecteurNom,
+                  numCiterne: e.numCiterne,
+                  dateAjout: e.dateAjout,
+                  recuPhysiquement: e.recuPhysiquement,
+                  dateArrivee: e.dateArriveeEchantillon,
+                  dateReception: e.dateReceptionEchantillon,
+                  dateLivraisonStock: e.dateLivraisonStock,
+                ),
               ),
             ],
           ),

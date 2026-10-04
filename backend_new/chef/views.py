@@ -55,7 +55,7 @@ class ChefEvaluationsView(APIView):
         search = request.query_params.get('search', '')
 
         qs = EvaluationOrganoleptique.objects.select_related(
-            'echantillon', 'echantillon__fournisseur', 'degustateur'
+            'echantillon', 'echantillon__fournisseur', 'echantillon__collecteur', 'degustateur'
         ).filter(statut=EvaluationOrganoleptique.Statut.SOUMIS)
         if date_debut:
             qs = qs.filter(echantillon__date_reception_echantillon__date__gte=date_debut)
@@ -93,6 +93,14 @@ class ChefEvaluationsView(APIView):
                     'date_ajout': _iso_or_none(sample.date_ajout),
                     'recu_physiquement': sample.recu_physiquement,
                     'date_reception_physique': _iso_or_none(sample.date_reception_echantillon),
+                    'date_reception_echantillon': _iso_or_none(sample.date_reception_echantillon),
+                    'date_arrivee_echantillon': _iso_or_none(sample.date_arrivee_echantillon),
+                    'date_livraison_stock': _iso_or_none(sample.date_livraison_stock),
+                    'num_citerne': sample.num_citerne,
+                    'collecteur_nom': (
+                        f"{sample.collecteur.prenom} {sample.collecteur.nom}".strip()
+                        if sample.collecteur else None
+                    ),
                     'fournisseur_nom': sample.fournisseur.nom if sample.fournisseur else None,
                     'evaluations': [],
                     '_submitted_by_user': {},

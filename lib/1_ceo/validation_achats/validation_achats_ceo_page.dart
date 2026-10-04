@@ -186,7 +186,7 @@ class _ValidationAchatsCeoPageState extends State<ValidationAchatsCeoPage>
           )
           .toList();
     }
-    return result;
+    return DegDateUtils.plusRecentsDabord(result, (e) => e.dateAjout);
   }
 
   Future<void> _showDateFilter() async {

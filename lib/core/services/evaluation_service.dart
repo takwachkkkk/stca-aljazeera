@@ -127,8 +127,7 @@ class EvaluationService {
       'numero': api['numero'],
       'fournisseur': api['fournisseur_nom'] ?? 'Non specifie',
       'date_ajout': api['date_ajout'],
-      'date_arrivee_echantillon':
-          api['date_arrivee_echantillon'] ?? api['date_ajout'] ?? '',
+      'date_arrivee_echantillon': api['date_arrivee_echantillon'] ?? '',
       'date_reception_echantillon': api['date_reception_echantillon'],
       'variete': api['variete'] ?? '',
       'gouvernorat': api['gouvernorat'],
@@ -136,6 +135,9 @@ class EvaluationService {
       'photo_url': api['image_url'],
       'quantite': api['quantite_estimee'],
       'collecteur': api['collecteur_nom'],
+      'recu_physiquement': api['recu_physiquement'] == true,
+      'num_citerne': api['num_citerne'],
+      'date_livraison_stock': api['date_livraison_stock'],
       'statut': status ?? 'en_attente',
       'classification': _classificationLabel(classification),
     };

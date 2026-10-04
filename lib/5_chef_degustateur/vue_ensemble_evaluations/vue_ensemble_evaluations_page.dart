@@ -4,6 +4,7 @@
 //           read-only overview. "Voir" opens the shared CEO evaluation form sheet.
 // ═════════════════════════════════════════════════════════════════════════════
 
+import 'package:project3/core/widgets/details_echantillon.dart';
 import 'package:flutter/material.dart';
 import 'package:project3/core/utils/date_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -74,6 +75,13 @@ class _SampleEvalGroup {
   final bool recuPhysiquement;
   final String? dateReceptionEchantillon;
   final List<_TasterEval> evaluations;
+  final String? numero;
+  final String? fournisseur;
+  final String? delegation;
+  final String? collecteur;
+  final String? numCiterne;
+  final String? dateArrivee;
+  final String? dateLivraisonStock;
 
   const _SampleEvalGroup({
     required this.sampleId,
@@ -84,6 +92,13 @@ class _SampleEvalGroup {
     required this.recuPhysiquement,
     this.dateReceptionEchantillon,
     required this.evaluations,
+    this.numero,
+    this.fournisseur,
+    this.delegation,
+    this.collecteur,
+    this.numCiterne,
+    this.dateArrivee,
+    this.dateLivraisonStock,
   });
 
   int get submitted => evaluations.where((e) => e.statut == 'Soumis').length;
@@ -307,14 +322,14 @@ class _VueEnsembleEvaluationsPageState extends State<VueEnsembleEvaluationsPage>
       list = list
           .where(
             (g) =>
-                g.sampleId.toLowerCase().contains(q) ||
+                (g.numero?.toLowerCase().contains(q) ?? false) ||
                 g.referenceBouteille.toLowerCase().contains(q) ||
                 g.gouvernorat.toLowerCase().contains(q) ||
                 g.variete.toLowerCase().contains(q),
           )
           .toList();
     }
-    return list;
+    return DegDateUtils.plusRecentsDabord(list, (e) => e.dateAjout);
   }
 
   _SampleEvalGroup _groupFromApi(Map<String, dynamic> json) {
@@ -329,7 +344,16 @@ class _VueEnsembleEvaluationsPageState extends State<VueEnsembleEvaluationsPage>
       variete: json['variete'] as String? ?? '',
       dateAjout: json['date_ajout']?.toString() ?? '',
       recuPhysiquement: json['recu_physiquement'] as bool? ?? false,
-      dateReceptionEchantillon: _formatDate(json['date_reception_echantillon']),
+      dateReceptionEchantillon:
+          (json['date_reception_echantillon'] ?? json['date_reception_physique'])
+              ?.toString(),
+      numero: json['numero'] as String?,
+      fournisseur: json['fournisseur_nom'] as String?,
+      delegation: json['delegation'] as String?,
+      collecteur: json['collecteur_nom'] as String?,
+      numCiterne: json['num_citerne'] as String?,
+      dateArrivee: json['date_arrivee_echantillon']?.toString(),
+      dateLivraisonStock: json['date_livraison_stock']?.toString(),
       evaluations: ((json['evaluations'] as List<dynamic>?) ?? const [])
           .map((e) => _tasterEvalFromApi(e as Map<String, dynamic>))
           .toList(),
@@ -705,7 +729,7 @@ class _VueEnsembleEvaluationsPageState extends State<VueEnsembleEvaluationsPage>
                               final vue = _vueDepuisGroupe(g);
                               return BaseSampleCard(
                                 referenceBouteille: g.referenceBouteille,
-                                id: g.sampleId,
+                                numero: g.numero ?? '',
                                 tintColor: Colors.white,
                                 accentColor: g.isComplete ? chefGreen : _olive,
                                 badge: CardBadgeRow(
@@ -714,24 +738,23 @@ class _VueEnsembleEvaluationsPageState extends State<VueEnsembleEvaluationsPage>
                                       label: '${g.submitted} / ${g.total}',
                                       color: g.isComplete ? chefGreen : _olive,
                                     ),
-                                    RecuPhysiqueIndicator(
-                                      recuPhysiquement: g.recuPhysiquement,
-                                    ),
                                   ],
                                 ),
                                 detailItems: [
-                                  DetailItem('N° échantillon', g.sampleId),
-                                  DetailItem(
-                                    'Réf. bouteille',
-                                    g.referenceBouteille,
-                                  ),
-                                  DetailItem('Gouvernorat', g.gouvernorat),
-                                  DetailItem('Variété', g.variete),
-                                  DetailItem(
-                                    'Enregistré le',
-                                    DegDateUtils.formaterDateHeureOuTiret(
-                                      g.dateAjout,
-                                    ),
+                                  ...detailsEchantillon(
+                                    numero: g.numero,
+                                    referenceBouteille: g.referenceBouteille,
+                                    fournisseur: g.fournisseur,
+                                    variete: g.variete,
+                                    gouvernorat: g.gouvernorat,
+                                    delegation: g.delegation,
+                                    collecteur: g.collecteur,
+                                    numCiterne: g.numCiterne,
+                                    dateAjout: g.dateAjout,
+                                    recuPhysiquement: g.recuPhysiquement,
+                                    dateArrivee: g.dateArrivee,
+                                    dateReception: g.dateReceptionEchantillon,
+                                    dateLivraisonStock: g.dateLivraisonStock,
                                   ),
                                   DetailItem(
                                     'Évaluations',
@@ -750,6 +773,7 @@ class _VueEnsembleEvaluationsPageState extends State<VueEnsembleEvaluationsPage>
                                   }),
                                   // Le chef consulte, il ne decide pas de l'achat.
                                   showDecisions: false,
+                                  showRecu: false,
                                   onViewForm: (ev) => showEvaluationFormSheet(
                                     context,
                                     evaluation: ev,

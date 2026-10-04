@@ -6,6 +6,7 @@
 //           — en cours/en attente: shows "Commencer/Continuer" + "Voir" pills
 // ─────────────────────────────────────────────────────────────────────────────
 
+import 'package:project3/core/widgets/details_echantillon.dart';
 import 'package:flutter/material.dart';
 import 'package:project3/core/models/echantillon_evaluation.dart';
 import 'package:project3/core/utils/date_utils.dart';
@@ -262,29 +263,21 @@ class _DetailPanel extends StatelessWidget {
           ),
           child: GrilleDetails(
             items: [
-              DetailItem('N° échantillon', e.numero ?? '—'),
-              DetailItem(
-                'Réf. bouteille',
-                e.referenceBouteille.isNotEmpty ? e.referenceBouteille : '—',
+              ...detailsEchantillon(
+                numero: e.numero,
+                referenceBouteille: e.referenceBouteille,
+                fournisseur: e.fournisseur,
+                variete: e.variete,
+                gouvernorat: e.gouvernorat,
+                delegation: e.delegation,
+                collecteur: e.collecteur,
+                numCiterne: e.numCiterne,
+                dateAjout: e.dateAjout,
+                recuPhysiquement: e.recuPhysiquement,
+                dateArrivee: e.dateArriveeEchantillon,
+                dateReception: e.dateReceptionEchantillon,
+                dateLivraisonStock: e.dateLivraisonStock,
               ),
-              DetailItem('Fournisseur', e.fournisseur),
-              DetailItem('Variété', e.variete),
-              if (e.gouvernorat != null)
-                DetailItem(
-                  'Gouvernorat',
-                  '${e.gouvernorat}${e.delegation != null ? " — ${e.delegation}" : ""}',
-                ),
-              if (e.quantite != null && e.quantite!.isNotEmpty)
-                DetailItem('Quantité', '${e.quantite} T'),
-              DetailItem('Enregistré le', _dateOuTiret(e.dateAjout)),
-              DetailItem(
-                'Date arrivée',
-                DegDateUtils.formaterAffichage(e.dateArriveeEchantillon).isEmpty
-                    ? '—'
-                    : DegDateUtils.formaterAffichage(e.dateArriveeEchantillon),
-              ),
-              if (e.collecteur != null && e.collecteur!.isNotEmpty)
-                DetailItem('Collecteur', e.collecteur!),
               if (isSoumis && e.classification != null)
                 DetailItem('Classification', e.classification!),
             ],

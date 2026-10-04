@@ -89,8 +89,7 @@ void main() {
       );
     });
 
-    testWidgets('non reçu : rien ne se déplie, comme chez le dégustateur',
-        (tester) async {
+    testWidgets('non reçu : pas de coche grise du tout', (tester) async {
       await _rendre(
         tester,
         reference: 'CHEMLALI-C4',
@@ -98,13 +97,8 @@ void main() {
         recu: false,
       );
 
-      await tester.tap(find.byIcon(Icons.check_circle_outline));
-      await tester.pumpAndSettle();
-
-      expect(
-        find.text('Réception physique confirmée'),
-        findsNothing,
-      );
+      expect(find.byIcon(Icons.check_circle_outline), findsNothing);
+      expect(find.byIcon(Icons.check_circle), findsNothing);
     });
 
     testWidgets('une référence très longue est coupée, pas débordée',

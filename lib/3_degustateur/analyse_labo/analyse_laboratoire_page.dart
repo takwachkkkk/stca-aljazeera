@@ -3,6 +3,7 @@
 // PURPOSE : THE BRAIN — owns all state, filter logic, actions
 // ═════════════════════════════════════════════════════════════════════════════
 
+import 'package:project3/core/utils/date_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/analyses/ligne_analyse_labo.dart';
@@ -106,7 +107,7 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
   }
 
   List<LigneAnalyseLabo> get _filtres {
-    return _analyses.where((a) {
+    return DegDateUtils.plusRecentsDabord(_analyses.where((a) {
       final matchRecherche =
           _recherche.isEmpty ||
           a.echantillonNom.toLowerCase().contains(_recherche.toLowerCase()) ||
@@ -132,7 +133,7 @@ class _AnalyseLaboratoirePageState extends State<AnalyseLaboratoirePage>
       );
 
       return matchRecherche && matchStatut && matchDate;
-    }).toList();
+    }), (a) => a.dateAjout);
   }
 
   // ── Date filter sheet ─────────────────────────────────────────────────────────

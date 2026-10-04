@@ -22,6 +22,8 @@ class LigneAnalyseLabo {
   final String? dateArriveeEchantillon;
   final String? dateReceptionEchantillon;
   final bool recuPhysiquement;
+  final String? numCiterne;
+  final String? dateLivraisonStock;
   final RapportLabo? rapport;
 
   const LigneAnalyseLabo({
@@ -42,6 +44,8 @@ class LigneAnalyseLabo {
     this.dateArriveeEchantillon,
     this.dateReceptionEchantillon,
     this.recuPhysiquement = false,
+    this.numCiterne,
+    this.dateLivraisonStock,
     this.rapport,
   });
 
@@ -69,6 +73,8 @@ class LigneAnalyseLabo {
       dateArriveeEchantillon: json['date_arrivee_echantillon'] as String?,
       dateReceptionEchantillon: json['date_reception_echantillon'] as String?,
       recuPhysiquement: json['recu_physiquement'] as bool? ?? false,
+      numCiterne: json['num_citerne'] as String?,
+      dateLivraisonStock: json['date_livraison_stock'] as String?,
       rapport: rapportJson == null ? null : RapportLabo.fromJson(rapportJson),
     );
   }
@@ -95,6 +101,8 @@ class LigneAnalyseLabo {
     'date_arrivee_echantillon': dateArriveeEchantillon,
     'date_reception_echantillon': dateReceptionEchantillon,
     'recu_physiquement': recuPhysiquement,
+    'num_citerne': numCiterne,
+    'date_livraison_stock': dateLivraisonStock,
     'rapport': rapport?.toJson(),
   };
 }

@@ -198,7 +198,7 @@ class _AnalyseOrganoleptiqueCeoPageState
           )
           .toList();
     }
-    return result;
+    return DegDateUtils.plusRecentsDabord(result, (e) => e.dateAjout);
   }
 
   Future<void> _showDateFilter() async {

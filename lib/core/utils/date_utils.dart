@@ -88,4 +88,27 @@ class DegDateUtils {
     final texte = formaterDateHeure(valeur);
     return texte.isEmpty ? '—' : texte;
   }
+
+  /// Most recently registered first. Same date or unreadable date: keeps the
+  /// incoming order (stable), so the server order is never scrambled.
+  static List<T> plusRecentsDabord<T>(
+    Iterable<T> items,
+    String? Function(T) dateAjout,
+  ) {
+    DateTime? lire(String? s) {
+      if (s == null || s.trim().isEmpty) return null;
+      return DateTime.tryParse(s.trim()) ?? parseDate(s);
+    }
+
+    final indexes = items.toList().asMap().entries.toList();
+    indexes.sort((a, b) {
+      final da = lire(dateAjout(a.value));
+      final db = lire(dateAjout(b.value));
+      if (da != null && db != null && da != db) return db.compareTo(da);
+      if (da == null && db != null) return 1;
+      if (da != null && db == null) return -1;
+      return a.key.compareTo(b.key);
+    });
+    return [for (final e in indexes) e.value];
+  }
 }

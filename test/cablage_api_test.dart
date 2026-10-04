@@ -1,3 +1,4 @@
+import 'package:project3/core/utils/date_utils.dart';
 import 'dart:convert';
 import 'dart:io';
 
@@ -238,9 +239,10 @@ void _assertNoRawDisplayIds(Object parsed, String source) {
       parsed.technicienNom,
       parsed.fournisseurNom ?? '',
       parsed.collecteurNom ?? '',
-      parsed.dateAjout ?? '',
+      // Dates are kept whole (with the time) and formatted on display.
+      DegDateUtils.formaterDateHeure(parsed.dateAjout),
       parsed.dateArriveeEchantillon ?? '',
-      parsed.dateReceptionEchantillon ?? '',
+      DegDateUtils.formaterDateHeure(parsed.dateReceptionEchantillon),
     ],
   ];
 

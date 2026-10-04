@@ -33,6 +33,9 @@ class Echantillon {
   final String? photoUrl;
   final String? quantite; // quantity in tonnes
   final String? collecteur; // collector name — optional
+  final bool recuPhysiquement;
+  final String? numCiterne;
+  final String? dateLivraisonStock;
   StatutEchantillon statut; // not final — statut can change
   String? classification; // set when soumis (e.g. 'Extra Vierge', 'Vierge')
 
@@ -51,6 +54,9 @@ class Echantillon {
     this.photoUrl,
     this.quantite,
     this.collecteur,
+    this.recuPhysiquement = false,
+    this.numCiterne,
+    this.dateLivraisonStock,
     required this.statut,
     this.classification,
   });
@@ -71,6 +77,9 @@ class Echantillon {
       photoUrl: json['photo_url'] as String?,
       quantite: json['quantite'] as String?,
       collecteur: json['collecteur'] as String?,
+      recuPhysiquement: json['recu_physiquement'] as bool? ?? false,
+      numCiterne: json['num_citerne'] as String?,
+      dateLivraisonStock: json['date_livraison_stock'] as String?,
       statut: _parseStatut(json['statut'] as String),
       classification: json['classification'] as String?,
     );
@@ -90,6 +99,9 @@ class Echantillon {
     'photo_url': photoUrl,
     'quantite': quantite,
     'collecteur': collecteur,
+    'recu_physiquement': recuPhysiquement,
+    'num_citerne': numCiterne,
+    'date_livraison_stock': dateLivraisonStock,
     'statut': _statutToString(statut),
     'classification': classification,
   };

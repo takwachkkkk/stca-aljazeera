@@ -49,7 +49,11 @@ class _EchantillonLaboCardState extends State<EchantillonLaboCard> {
   Widget build(BuildContext context) {
     final e = widget.echantillon;
     final hasAnalyse = e.analyse != null;
-    final accent = _accentColor(e.statutAnalyse);
+    // Red ribbon while an urgent analysis is still to be done.
+    final accent = e.priorite == PrioriteLabo.urgente &&
+            e.statutAnalyse != StatutAnalyse.soumis
+        ? const Color(0xFFC62828)
+        : _accentColor(e.statutAnalyse);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -322,13 +326,8 @@ class _DetailPanel extends StatelessWidget {
                   DetailItem('Enregistré le', _dateOuTiret(e.dateAjout)),
                   if (e.variete != null && e.variete!.isNotEmpty)
                     DetailItem('Variété', e.variete!),
-                  if (e.numeroLot != null) DetailItem('N° lot', e.numeroLot!),
-                  if (e.origineCampagne != null)
+                  if (e.origineCampagne != null && e.origineCampagne!.isNotEmpty)
                     DetailItem('Campagne', e.origineCampagne!),
-                  DetailItem(
-                    'Priorité',
-                    e.priorite == PrioriteLabo.urgente ? 'Urgente' : 'Normale',
-                  ),
                 ],
               ),
             ],

@@ -212,7 +212,8 @@ class _RecuPhysiqueIndicatorState extends State<RecuPhysiqueIndicator> {
   void _onTap() {
     _timer?.cancel();
     setState(() => _showPill = true);
-    _timer = Timer(const Duration(seconds: 3), () {
+    // Same 6 s as the taster's sample card.
+    _timer = Timer(const Duration(seconds: 6), () {
       if (mounted) setState(() => _showPill = false);
     });
   }
@@ -220,6 +221,8 @@ class _RecuPhysiqueIndicatorState extends State<RecuPhysiqueIndicator> {
   @override
   Widget build(BuildContext context) {
     const green = Color(0xFF38835A);
+    // Nothing to show until the sample has physically arrived.
+    if (!widget.recuPhysiquement) return const SizedBox.shrink();
 
     return GestureDetector(
       onTap: _onTap,

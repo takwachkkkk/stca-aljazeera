@@ -65,12 +65,12 @@ class LigneAnalyseLaboService {
       collecteurNom: json['collecteur_nom'] as String?,
       variete: json['variete'] as String?,
       quantiteEstimee: json['quantite_estimee']?.toString(),
-      dateAjout: _formaterDate(json['date_ajout']),
+      dateAjout: json['date_ajout']?.toString(),
       dateArriveeEchantillon: _formaterDate(json['date_arrivee_echantillon']),
-      dateReceptionEchantillon: _formaterDate(
-        json['date_reception_echantillon'],
-      ),
+      dateReceptionEchantillon: json['date_reception_echantillon']?.toString(),
       recuPhysiquement: json['recu_physiquement'] as bool? ?? false,
+      numCiterne: json['num_citerne'] as String?,
+      dateLivraisonStock: json['date_livraison_stock']?.toString(),
       rapport: estSoumise ? rapport : null,
     );
   }

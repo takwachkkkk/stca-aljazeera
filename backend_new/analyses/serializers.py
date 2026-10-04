@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from echantillons.models import Echantillon
+from notifications.models import Notification
 
 from . import normes_coi
 from .models import AnalyseLabo, CritereAnalyse
@@ -114,6 +115,7 @@ class LabEchantillonAnalyseSerializer(serializers.ModelSerializer):
             'reference_bouteille', 'variete', 'quantite_estimee',
             'date_arrivee', 'date_arrivee_echantillon',
             'recu_physiquement', 'date_reception_echantillon',
+            'num_citerne', 'date_livraison_stock',
             'numero_lot', 'origine_campagne', 'priorite',
             'notes_reception', 'statut_labo', 'analyse',
         ]
@@ -133,7 +135,11 @@ class LabEchantillonAnalyseSerializer(serializers.ModelSerializer):
         return ''
 
     def get_priorite(self, obj):
-        return 'normale'
+        # Urgent while an urgent request exists and the analysis is not submitted yet.
+        if obj.statut_labo == 'soumis':
+            return 'normale'
+        urgent = obj.notifications.filter(type=Notification.Type.ANALYSE_URGENTE).exists()
+        return 'urgente' if urgent else 'normale'
 
     def get_notes_reception(self, obj):
         return obj.remarques or ''

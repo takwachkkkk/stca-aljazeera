@@ -16,7 +16,7 @@ LigneAnalyseLabo _ligne({required bool recuPhysiquement}) => LigneAnalyseLabo(
 
 void main() {
   testWidgets(
-    'un échantillon non reçu désactive urgent et affiche son statut',
+    'non reçu : cloche seule, inactive, sans texte de statut ni indication',
     (tester) async {
       var urgentAppele = false;
       await tester.pumpWidget(
@@ -30,30 +30,29 @@ void main() {
         ),
       );
 
-      expect(find.text('Pas encore reçu dans la société'), findsOneWidget);
-      expect(
-        find.text('Disponible après la réception physique'),
-        findsOneWidget,
-      );
-      await tester.tap(find.text('Urgent'));
+      expect(find.text('Pas encore reçu dans la société'), findsNothing);
+      expect(find.text('Disponible après la réception physique'), findsNothing);
+      expect(find.text('Urgent'), findsNothing);
+      await tester.tap(find.byIcon(Icons.notifications_outlined));
       expect(urgentAppele, isFalse);
     },
   );
 
-  testWidgets('un échantillon reçu sans analyse est en attente', (
-    tester,
-  ) async {
+  testWidgets("reçu : la cloche demande l'analyse urgente", (tester) async {
+    var urgentAppele = false;
     await tester.pumpWidget(
       MaterialApp(
         home: Scaffold(
           body: AnalyseCard(
             analyse: _ligne(recuPhysiquement: true),
-            onUrgentLabo: () {},
+            onUrgentLabo: () => urgentAppele = true,
           ),
         ),
       ),
     );
 
-    expect(find.text("En attente d'analyse"), findsOneWidget);
+    expect(find.text("En attente d'analyse"), findsNothing);
+    await tester.tap(find.byIcon(Icons.notifications_outlined));
+    expect(urgentAppele, isTrue);
   });
 }

@@ -2,6 +2,7 @@
 // FILE : collecteur/pages/mes_echantillons/mes_echantillons_page.dart
 // ═════════════════════════════════════════════════════════════════════════════
 
+import 'package:project3/core/utils/date_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:project3/core/widgets/messagerie/conversations_page.dart';
@@ -197,7 +198,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
     if (selectionId != null) {
       return _echantillons.where((e) => e.id == selectionId).toList();
     }
-    return _echantillons.where((e) {
+    return DegDateUtils.plusRecentsDabord(_echantillons.where((e) {
       final q = _recherche.toLowerCase();
       final matchRecherche =
           _recherche.isEmpty ||
@@ -226,7 +227,7 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
         fin: _dateFin,
       );
       return matchRecherche && matchStatut && matchDate;
-    }).toList();
+    }), (e) => e.dateAjout.toIso8601String());
   }
 
   void _onModifier(EchantillonCollecteur e) {

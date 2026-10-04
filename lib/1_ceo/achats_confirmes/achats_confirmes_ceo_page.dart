@@ -163,7 +163,7 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage>
     } else if (_activeFilter == 'transit') {
       result = result.where((e) => !e.stockArrive).toList();
     }
-    return result;
+    return DegDateUtils.plusRecentsDabord(result, (e) => e.dateAjout);
   }
 
   Future<void> _showDateFilter() async {

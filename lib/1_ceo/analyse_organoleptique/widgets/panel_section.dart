@@ -26,6 +26,7 @@ class PanelSection extends StatelessWidget {
   /// chevron, liste des dégustateurs — est identique, pour que les deux écrans
   /// se ressemblent exactement.
   final bool showDecisions;
+  final bool showRecu;
 
   final VoidCallback? onApprouver;
   final VoidCallback? onRefuser;
@@ -39,6 +40,7 @@ class PanelSection extends StatelessWidget {
     required this.onToggle,
     required this.onViewForm,
     this.showDecisions = true,
+    this.showRecu = true,
     this.onApprouver,
     this.onRefuser,
     this.isUrgent = false,
@@ -92,6 +94,8 @@ class PanelSection extends StatelessWidget {
                     ),
                   ),
                 const Spacer(),
+                if (showRecu)
+                  RecuPhysiqueIndicator(recuPhysiquement: e.recuPhysiquement),
                 if (showDecisions)
                   Tooltip(
                     message: 'Demander en urgence',
@@ -127,8 +131,6 @@ class PanelSection extends StatelessWidget {
                       ),
                     ),
                   ),
-                const SizedBox(width: 4),
-                RecuPhysiqueIndicator(recuPhysiquement: e.recuPhysiquement),
                 const SizedBox(width: 8),
                 AnimatedRotation(
                   turns: isExpanded ? 0.5 : 0.0,

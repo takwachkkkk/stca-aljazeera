@@ -1,3 +1,4 @@
+import 'package:project3/core/utils/date_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'models/echantillon_labo.dart';
@@ -119,7 +120,7 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage>
 
   // ── Filter logic ───────────────────────────────────────────────────────────
   List<EchantillonLabo> get _filtres {
-    return _echantillons.where((e) {
+    return DegDateUtils.plusRecentsDabord(_echantillons.where((e) {
       final q = _recherche.toLowerCase();
       final matchSearch =
           _recherche.isEmpty ||
@@ -132,7 +133,7 @@ class _EchantillonsLaboPageState extends State<EchantillonsLaboPage>
       final matchStatut =
           _filtreStatut == null || e.statutAnalyse == _filtreStatut;
       return matchSearch && matchStatut;
-    }).toList();
+    }), (e) => e.dateAjout);
   }
 
   // ── Actions ────────────────────────────────────────────────────────────────
