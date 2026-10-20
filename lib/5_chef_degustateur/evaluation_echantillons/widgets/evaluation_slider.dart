@@ -207,7 +207,9 @@ class EvaluationSlider extends StatelessWidget {
                         min: 0.0,
                         max: _maxValeur,
                         divisions: (_maxValeur / kPasSlider).round(),
-                        onChanged: readOnly ? null : onChanged,
+                        onChanged: readOnly
+                            ? null
+                            : (v) => onChanged((v * 10).round() / 10),
                       ),
                     ),
 

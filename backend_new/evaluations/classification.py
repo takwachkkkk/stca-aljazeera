@@ -10,9 +10,9 @@ Les deux implementations sont couvertes par le meme jeu de cas de test.
 """
 
 # Echelles de saisie
-MAX_POSITIF = 5.0   # fruite / amertume / piquant — PR-48
+MAX_POSITIF = 10.0  # fruite / amertume / piquant — saisie 0-10 ; seuils de classe PR-48 inchanges (ecrits pour 0-5)
 MAX_DEFAUT = 10.0   # defauts — echelle COI, absente du PR-48
-PAS_SLIDER = 0.5
+PAS_SLIDER = 0.1
 
 # Categories COI
 EXTRA_VIERGE = 'extra_vierge'

@@ -318,7 +318,7 @@ class SessionConfirmerPresenceView(APIView):
             SessionDegustation.Statut.EN_COURS,
         ):
             return Response(
-                {'detail': "Cette session n'est pas encore approuvée par le chef."},
+                {'detail': "Cette session n'est pas encore approuvée."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         if _session_is_past(session):

@@ -22,7 +22,16 @@ class CollecteurDrawer extends StatelessWidget {
       CollecteurDestination.messagerie => const ConversationsPage(),
       CollecteurDestination.profil => const ProfileCollecteurPage(),
     };
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => page));
+    // La messagerie s'ouvre PAR-DESSUS la page courante : sa flèche de
+    // retour ramène à la page d'où l'on vient (elle n'a pas de menu).
+    if (destination == CollecteurDestination.messagerie) {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => page));
+    } else {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => page),
+      );
+    }
   }
 
   @override

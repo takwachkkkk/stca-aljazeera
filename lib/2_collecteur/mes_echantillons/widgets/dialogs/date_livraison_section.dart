@@ -106,6 +106,51 @@ class DateLivraisonSection extends StatelessWidget {
     return periodeDebut != null && periodeFin != null;
   }
 
+  /// « Date précise » : ouvre le calendrier. Annuler ne change rien.
+  Future<void> _choisirDateExacte(BuildContext context) async {
+    final dt = await _pickDate(context, initial: dateExacte);
+    if (dt == null) return;
+    onModeChanged(ModePlanificationUI.dateExacte);
+    onDateExacteChanged(dt);
+  }
+
+  /// « Période estimée » : un seul calendrier, date de début puis de fin.
+  Future<void> _choisirPeriode(BuildContext context) async {
+    final maintenant = DateTime.now();
+    final aujourdhui = DateTime(
+      maintenant.year,
+      maintenant.month,
+      maintenant.day,
+    );
+    final debut = periodeDebut;
+    final fin = periodeFin;
+    final plage = await showDateRangePicker(
+      context: context,
+      firstDate: aujourdhui,
+      lastDate: DateTime(2130),
+      initialDateRange:
+          debut != null && fin != null && !debut.isBefore(aujourdhui)
+          ? DateTimeRange(start: debut, end: fin)
+          : null,
+      helpText: 'Période de livraison',
+      saveText: 'Valider',
+      builder: (c, child) => Theme(
+        data: Theme.of(c).copyWith(
+          colorScheme: const ColorScheme.light(
+            primary: kGreen,
+            onPrimary: Colors.white,
+            onSurface: kDarkText,
+          ),
+        ),
+        child: child!,
+      ),
+    );
+    if (plage == null) return;
+    onModeChanged(ModePlanificationUI.periode);
+    onPeriodeDebutChanged(plage.start);
+    onPeriodeFinChanged(plage.end);
+  }
+
   String get _summaryText {
     if (mode == ModePlanificationUI.dateExacte && dateExacte != null) {
       return 'Livraison prévue le ${_fmtDateTime(dateExacte!)}';
@@ -152,52 +197,75 @@ class DateLivraisonSection extends StatelessWidget {
                 label: 'Date précise',
                 icon: Icons.event_outlined,
                 selected: mode == ModePlanificationUI.dateExacte,
-                onTap: () => onModeChanged(ModePlanificationUI.dateExacte),
+                onTap: () => _choisirDateExacte(context),
               ),
               _ModeTab(
                 label: 'Période estimée',
                 icon: Icons.date_range_outlined,
                 selected: mode == ModePlanificationUI.periode,
-                onTap: () => onModeChanged(ModePlanificationUI.periode),
+                onTap: () => _choisirPeriode(context),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 12),
 
-        if (mode == ModePlanificationUI.dateExacte)
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Date d'arrivage prévue",
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.grey.shade500,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: _DatePickerButton(
-                      date: dateExacte,
-                      hint: 'Sélectionner une date',
-                      onTap: () async {
-                        final dt = await _pickDate(
-                          context,
-                          initial: dateExacte,
-                        );
-                        if (dt != null) onDateExacteChanged(dt);
-                      },
-                      fmt: _fmtDateTime,
+        // Plus de cases « Date d'arrivage prévue » / « À partir du – Jusqu'au » :
+        // toucher un des deux boutons ouvre directement le calendrier, et la
+        // date choisie s'affiche ici (touchable pour la changer).
+        const SizedBox(height: 10),
+        if (_isFilled)
+          Container(
+            decoration: BoxDecoration(
+              color: kGreen.withValues(alpha: 0.07),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: kGreen.withValues(alpha: 0.2)),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(8),
+                    onTap: () => mode == ModePlanificationUI.dateExacte
+                        ? _choisirDateExacte(context)
+                        : _choisirPeriode(context),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.check_circle_outline,
+                            color: kGreen,
+                            size: 14,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              _summaryText,
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: kGreen.withValues(alpha: 0.9),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                          const Icon(
+                            Icons.edit_outlined,
+                            color: kGreen,
+                            size: 14,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  if (dateExacte != null) ...[
-                    const SizedBox(width: 8),
-                    _TimeIconButton(
+                ),
+                if (mode == ModePlanificationUI.dateExacte)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 6),
+                    child: _TimeIconButton(
+                      small: true,
                       hasTime: dateExacte!.hour != 0 || dateExacte!.minute != 0,
                       onTap: () async {
                         final dt = await _pickTime(
@@ -207,166 +275,15 @@ class DateLivraisonSection extends StatelessWidget {
                         if (dt != null) onDateExacteChanged(dt);
                       },
                     ),
-                  ],
-                ],
-              ),
-            ],
-          ),
-
-        if (mode == ModePlanificationUI.periode)
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Période d'arrivage prévue",
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.grey.shade500,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'À partir du',
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: Colors.grey.shade400,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        _DatePickerButton(
-                          date: periodeDebut,
-                          hint: 'Choisir...',
-                          onTap: () async {
-                            final dt = await _pickDate(
-                              context,
-                              initial: periodeDebut,
-                            );
-                            if (dt == null) return;
-                            onPeriodeDebutChanged(dt);
-                            if (periodeFin != null &&
-                                periodeFin!.isBefore(dt)) {
-                              onPeriodeFinChanged(dt);
-                            }
-                          },
-                          fmt: _fmtDateTime,
-                        ),
-                        if (periodeDebut != null) ...[
-                          const SizedBox(height: 4),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: _TimeIconButton(
-                              small: true,
-                              hasTime:
-                                  periodeDebut!.hour != 0 ||
-                                  periodeDebut!.minute != 0,
-                              onTap: () async {
-                                final dt = await _pickTime(
-                                  context,
-                                  dateBase: periodeDebut!,
-                                );
-                                if (dt != null) onPeriodeDebutChanged(dt);
-                              },
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.only(top: 18, left: 8, right: 8),
-                    child: Icon(Icons.arrow_forward, color: kOlive, size: 16),
-                  ),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Jusqu'au",
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: Colors.grey.shade400,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        _DatePickerButton(
-                          date: periodeFin,
-                          hint: 'Choisir...',
-                          onTap: () async {
-                            final dt = await _pickDate(
-                              context,
-                              initial:
-                                  periodeFin ?? periodeDebut ?? DateTime.now(),
-                            );
-                            if (dt == null) return;
-                            onPeriodeFinChanged(dt);
-                            if (periodeDebut != null &&
-                                dt.isBefore(periodeDebut!)) {
-                              onPeriodeDebutChanged(dt);
-                            }
-                          },
-                          fmt: _fmtDateTime,
-                        ),
-                        if (periodeFin != null) ...[
-                          const SizedBox(height: 4),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: _TimeIconButton(
-                              small: true,
-                              hasTime:
-                                  periodeFin!.hour != 0 ||
-                                  periodeFin!.minute != 0,
-                              onTap: () async {
-                                final dt = await _pickTime(
-                                  context,
-                                  dateBase: periodeFin!,
-                                );
-                                if (dt != null) onPeriodeFinChanged(dt);
-                              },
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-
-        if (_isFilled) ...[
-          const SizedBox(height: 10),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: kGreen.withValues(alpha: 0.07),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: kGreen.withValues(alpha: 0.2)),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.check_circle_outline, color: kGreen, size: 14),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    _summaryText,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: kGreen.withValues(alpha: 0.9),
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
               ],
             ),
+          )
+        else
+          Text(
+            'Touchez « Date précise » ou « Période estimée » pour choisir.',
+            style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
           ),
-        ],
       ],
     );
   }
@@ -708,63 +625,6 @@ class _TimeIconButton extends StatelessWidget {
             size: small ? 14 : 16,
             color: hasTime ? kGreen : Colors.grey.shade400,
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _DatePickerButton extends StatelessWidget {
-  final DateTime? date;
-  final String hint;
-  final VoidCallback onTap;
-  final String Function(DateTime) fmt;
-
-  const _DatePickerButton({
-    required this.date,
-    required this.hint,
-    required this.onTap,
-    required this.fmt,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final has = date != null;
-    final hasTime = has && (date!.hour != 0 || date!.minute != 0);
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 12),
-        decoration: BoxDecoration(
-          color: has ? kGreen.withValues(alpha: 0.06) : Colors.white,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: has ? kGreen.withValues(alpha: 0.4) : Colors.grey.shade200,
-            width: has ? 1.5 : 1.0,
-          ),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              hasTime
-                  ? Icons.access_time_rounded
-                  : Icons.calendar_today_outlined,
-              size: 15,
-              color: has ? kGreen : Colors.grey.shade400,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                has ? fmt(date!) : hint,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: has ? FontWeight.w700 : FontWeight.w400,
-                  color: has ? kDarkText : Colors.grey.shade400,
-                ),
-              ),
-            ),
-          ],
         ),
       ),
     );

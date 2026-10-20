@@ -81,7 +81,7 @@ class AnalyseLaboSerializer(serializers.ModelSerializer):
 
         if not echantillon.recu_physiquement:
             raise serializers.ValidationError(
-                {'echantillon': ['Seuls les echantillons recus physiquement peuvent etre analyses.']}
+                {'echantillon': ['Seuls les échantillons dont la réception est confirmée peuvent être analysés.']}
             )
 
         duplicate = AnalyseLabo.objects.filter(echantillon=echantillon)

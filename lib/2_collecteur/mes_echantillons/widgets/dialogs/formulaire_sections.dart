@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/services/variete_service.dart';
 import '../../../../core/widgets/champ_autocomplete.dart';
+import '../../../../core/widgets/champ_varietes.dart';
 import 'formulaire_decorations.dart';
 import 'bouteille_row.dart';
 
@@ -455,12 +456,9 @@ class _BouteilleCard extends StatelessWidget {
               Expanded(
                 // Free text with suggestions — never a closed list. The
                 // collector must be able to write a variety nobody used before.
-                child: ChampAutocomplete<String>(
+                child: ChampVarietes(
                   controller: row.varieteCtrl,
                   label: 'Variété',
-                  hint: 'Chemlali, Chetoui...',
-                  chercher: VarieteService.instance.suggest,
-                  libelle: (v) => v,
                 ),
               ),
             ],

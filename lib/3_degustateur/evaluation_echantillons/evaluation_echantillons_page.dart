@@ -208,6 +208,7 @@ class _EvaluationEchantillonsPageState extends State<EvaluationEchantillonsPage>
       MaterialPageRoute(
         builder: (_) => FormulaireEvaluationPage(
           echantillonId: e.id,
+          numero: e.numero,
           fournisseur: e.fournisseur,
           variete: e.variete,
           origine: e.gouvernorat ?? 'Non spécifiée',
@@ -232,6 +233,7 @@ class _EvaluationEchantillonsPageState extends State<EvaluationEchantillonsPage>
       MaterialPageRoute(
         builder: (_) => FormulaireEvaluationPage(
           echantillonId: e.id,
+          numero: e.numero,
           fournisseur: e.fournisseur,
           variete: e.variete,
           origine: e.gouvernorat ?? 'Non spécifiée',

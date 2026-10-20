@@ -38,13 +38,19 @@ List<Widget> detailsEchantillon({
       'Enregistré le',
       DegDateUtils.formaterDateHeureOuTiret(dateAjout),
     ),
-    DetailItem('Reçu physiquement', recuPhysiquement ? 'Oui' : 'Non'),
+    DetailItem(
+      "Confirmation réception d'échantillon",
+      recuPhysiquement ? 'Oui' : 'Non',
+    ),
     DetailItem(
       'Arrivée prévue',
       DegDateUtils.formaterDateHeureOuTiret(dateArrivee),
     ),
     if (recuPhysiquement && rempli(dateReception))
-      DetailItem('Reçu le', DegDateUtils.formaterDateHeureOuTiret(dateReception)),
+      DetailItem(
+        'Reçu le',
+        DegDateUtils.formaterDateHeureOuTiret(dateReception),
+      ),
     DetailItem(
       'Livraison du stock',
       DegDateUtils.formaterDateHeureOuTiret(dateLivraisonStock),

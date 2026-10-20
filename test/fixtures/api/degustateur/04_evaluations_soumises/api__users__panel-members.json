@@ -7,19 +7,19 @@
     "previous": null,
     "results": [
       {
-        "id": "63f488ef-9e97-454a-843f-c5303af015b7",
+        "id": "a0eef613-a263-4de8-83a1-29a4603674eb",
         "nom": "Chef",
         "prenom": "Audit",
-        "role": "Chef de Dégustation",
-        "membre_depuis": "Sep 2026",
+        "role": "Dégustateur",
+        "membre_depuis": "Oct 2026",
         "est_en_ligne": true
       },
       {
-        "id": "2a194f2b-1417-4fd0-9509-5eeab7e07d76",
+        "id": "a85e78da-449a-455c-aaf7-6d82c001372a",
         "nom": "Degustateur",
         "prenom": "Audit",
         "role": "Dégustateur",
-        "membre_depuis": "Sep 2026",
+        "membre_depuis": "Oct 2026",
         "est_en_ligne": true
       }
     ]

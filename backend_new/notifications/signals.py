@@ -137,9 +137,9 @@ def on_echantillon_saved(sender, instance, created, **kwargs):
         _notify(
             recipients,
             Notification.Type.ECHANTILLON_RECU,
-            'Echantillon recu physiquement',
+            "Confirmation réception d'échantillon",
             (
-                f"L'echantillon {ref} a ete marque comme recu physiquement "
+                f"La réception de l'échantillon {ref} a été confirmée "
                 f"le {now.strftime('%d/%m/%Y a %H:%M')}."
             ),
             echantillon=instance,

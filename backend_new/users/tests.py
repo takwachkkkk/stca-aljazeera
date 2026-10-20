@@ -213,7 +213,9 @@ class ChangePasswordApiTests(APITestCase):
     def test_change_password_rejects_each_invalid_new_password_rule(self):
         self.client.force_authenticate(user=self.user)
 
-        for invalid_password in ('Ab@1', 'Nouveau@', 'Nouveau1'):
+        # Trop court, sans chiffre, sans lettre (le caractere special est
+        # facultatif depuis la tache 59).
+        for invalid_password in ('Ab@1', 'Nouveau@', '123456@'):
             with self.subTest(password=invalid_password):
                 response = self.client.post(
                     '/api/users/me/changer-mot-de-passe/',
@@ -225,6 +227,20 @@ class ChangePasswordApiTests(APITestCase):
                 )
                 self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
                 self.assertIn('nouveau_mot_de_passe', response.data)
+
+    def test_change_password_accepts_letters_and_digits_only(self):
+        self.client.force_authenticate(user=self.user)
+
+        response = self.client.post(
+            '/api/users/me/changer-mot-de-passe/',
+            {
+                'ancien_mot_de_passe': 'Ancien@123',
+                'nouveau_mot_de_passe': 'abc123',
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
 
     def test_change_password_rejects_same_password(self):
         self.client.force_authenticate(user=self.user)
@@ -346,7 +362,7 @@ class ForgotPasswordApiTests(APITestCase):
 
         response = self.client.post(
             '/api/auth/mot-de-passe-oublie/nouveau/',
-            {'jeton': token, 'nouveau_mot_de_passe': 'Nouveau1'},
+            {'jeton': token, 'nouveau_mot_de_passe': 'Nouveau'},
             format='json',
         )
 
@@ -772,3 +788,27 @@ class UserManagementApiTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertTrue(User.objects.filter(pk=self.chef.pk).exists())
+
+
+class ChefAnonymePourDegustateursTests(PanelMemberApiTests):
+    """Un degustateur ne doit pas savoir qui est le chef du panel."""
+
+    def _role_du_chef(self, lecteur):
+        self.client.force_authenticate(user=lecteur)
+        response = self.client.get('/api/users/panel-members/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        return next(
+            item['role'] for item in response.data['results']
+            if item['id'] == str(self.chef.id)
+        )
+
+    def test_degustateur_voit_le_chef_comme_degustateur(self):
+        self.assertEqual(
+            self._role_du_chef(self.degustateur), User.Role.DEGUSTATEUR.label,
+        )
+
+    def test_collecteur_voit_le_vrai_role(self):
+        self.assertEqual(
+            self._role_du_chef(self.collecteur),
+            User.Role.CHEF_DEGUSTATION.label,
+        )

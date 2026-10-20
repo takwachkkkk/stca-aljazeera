@@ -68,7 +68,11 @@ class CeoDrawer extends StatelessWidget {
       CeoDestination.messagerie => const ConversationsPage(),
       CeoDestination.profil => const ProfilceoPage(),
     };
-    if (destination == CeoDestination.accueil) {
+    // La messagerie s'ouvre PAR-DESSUS la page courante : sa flèche de
+    // retour ramène à la page d'où l'on vient (elle n'a pas de menu).
+    if (destination == CeoDestination.messagerie) {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => page));
+    } else if (destination == CeoDestination.accueil) {
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => page),

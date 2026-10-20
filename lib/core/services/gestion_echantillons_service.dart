@@ -39,6 +39,8 @@ Map<String, dynamic> echantillonApiToGestionFlutterMap(
     'classification': api['classification'],
     'remarques': api['remarques'],
     'remarque_collecteur': api['remarque_collecteur'],
+    // Calculé par le serveur pour l'utilisateur connecté (droits de modification).
+    'modifiable': api['modifiable'] ?? false,
     'date_ajout': api['date_ajout'] ?? '',
     'updated_at': api['updated_at'],
   };

@@ -4,7 +4,7 @@ from rest_framework import serializers
 from . import classification as pr48
 from .models import EvaluationOrganoleptique
 
-# Attributs positifs — echelle 0-5 (PR-48)
+# Attributs positifs — echelle 0-10 (seuils PR-48 inchanges)
 CHAMPS_POSITIFS = ('fruite', 'amertume', 'piquant')
 # Defauts — echelle 0-10 (COI, hors perimetre du PR-48)
 CHAMPS_DEFAUTS = ('chome', 'moisi', 'vinaigre', 'rance', 'gele', 'autres_defaut')

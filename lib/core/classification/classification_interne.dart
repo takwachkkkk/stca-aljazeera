@@ -17,13 +17,14 @@
 import '../models/enums.dart';
 
 // ── Échelles de saisie ───────────────────────────────────────────────────────
-/// Fruité, amertume, piquant — échelle du PR-48.
-const double kMaxPositif = 5.0;
+/// Fruité, amertume, piquant — échelle 0–10. La grille PR-48 reste écrite
+/// pour 0–5 ; les seuils de classe ne sont pas modifiés ici.
+const double kMaxPositif = 10.0;
 
 /// Défauts — échelle COI, absente du PR-48, donc inchangée.
 const double kMaxDefaut = 10.0;
 
-const double kPasSlider = 0.5;
+const double kPasSlider = 0.1;
 
 /// Classes que le PR-48 §9 interdit à une huile au profil non harmonieux.
 const List<ClasseInterne> kClassesSoumisesAHarmonie = [

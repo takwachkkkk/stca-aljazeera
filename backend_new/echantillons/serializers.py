@@ -18,13 +18,14 @@ class EchantillonSerializer(serializers.ModelSerializer):
         required=False,
         allow_null=True,
     )
+    modifiable = serializers.SerializerMethodField()
 
     class Meta:
         model = Echantillon
         fields = [
             'id', 'numero', 'reference_bouteille',
             'fournisseur', 'fournisseur_nom',
-            'collecteur', 'collecteur_nom',
+            'collecteur', 'collecteur_nom', 'modifiable',
             'gouvernorat', 'delegation', 'cite',
             'variete', 'num_citerne', 'quantite_estimee', 'image_url',
             'statut_collecteur', 'statut_degustateur', 'statut_labo', 'statut_ceo',
@@ -59,7 +60,25 @@ class EchantillonSerializer(serializers.ModelSerializer):
             'remarques': {'required': False, 'allow_blank': True},
         }
 
+    # Champs texte facultatifs : l'application envoie null quand la case est
+    # vide. Sans cette conversion, toute modification d'un echantillon sans
+    # delegation, cite, remarques... echouait avec « Ce champ ne peut etre nul ».
+    CHAMPS_TEXTE_FACULTATIFS = (
+        'gouvernorat', 'delegation', 'cite', 'variete', 'num_citerne',
+        'quantite_estimee', 'remarques', 'remarque_collecteur', 'camion_reserve',
+        'note_interne', 'raison_refus', 'classification',
+    )
+
     def to_internal_value(self, data):
+        # JSON seulement : un QueryDict (multipart) n'envoie jamais null.
+        if isinstance(data, dict) and not hasattr(data, 'getlist'):
+            data = dict(data)
+            for champ in self.CHAMPS_TEXTE_FACULTATIFS:
+                if champ in data and data[champ] is None:
+                    data[champ] = ''
+            # image_url null = « pas de nouvelle photo » : on garde l'ancienne.
+            if data.get('image_url', '') is None:
+                data.pop('image_url')
         if hasattr(data, 'get'):
             raw = data.get('fournisseur_nom') or ''
             self._extra_fournisseur_nom = raw.strip() if isinstance(raw, str) else ''
@@ -137,3 +156,16 @@ class EchantillonSerializer(serializers.ModelSerializer):
         if obj.collecteur:
             return f"{obj.collecteur.prenom} {obj.collecteur.nom}"
         return None
+
+    def get_modifiable(self, obj):
+        request = self.context.get('request')
+        user = getattr(request, 'user', None)
+        if not user or not user.is_authenticated:
+            return False
+        if user.role == User.Role.CHEF_DEGUSTATION:
+            return True
+        return (
+            user.role == User.Role.DEGUSTATEUR
+            and obj.enregistre_par_id == user.id
+            and not obj.recu_physiquement
+        )

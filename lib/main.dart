@@ -496,40 +496,6 @@ class _LoginPageState extends State<LoginPage> {
 
                   const SizedBox(height: 20),
 
-                  // ── DEBUG buttons — remove before final delivery ──────
-                  Text(
-                    'DEBUG ACCESS',
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: Colors.grey.shade400,
-                      letterSpacing: 1,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 4,
-                    alignment: WrapAlignment.center,
-                    children: [
-                      _debugBtn('Direction', () => _goTo(const HomePageCeo())),
-                      _debugBtn('Dégustateur', () => _goTo(const HomePage())),
-                      _debugBtn(
-                        'Collecteur',
-                        () => _goTo(const MesEchantillonsPage()),
-                      ),
-
-                      _debugBtn(
-                        'Technicien labo',
-                        () => _goTo(const EchantillonsLaboPage()),
-                      ),
-                      _debugBtn(
-                        'Chef de Dégustation',
-                        () => _goTo(const chef.HomePage()),
-                      ),
-                    ],
-                  ),
-
-                  // ── END DEBUG ─────────────────────────────────────────
                   const SizedBox(height: 30),
                 ],
               ),
@@ -546,21 +512,6 @@ class _LoginPageState extends State<LoginPage> {
       width: size,
       height: size,
       decoration: BoxDecoration(shape: BoxShape.circle, color: color),
-    );
-  }
-
-  Widget _debugBtn(String label, VoidCallback onTap) {
-    return TextButton(
-      onPressed: onTap,
-      style: TextButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        backgroundColor: Colors.grey.shade100,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
-      ),
     );
   }
 

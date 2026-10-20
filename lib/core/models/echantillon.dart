@@ -69,6 +69,7 @@ class Echantillon {
   // ── Shared notes ──────────────────────────────────────────────────────────────
   String? remarques;
   final String? remarqueCollecteur; // collector's purchase remark — read-only here
+  final bool modifiable;
 
   // ── Timestamps ────────────────────────────────────────────────────────────────
   final String dateAjout; // ISO 8601 — set by the server on creation
@@ -107,6 +108,7 @@ class Echantillon {
     this.classification,
     this.remarques,
     this.remarqueCollecteur,
+    this.modifiable = false,
     required this.dateAjout,
     this.updatedAt,
   });
@@ -171,6 +173,7 @@ class Echantillon {
         : null,
     remarques: json['remarques'] as String?,
     remarqueCollecteur: json['remarque_collecteur'] as String?,
+    modifiable: (json['modifiable'] as bool?) ?? false,
     dateAjout: json['date_ajout'] as String,
     updatedAt: json['updated_at'] as String?,
   );
@@ -209,6 +212,7 @@ class Echantillon {
     'classification': classification?.toJson,
     'remarques': remarques,
     'remarque_collecteur': remarqueCollecteur,
+    'modifiable': modifiable,
     'date_ajout': dateAjout,
     'updated_at': updatedAt,
     // Note: fournisseurTexte, fournisseurNom, collecteurNom are read-only

@@ -379,8 +379,9 @@ class CollectorEchantillonApiTests(APITestCase):
         self.assertEqual(sample.gouvernorat, '')
 
     def test_update_without_supplier_fields_keeps_the_existing_supplier(self):
-        # Le degustateur qui corrige une variete envoie sa mise a jour sans
-        # aucun champ fournisseur. Le lien doit survivre : l'effacer ici
+        # Le chef qui corrige une variete envoie sa mise a jour sans
+        # aucun champ fournisseur (depuis la tache 59, un degustateur ne
+        # modifie plus l'echantillon d'un collecteur). Le lien doit survivre : l'effacer ici
         # supprimerait le fournisseur d'un echantillon sans que personne ne le
         # demande, et sans qu'aucun message ne le signale.
         supplier = Fournisseur.objects.create(
@@ -402,7 +403,7 @@ class CollectorEchantillonApiTests(APITestCase):
         self.assertEqual(created.status_code, status.HTTP_201_CREATED)
         sample_id = created.data['id']
 
-        self.authenticate(self.degustateur)
+        self.authenticate(self.chef)
         response = self.client.patch(
             f'/api/echantillons/{sample_id}/',
             {'variete': 'Chetoui'},
@@ -1182,7 +1183,10 @@ class PhotoModificationTests(APITestCase):
         self.sample = Echantillon.objects.create(
             reference_bouteille='PHOTO-001',
             gouvernorat='Sfax',
-            recu_physiquement=True,
+            # Enregistre par ce degustateur et pas encore recu : il a le droit
+            # de le modifier (tache 59).
+            enregistre_par=self.degustateur,
+            recu_physiquement=False,
         )
 
     def tearDown(self):
@@ -1202,3 +1206,110 @@ class PhotoModificationTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
         self.sample.refresh_from_db()
         self.assertIn('echantillons/', self.sample.image_url)
+
+
+class ModificationChampsVidesTests(APITestCase):
+    """L'application envoie null pour les champs texte vides : la modification doit passer."""
+
+    def setUp(self):
+        self.chef = User.objects.create_user(
+            email='modif.chef@example.com',
+            password='Test@12345',
+            nom='Chef',
+            prenom='Modif',
+            role=User.Role.CHEF_DEGUSTATION,
+        )
+        self.sample = Echantillon.objects.create(
+            reference_bouteille='REF-1',
+            gouvernorat='Sfax',
+            image_url='/media/echantillons/ancienne.jpg',
+        )
+
+    def test_modification_avec_champs_null(self):
+        self.client.force_authenticate(user=self.chef)
+        response = self.client.patch(
+            f'/api/echantillons/{self.sample.id}/',
+            {
+                'gouvernorat': 'Sfax',
+                'delegation': None,
+                'cite': None,
+                'reference_bouteille': 'REF-1',
+                'num_citerne': None,
+                'quantite_estimee': None,
+                'variete': None,
+                'remarques': None,
+                'image_url': None,
+                'statut_collecteur': self.sample.statut_collecteur,
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+        self.sample.refresh_from_db()
+        self.assertEqual(self.sample.delegation, '')
+        # image_url null ne doit pas effacer la photo existante.
+        self.assertEqual(self.sample.image_url, '/media/echantillons/ancienne.jpg')
+
+
+class DroitsModificationDegustateursTests(APITestCase):
+    """Le chef modifie tout ; un degustateur seulement ses echantillons non recus."""
+
+    def setUp(self):
+        def creer(email, role):
+            return User.objects.create_user(
+                email=email, password='Test@12345', nom='N', prenom='P', role=role,
+            )
+
+        self.chef = creer('droits.chef@example.com', User.Role.CHEF_DEGUSTATION)
+        self.deg_a = creer('droits.a@example.com', User.Role.DEGUSTATEUR)
+        self.deg_b = creer('droits.b@example.com', User.Role.DEGUSTATEUR)
+
+    def _creer(self, user):
+        self.client.force_authenticate(user=user)
+        response = self.client.post(
+            '/api/echantillons/',
+            {'reference_bouteille': 'REF-D', 'gouvernorat': 'Sfax'},
+            format='json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
+        return Echantillon.objects.get(pk=response.data['id'])
+
+    def _modifier(self, user, sample):
+        self.client.force_authenticate(user=user)
+        return self.client.patch(
+            f'/api/echantillons/{sample.id}/', {'variete': 'Chemlali'}, format='json',
+        )
+
+    def test_enregistre_par_est_rempli(self):
+        sample = self._creer(self.deg_a)
+        self.assertEqual(sample.enregistre_par, self.deg_a)
+
+    def test_degustateur_modifie_le_sien_avant_reception(self):
+        sample = self._creer(self.deg_a)
+        sample.recu_physiquement = False
+        sample.save(update_fields=['recu_physiquement'])
+        response = self._modifier(self.deg_a, sample)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+        self.assertTrue(response.data['modifiable'])
+
+    def test_degustateur_ne_modifie_pas_celui_d_un_autre(self):
+        sample = self._creer(self.deg_b)
+        sample.recu_physiquement = False
+        sample.save(update_fields=['recu_physiquement'])
+        response = self._modifier(self.deg_a, sample)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_degustateur_ne_modifie_plus_apres_reception(self):
+        sample = self._creer(self.deg_a)
+        sample.recu_physiquement = True
+        sample.save(update_fields=['recu_physiquement'])
+        response = self._modifier(self.deg_a, sample)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_chef_modifie_tout(self):
+        sample = self._creer(self.deg_b)
+        sample.recu_physiquement = True
+        sample.save(update_fields=['recu_physiquement'])
+        response = self._modifier(self.chef, sample)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+        self.assertTrue(response.data['modifiable'])

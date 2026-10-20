@@ -17,6 +17,7 @@ import '../../../../core/services/variete_service.dart';
 import '../../../../core/utils/reference_bouteille.dart';
 import '../../../../core/utils/validation_echantillon_formulaire.dart';
 import '../../../../core/widgets/champ_autocomplete.dart';
+import '../../../../core/widgets/champ_varietes.dart';
 import '../../../../core/widgets/dialog_reference_bouteille.dart';
 import '../../../../core/widgets/photo_plein_ecran.dart';
 import '../../../../core/widgets/saisie_protegee.dart';
@@ -1126,15 +1127,12 @@ class _BouteilleCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
 
-          ChampAutocomplete<String>(
+          ChampVarietes(
             label: "Variété d'olive",
             titre: const _InlineLabel(label: "Variété d'olive"),
             controller: row.varieteCtrl,
-            decoration: _fieldDec('Chemlali, Chetoui...'),
+            decoration: _fieldDec('Chemlali, Chétoui...'),
             styleTexte: const TextStyle(fontSize: 13, color: kDarkText),
-            hint: 'Chemlali, Chetoui...',
-            chercher: VarieteService.instance.suggest,
-            libelle: (v) => v,
           ),
           const SizedBox(height: 8),
 

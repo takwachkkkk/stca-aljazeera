@@ -10,8 +10,8 @@ List<String> passwordValidationRulesNotMet(String? value) {
   if (!value.contains(RegExp(r'[0-9]'))) {
     rules.add('Au moins un chiffre.');
   }
-  if (!value.contains(RegExp(r'[^a-zA-Z0-9]'))) {
-    rules.add('Au moins un caractère spécial.');
+  if (!value.contains(RegExp(r'[a-zA-ZÀ-ÿ]'))) {
+    rules.add('Au moins une lettre.');
   }
   return rules;
 }
@@ -22,5 +22,5 @@ String? validatePassword(String? value) {
   if (value == null || value.isEmpty) {
     return 'Le champ mot de passe est obligatoire';
   }
-  return 'Le mot de passe doit contenir au moins 6 caractères, un chiffre et un caractère spécial.';
+  return 'Le mot de passe doit contenir au moins 6 caractères, dont des lettres et des chiffres.';
 }

@@ -338,7 +338,8 @@ class ClasseInterneApiTests(APITestCase):
         self.assertIsNone(evaluation.classe_interne_choisie_le)
 
     def test_fruite_hors_echelle_refuse(self):
-        response = self.poster(fruite='7.0')
+        # Echelle 0-10 depuis la tache 59.
+        response = self.poster(fruite='10.5')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn('fruite', response.json())
 

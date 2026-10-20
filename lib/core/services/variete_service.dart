@@ -12,6 +12,8 @@
 //           this decision has to be reopened.
 // ═════════════════════════════════════════════════════════════════════════════
 
+import 'dart:math' as math;
+
 import '../api_client.dart';
 import 'resultat_service.dart';
 
@@ -21,19 +23,29 @@ class VarieteService {
 
   Resultat<List<String>>? _cache;
 
-  /// Distinct varieties found on existing samples, alphabetical.
+  /// Known Tunisian varieties plus every variety already used on a sample
+  /// (a stored value « Chemlali, Chétoui » counts as two), alphabetical.
   Future<Resultat<List<String>>> fetchAll({bool forceRefresh = false}) async {
     if (!forceRefresh && _cache != null) return _cache!;
     _cache = await avecSecours(() async {
       final items = await apiClient.getList('/api/echantillons/');
       final vues = <String, String>{};
+      for (final v in _varietesConnues) {
+        vues[normaliser(v)] = v;
+      }
       for (final item in items) {
         final v = (item as Map<String, dynamic>)['variete'] as String?;
-        if (v == null || v.trim().isEmpty) continue;
-        vues.putIfAbsent(v.trim().toLowerCase(), () => v.trim());
+        if (v == null) continue;
+        for (final valeur in v.split(',')) {
+          final propre = valeur.trim();
+          if (propre.isNotEmpty) {
+            vues.putIfAbsent(normaliser(propre), () => propre);
+          }
+        }
       }
-      final liste = vues.values.toList()..sort();
-      return liste.isEmpty ? _varietesConnues : liste;
+      final liste = vues.values.toList()
+        ..sort((a, b) => normaliser(a).compareTo(normaliser(b)));
+      return liste;
     }, () => _varietesConnues);
     return _cache!;
   }
@@ -46,20 +58,28 @@ class VarieteService {
     String saisie, {
     int limite = 6,
   }) async {
-    final q = saisie.trim().toLowerCase();
     final resultat = await fetchAll();
-    if (q.isEmpty) {
-      return Resultat(
-        resultat.donnees.take(limite).toList(),
-        estDemonstration: resultat.estDemonstration,
-        messageErreur: resultat.messageErreur,
-      );
-    }
+    return Resultat(
+      suggestionsPour(saisie, resultat.donnees, limite: limite),
+      estDemonstration: resultat.estDemonstration,
+      messageErreur: resultat.messageErreur,
+    );
+  }
 
+  /// Pure filtering behind [suggest]: names starting with the input first,
+  /// then names containing it, case and accents ignored. An empty input
+  /// returns the first varieties of the list.
+  static List<String> suggestionsPour(
+    String saisie,
+    List<String> varietes, {
+    int limite = 6,
+  }) {
+    final q = normaliser(saisie.trim());
+    if (q.isEmpty) return varietes.take(limite).toList();
     final debut = <String>[];
     final ailleurs = <String>[];
-    for (final v in resultat.donnees) {
-      final n = v.toLowerCase();
+    for (final v in varietes) {
+      final n = normaliser(v);
       if (n == q) continue; // already typed in full — nothing to suggest
       if (n.startsWith(q)) {
         debut.add(v);
@@ -67,22 +87,82 @@ class VarieteService {
         ailleurs.add(v);
       }
     }
-    return Resultat(
-      [...debut, ...ailleurs].take(limite).toList(),
-      estDemonstration: resultat.estDemonstration,
-      messageErreur: resultat.messageErreur,
-    );
+    return [...debut, ...ailleurs].take(limite).toList();
   }
 
-  /// The main Tunisian olive varieties — a starting point, not a closed list.
+  /// Returns the closest known variety when the edit distance is at most 2.
+  static String? varieteProche(String saisie, List<String> connues) {
+    final cible = normaliser(saisie.trim());
+    if (cible.isEmpty) return null;
+    String? meilleure;
+    var distanceMin = 3;
+    for (final connue in connues) {
+      final distance = _distance(cible, normaliser(connue));
+      if (distance < distanceMin) {
+        distanceMin = distance;
+        meilleure = connue;
+      }
+    }
+    return meilleure;
+  }
+
+  /// Lowercase without accents — « Chétoui » and « chetoui » compare equal.
+  static String normaliser(String valeur) {
+    const accents = 'ÀÁÂÃÄÅàáâãäåÇçÈÉÊËèéêëÌÍÎÏìíîïÑñÒÓÔÕÖòóôõöÙÚÛÜùúûüÝýÿ';
+    const simples = 'AAAAAAaaaaaaCcEEEEeeeeIIIIiiiiNnOOOOOoooooUUUUuuuuYyy';
+    var resultat = valeur.toLowerCase();
+    for (var i = 0; i < accents.length; i++) {
+      resultat = resultat.replaceAll(
+        accents[i].toLowerCase(),
+        simples[i].toLowerCase(),
+      );
+    }
+    return resultat;
+  }
+
+  static int _distance(String a, String b) {
+    final ligne = List<int>.generate(b.length + 1, (i) => i);
+    for (var i = 1; i <= a.length; i++) {
+      var diagonal = ligne[0];
+      ligne[0] = i;
+      for (var j = 1; j <= b.length; j++) {
+        final dessus = ligne[j];
+        ligne[j] = math.min(
+          math.min(ligne[j] + 1, ligne[j - 1] + 1),
+          diagonal + (a[i - 1] == b[j - 1] ? 0 : 1),
+        );
+        diagonal = dessus;
+      }
+    }
+    return ligne[b.length];
+  }
+
+  /// The main Tunisian olive varieties — a starting list, not a closed field.
   static const List<String> _varietesConnues = [
     'Chemlali',
-    'Chetoui',
-    'Gerboui',
+    'Chemlali Sfax',
+    'Chemlali Zarzis',
+    'Chemlali Tataouine',
+    'Chétoui',
     'Oueslati',
-    'Sahli',
+    'Sayali',
+    'Gerboui',
     'Zalmati',
     'Zarrazi',
+    'Rkhami',
+    'Meski',
+    'Tounsi',
+    'Besbessi',
+    'Beldi',
+    'Fouja',
+    'Chemchali',
+    'Zarbout',
+    'Jemri',
+    'Fakhari',
+    'Marsaline',
+    'Limouni',
+    'Neb Jmel',
+    'Toffahi',
   ];
 
   void invalidateCache() => _cache = null;

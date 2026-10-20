@@ -56,7 +56,11 @@ class AppDrawer extends StatelessWidget {
       ChefDestination.messagerie => const ConversationsPage(),
       ChefDestination.profil => const ProfilePage(),
     };
-    if (destination == ChefDestination.accueil) {
+    // La messagerie s'ouvre PAR-DESSUS la page courante : sa flèche de
+    // retour ramène à la page d'où l'on vient (elle n'a pas de menu).
+    if (destination == ChefDestination.messagerie) {
+      Navigator.push(context, MaterialPageRoute(builder: (_) => page));
+    } else if (destination == ChefDestination.accueil) {
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => page),

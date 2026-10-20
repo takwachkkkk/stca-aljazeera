@@ -13,6 +13,7 @@ import 'package:project3/core/utils/date_utils.dart';
 // PAGE — Formulaire de dégustation COI (StatefulWidget — sliders + classification temps réel)
 class FormulaireEvaluationPage extends StatefulWidget {
   final String echantillonId;
+  final String? numero;
   final String fournisseur;
   final String variete;
   final String origine;
@@ -28,6 +29,7 @@ class FormulaireEvaluationPage extends StatefulWidget {
   const FormulaireEvaluationPage({
     super.key,
     required this.echantillonId,
+    this.numero,
     required this.fournisseur,
     required this.variete,
     required this.origine,
@@ -263,7 +265,7 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
                 ),
               ),
               Text(
-                widget.echantillonId,
+                widget.numero ?? widget.echantillonId,
                 style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
               ),
             ],
@@ -614,7 +616,7 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                widget.echantillonId,
+                widget.numero ?? widget.echantillonId,
                 style: GoogleFonts.domine(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
@@ -928,7 +930,7 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
                     'Vous êtes sur le point de soumettre votre évaluation pour ',
               ),
               TextSpan(
-                text: widget.echantillonId,
+                text: widget.numero ?? widget.echantillonId,
                 style: const TextStyle(
                   fontWeight: FontWeight.w700,
                   color: green,

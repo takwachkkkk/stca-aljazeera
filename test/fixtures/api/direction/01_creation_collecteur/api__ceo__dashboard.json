@@ -27,7 +27,7 @@
     },
     "performance_collecteurs": [
       {
-        "collecteur_id": "17fd238e-f9c6-4e23-925f-cab79ea7131c",
+        "collecteur_id": "f9101a00-2a16-4461-b9d5-ec5659dcbb4e",
         "nom": "Audit Collecteur",
         "name": "Audit Collecteur",
         "initials": "AC",
@@ -40,7 +40,7 @@
     ],
     "collecteurs": [
       {
-        "collecteur_id": "17fd238e-f9c6-4e23-925f-cab79ea7131c",
+        "collecteur_id": "f9101a00-2a16-4461-b9d5-ec5659dcbb4e",
         "nom": "Audit Collecteur",
         "name": "Audit Collecteur",
         "initials": "AC",
@@ -65,11 +65,6 @@
     },
     "evolution_achats": [
       {
-        "label": "Apr 2026",
-        "count": 0,
-        "valeur": 0.0
-      },
-      {
         "label": "May 2026",
         "count": 0,
         "valeur": 0.0
@@ -91,6 +86,11 @@
       },
       {
         "label": "Sep 2026",
+        "count": 0,
+        "valeur": 0.0
+      },
+      {
+        "label": "Oct 2026",
         "count": 0,
         "valeur": 0.0
       }

@@ -82,10 +82,11 @@ void main() {
     );
   });
 
-  test('le validateur applique les trois règles du mot de passe', () {
+  test('le validateur exige 6 caractères, des lettres et des chiffres', () {
     expect(validatePassword('Ab@1'), isNotNull);
     expect(validatePassword('Nouveau@'), isNotNull);
-    expect(validatePassword('Nouveau1'), isNotNull);
+    // Lettres + chiffres suffisent : le caractère spécial est facultatif.
+    expect(validatePassword('Nouveau1'), isNull);
     expect(validatePassword('Nouveau@1'), isNull);
   });
 
@@ -124,18 +125,16 @@ void main() {
     'le nouveau mot de passe trop faible ouvre une fenêtre avec les règles',
     (tester) async {
       await _openDialog(tester);
-      await _fillPasswords(tester, nouveau: 'abc', confirmation: 'abc');
+      await _fillPasswords(tester, nouveau: '123', confirmation: '123');
 
       await tester.tap(find.byKey(const Key('change-password-submit')));
       await tester.pumpAndSettle();
 
       expect(find.text('Mot de passe trop faible'), findsOneWidget);
       expect(find.textContaining('Au moins 6 caractères.'), findsOneWidget);
-      expect(find.textContaining('Au moins un chiffre.'), findsOneWidget);
-      expect(
-        find.textContaining('Au moins un caractère spécial.'),
-        findsOneWidget,
-      );
+      expect(find.textContaining('Au moins une lettre.'), findsOneWidget);
+      // Les caractères spéciaux ne sont plus obligatoires.
+      expect(find.textContaining('caractère spécial'), findsNothing);
       expect(
         find.widgetWithText(TextFormField, 'Nouveau mot de passe'),
         findsOneWidget,

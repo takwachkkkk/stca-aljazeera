@@ -2,33 +2,45 @@
   "status_code": 200,
   "route": "/api/notifications/",
   "data": {
-    "count": 2,
+    "count": 3,
     "next": null,
     "previous": null,
     "results": [
       {
-        "id": "de4d2e80-b5b1-432e-b3af-6f560478a5ce",
+        "id": "b3509632-c586-43ea-95c5-4a8ea078bb24",
         "type": "DATE_LIVRAISON_AJOUTEE",
         "titre": "Date de livraison ajoutee",
-        "message": "La livraison de l'echantillon 2026/0001 est planifiee entre le 02/10/2026 et le 03/10/2026.",
-        "echantillon": "ac39cddb-9ff0-4db0-9181-ae53bf89bf23",
+        "message": "La livraison de l'echantillon AUDIT-BOUT-001 est planifiee entre le 02/10/2026 et le 03/10/2026.",
+        "echantillon": "0ac37083-c14f-4ca5-ac88-6873d6ec84e7",
         "echantillon_reference": "AUDIT-BOUT-001",
         "echantillon_numero": "2026/0001",
         "section": "ECHANTILLONS",
         "is_read": false,
-        "date_creation": "2026-09-26T19:51:47.610331+01:00"
+        "date_creation": "2026-10-21T00:42:11.515287+01:00"
       },
       {
-        "id": "e88aa6ea-b79c-46c5-bf81-701e88aebcf3",
+        "id": "98dfc38b-171c-47d6-854f-c815cda8ddf1",
+        "type": "NOUVELLE_SESSION",
+        "titre": "Session approuvée",
+        "message": "Votre session a été approuvée.",
+        "echantillon": null,
+        "echantillon_reference": null,
+        "echantillon_numero": null,
+        "section": "SESSIONS",
+        "is_read": false,
+        "date_creation": "2026-10-21T00:42:09.035345+01:00"
+      },
+      {
+        "id": "ec1b60fb-ea9d-4a2e-a052-faf6debf5d06",
         "type": "NOUVEL_ECHANTILLON",
         "titre": "Nouvel echantillon",
-        "message": "L'echantillon 2026/0001 a ete enregistre.",
-        "echantillon": "ac39cddb-9ff0-4db0-9181-ae53bf89bf23",
+        "message": "L'echantillon AUDIT-BOUT-001 a ete enregistre.",
+        "echantillon": "0ac37083-c14f-4ca5-ac88-6873d6ec84e7",
         "echantillon_reference": "AUDIT-BOUT-001",
         "echantillon_numero": "2026/0001",
         "section": "ECHANTILLONS",
         "is_read": false,
-        "date_creation": "2026-09-26T19:51:43.475846+01:00"
+        "date_creation": "2026-10-21T00:42:07.474407+01:00"
       }
     ]
   }

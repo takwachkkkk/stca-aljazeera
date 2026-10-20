@@ -3,15 +3,15 @@
   "route": "/api/degustateur/dashboard/urgentes/",
   "data": [
     {
-      "id": "ac39cddb-9ff0-4db0-9181-ae53bf89bf23",
+      "id": "0ac37083-c14f-4ca5-ac88-6873d6ec84e7",
       "numero": "2026/0001",
       "reference": "Chemlali - 2026/0001",
       "variete": "Chemlali",
       "collecteur_nom": "Audit Collecteur",
       "fournisseur_nom": "Domaine Audit",
-      "jours_en_attente": 1,
-      "days_waiting": 1,
-      "badge": "amber"
+      "jours_en_attente": 25,
+      "days_waiting": 25,
+      "badge": "red"
     }
   ]
 }

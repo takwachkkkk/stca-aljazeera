@@ -790,7 +790,7 @@ class _AnalyseOrganoleptiqueCeoPageState
                                   if (e.collecteurNom != null)
                                     DetailItem('Collecteur', e.collecteurNom!),
                                   DetailItem(
-                                    'Reçu physiquement',
+                                    "Confirmation réception d'échantillon",
                                     e.recuPhysiquement ? 'Oui' : 'Non',
                                   ),
                                 ],

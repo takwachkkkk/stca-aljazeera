@@ -7,27 +7,28 @@
     "previous": null,
     "results": [
       {
-        "id": "ac39cddb-9ff0-4db0-9181-ae53bf89bf23",
+        "id": "0ac37083-c14f-4ca5-ac88-6873d6ec84e7",
         "numero": "2026/0001",
         "reference_bouteille": "AUDIT-BOUT-001",
-        "fournisseur": "3361f065-93bc-41e0-8e89-19a641253353",
+        "fournisseur": "227b70ba-8ab2-428c-9da9-5a6212605388",
         "fournisseur_nom": "Domaine Audit",
-        "collecteur": "17fd238e-f9c6-4e23-925f-cab79ea7131c",
+        "collecteur": "f9101a00-2a16-4461-b9d5-ec5659dcbb4e",
         "collecteur_nom": "Audit Collecteur",
+        "modifiable": false,
         "gouvernorat": "Sfax",
         "delegation": "Sakiet Ezzit",
         "cite": "Route olive",
         "variete": "Chemlali",
         "num_citerne": "C-47",
         "quantite_estimee": "12",
-        "image_url": "/media/echantillons/b1f0b439b9254cd9859d01666e2aa43e.jpg",
+        "image_url": "/media/echantillons/b485b0574ce44371bc2c47d2132e8f89.jpg",
         "statut_collecteur": "achat_confirme",
         "statut_degustateur": "soumis",
         "statut_labo": "soumis",
         "statut_ceo": "achat_confirme",
         "recu_physiquement": true,
         "date_arrivee_echantillon": "2026-09-25T10:00:00+01:00",
-        "date_reception_echantillon": "2026-09-26T19:51:44.332466+01:00",
+        "date_reception_echantillon": "2026-10-21T00:42:08.265030+01:00",
         "budget_negociation": "7.40",
         "budget_negociation_max": null,
         "nb_renegociations": 0,
@@ -42,8 +43,8 @@
         "date_livraison_stock_fin": "2026-10-03T17:00:00+01:00",
         "classification": "",
         "remarques": "Echantillon de parcours audit",
-        "date_ajout": "2026-09-26T19:51:43.473914+01:00",
-        "updated_at": "2026-09-26T19:51:47.615655+01:00"
+        "date_ajout": "2026-10-21T00:42:07.471382+01:00",
+        "updated_at": "2026-10-21T00:42:11.526364+01:00"
       }
     ]
   }

@@ -576,7 +576,9 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
                           final e = items[i];
                           return EchantillonCard(
                             echantillon: e,
-                            onModifier: () => _ouvrirModification(e),
+                            onModifier: e.modifiable
+                                ? () => _ouvrirModification(e)
+                                : null,
                             onSupprimer: _peutSupprimer(e)
                                 ? () => _onSupprimer(e)
                                 : null,

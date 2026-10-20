@@ -51,6 +51,13 @@ class Echantillon(models.Model):
         null=True, blank=True,
         related_name='echantillons_collectes'
     )
+    enregistre_par = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='echantillons_enregistres',
+    )
 
     # Location
     gouvernorat = models.CharField(max_length=100)
@@ -58,7 +65,7 @@ class Echantillon(models.Model):
     cite        = models.CharField(max_length=100, blank=True)
 
     # Sample physical details (stored as strings: values like "20L" or tank numbers)
-    variete          = models.CharField(max_length=100, blank=True)
+    variete          = models.CharField(max_length=255, blank=True)
     num_citerne      = models.CharField(max_length=50, blank=True)
     quantite_estimee = models.CharField(max_length=50, blank=True)
     image_url        = models.CharField(max_length=500, blank=True)

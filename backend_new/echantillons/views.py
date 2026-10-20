@@ -7,7 +7,7 @@ from django.utils.dateparse import parse_date, parse_datetime
 from django.db.models import Count, Q
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.response import Response
@@ -180,6 +180,7 @@ class EchantillonViewSet(viewsets.ModelViewSet):
         photo_url = self._store_bottle_photo()
         if photo_url:
             extra['image_url'] = photo_url
+        extra['enregistre_par'] = self.request.user
         if self.request.user.role == User.Role.COLLECTEUR:
             serializer.save(
                 collecteur=self.request.user,
@@ -192,6 +193,16 @@ class EchantillonViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         # Called automatically when a PATCH request edits a sample.
         obj = serializer.instance
+        # Entre degustateurs : le chef modifie tout ; un degustateur seulement
+        # ce qu'il a enregistre lui-meme, et plus apres la confirmation de
+        # reception (sinon il ecraserait le travail d'un autre).
+        if self.request.user.role == User.Role.DEGUSTATEUR and not (
+            obj.enregistre_par_id == self.request.user.id and not obj.recu_physiquement
+        ):
+            raise PermissionDenied(
+                "Vous ne pouvez modifier que les échantillons que vous avez enregistrés, "
+                "avant la confirmation de leur réception."
+            )
         requested_status = serializer.validated_data.get('statut_collecteur')
         if (
             self.request.user.role == User.Role.COLLECTEUR
@@ -224,7 +235,7 @@ class EchantillonViewSet(viewsets.ModelViewSet):
             )
         if obj.recu_physiquement:
             return Response(
-                {'detail': 'Impossible de supprimer un échantillon déjà reçu physiquement.'},
+                {'detail': 'Impossible de supprimer un échantillon dont la réception est confirmée.'},
                 status=status.HTTP_403_FORBIDDEN,
             )
         if obj.statut_collecteur != Echantillon.StatutCollecteur.RECEPTIONNE:
@@ -546,7 +557,7 @@ class EchantillonViewSet(viewsets.ModelViewSet):
         for i, item in enumerate(items):
             serializer = EchantillonSerializer(data=item, context={'request': request})
             if serializer.is_valid():
-                extra = {}
+                extra = {'enregistre_par': request.user}
                 if request.user.role == User.Role.COLLECTEUR:
                     extra['collecteur'] = request.user
                 else:

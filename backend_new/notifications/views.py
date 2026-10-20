@@ -80,7 +80,7 @@ class UrgentAnalysisRequestView(APIView):
 
         if not echantillon.recu_physiquement:
             return Response(
-                {'detail': 'Seuls les echantillons recus physiquement peuvent etre demandes en urgence.'},
+                {'detail': 'Seuls les échantillons dont la réception est confirmée peuvent être demandés en urgence.'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -148,7 +148,7 @@ class UrgentEvaluationRequestView(APIView):
 
         if not echantillon.recu_physiquement:
             return Response(
-                {'detail': 'Seuls les echantillons recus physiquement peuvent etre demandes en urgence.'},
+                {'detail': 'Seuls les échantillons dont la réception est confirmée peuvent être demandés en urgence.'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 

@@ -58,7 +58,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class PanelMemberSerializer(serializers.ModelSerializer):
-    role = serializers.CharField(source='get_role_display', read_only=True)
+    role = serializers.SerializerMethodField()
     membre_depuis = serializers.SerializerMethodField()
     est_en_ligne = serializers.SerializerMethodField()
 
@@ -91,6 +91,16 @@ class PanelMemberSerializer(serializers.ModelSerializer):
         ]
         created = obj.date_creation
         return f'{month_names[created.month - 1]} {created.year}'
+
+    def get_role(self, obj):
+        request = self.context.get('request')
+        if (
+            getattr(getattr(request, 'user', None), 'role', None)
+            == User.Role.DEGUSTATEUR
+            and obj.role == User.Role.CHEF_DEGUSTATION
+        ):
+            return User.Role.DEGUSTATEUR.label
+        return obj.get_role_display()
 
     def get_est_en_ligne(self, obj):
         return obj.is_active
@@ -168,9 +178,9 @@ class ChangePasswordSerializer(serializers.Serializer):
     nouveau_mot_de_passe = serializers.CharField(write_only=True, trim_whitespace=False)
 
     def validate_nouveau_mot_de_passe(self, value):
-        if len(value) < 6 or not re.search(r'[0-9]', value) or not re.search(r'[^a-zA-Z0-9]', value):
+        if len(value) < 6 or not re.search(r'[a-zA-ZÀ-ÿ]', value) or not re.search(r'[0-9]', value):
             raise serializers.ValidationError(
-                'Le mot de passe doit contenir au moins 6 caractères, un chiffre et un caractère spécial.'
+                'Le mot de passe doit contenir au moins 6 caractères, dont des lettres et des chiffres.'
             )
         return value
 

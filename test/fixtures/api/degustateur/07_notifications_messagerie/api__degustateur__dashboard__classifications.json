@@ -3,7 +3,7 @@
   "route": "/api/degustateur/dashboard/classifications/",
   "data": [
     {
-      "label": "Sep 2026",
+      "label": "Oct 2026",
       "extra_vierge": 2,
       "vierge": 0,
       "lampante": 0

@@ -54,9 +54,9 @@ class NotificationCeoService {
     NotificationCeo(
       id: 'n-ceo-005',
       type: 'ECHANTILLON_RECU',
-      titre: 'Échantillon reçu physiquement',
+      titre: "Confirmation réception d'échantillon",
       message:
-          'L\'échantillon CHEMLALI-C9 a été reçu physiquement au laboratoire.',
+          "La réception de l'échantillon CHEMLALI-C9 a été confirmée.",
       echantillonId: '2026/0010',
       echantillonReference: 'CHEMLALI-C9',
       section: 'ECHANTILLONS',
