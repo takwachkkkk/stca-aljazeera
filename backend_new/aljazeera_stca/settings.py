@@ -100,8 +100,15 @@ WSGI_APPLICATION = 'aljazeera_stca.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DB_ENGINE = config('DB_ENGINE', default='postgresql')
+DATABASE_URL = config('DATABASE_URL', default='')
 
-if DB_ENGINE == 'sqlite':
+if DATABASE_URL:
+    # Hosted database (Neon): one connection string instead of DB_NAME/DB_USER/...
+    import dj_database_url
+    DATABASES = {
+        'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600),
+    }
+elif DB_ENGINE == 'sqlite':
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -155,6 +162,14 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# Hosted deployment (Render): WhiteNoise serves the admin/Swagger static files
+# without a separate web server. Off locally so the dev setup needs nothing new.
+if config('USE_WHITENOISE', default=False, cast=bool):
+    MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
+
+CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='', cast=Csv())
 
 # Media (uploaded bottle photos) — stored on the on-premise server only.
 MEDIA_URL = '/media/'

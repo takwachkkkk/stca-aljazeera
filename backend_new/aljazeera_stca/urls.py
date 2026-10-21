@@ -1,7 +1,9 @@
 from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
-from django.urls import path, include
+from django.urls import path, include, re_path
+from django.views.static import serve
+from decouple import config
 from rest_framework_simplejwt.views import TokenRefreshView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 from users.views import (
@@ -62,3 +64,8 @@ urlpatterns = [
 # Serve uploaded bottle photos in development (on-premise only).
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+elif config('SERVE_MEDIA', default=False, cast=bool):
+    # Hosted demo (Render) has no separate web server for the photos.
+    urlpatterns += [
+        re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
+    ]
