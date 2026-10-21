@@ -7,7 +7,7 @@
     "previous": null,
     "results": [
       {
-        "id": "5fad3a76-ccb9-41f1-bc29-63ef086eaa61",
+        "id": "388dc95a-8b3f-4603-a7fe-0dad92149658",
         "type": "NOUVELLE_SESSION",
         "titre": "Nouvelle session",
         "message": "La session Session audit cablage a été créée.",
@@ -16,31 +16,31 @@
         "echantillon_numero": null,
         "section": "SESSIONS",
         "is_read": false,
-        "date_creation": "2026-10-21T00:42:09.027197+01:00"
+        "date_creation": "2026-10-21T21:52:13.366223+01:00"
       },
       {
-        "id": "c8ec9711-364a-4386-97b4-a54b95980937",
+        "id": "e24cda7e-f82b-4e2a-85f6-54a871cff531",
         "type": "ECHANTILLON_RECU",
         "titre": "Confirmation réception d'échantillon",
-        "message": "La réception de l'échantillon AUDIT-BOUT-001 a été confirmée le 20/10/2026 a 23:42.",
-        "echantillon": "0ac37083-c14f-4ca5-ac88-6873d6ec84e7",
+        "message": "La réception de l'échantillon AUDIT-BOUT-001 a été confirmée le 21/10/2026 a 20:52.",
+        "echantillon": "6756528b-4692-4445-9d8a-b189d3ca51be",
         "echantillon_reference": "AUDIT-BOUT-001",
         "echantillon_numero": "2026/0001",
         "section": "ECHANTILLONS",
         "is_read": false,
-        "date_creation": "2026-10-21T00:42:08.269034+01:00"
+        "date_creation": "2026-10-21T21:52:12.139880+01:00"
       },
       {
-        "id": "7f5ced40-6842-4428-81e3-51f4ea774902",
+        "id": "c57361b0-aecb-48bf-a497-1b4b5d5b6e45",
         "type": "NOUVEL_ECHANTILLON",
         "titre": "Nouvel echantillon",
         "message": "L'echantillon AUDIT-BOUT-001 a ete enregistre.",
-        "echantillon": "0ac37083-c14f-4ca5-ac88-6873d6ec84e7",
+        "echantillon": "6756528b-4692-4445-9d8a-b189d3ca51be",
         "echantillon_reference": "AUDIT-BOUT-001",
         "echantillon_numero": "2026/0001",
         "section": "ECHANTILLONS",
         "is_read": false,
-        "date_creation": "2026-10-21T00:42:07.474407+01:00"
+        "date_creation": "2026-10-21T21:52:10.978745+01:00"
       }
     ]
   }

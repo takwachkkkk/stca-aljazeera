@@ -7,12 +7,12 @@
     "previous": null,
     "results": [
       {
-        "id": "0ac37083-c14f-4ca5-ac88-6873d6ec84e7",
+        "id": "6756528b-4692-4445-9d8a-b189d3ca51be",
         "numero": "2026/0001",
         "reference_bouteille": "AUDIT-BOUT-001",
-        "fournisseur": "227b70ba-8ab2-428c-9da9-5a6212605388",
+        "fournisseur": "dc125368-c865-4e90-a5fa-9d6275208560",
         "fournisseur_nom": "Domaine Audit",
-        "collecteur": "f9101a00-2a16-4461-b9d5-ec5659dcbb4e",
+        "collecteur": "2d1d0fb4-6d6d-4fa1-9edc-74517f539075",
         "collecteur_nom": "Audit Collecteur",
         "modifiable": true,
         "gouvernorat": "Sfax",
@@ -21,14 +21,14 @@
         "variete": "Chemlali",
         "num_citerne": "C-47",
         "quantite_estimee": "12",
-        "image_url": "/media/echantillons/b485b0574ce44371bc2c47d2132e8f89.jpg",
+        "image_url": "/media/echantillons/337a17dbbfdd44438c978e3633f18ade.jpg",
         "statut_collecteur": "receptionne",
         "statut_degustateur": "soumis",
         "statut_labo": "soumis",
         "statut_ceo": "selectionne",
         "recu_physiquement": true,
         "date_arrivee_echantillon": "2026-09-25T10:00:00+01:00",
-        "date_reception_echantillon": "2026-10-21T00:42:08.265030+01:00",
+        "date_reception_echantillon": "2026-10-21T21:52:12.139880+01:00",
         "budget_negociation": null,
         "budget_negociation_max": null,
         "nb_renegociations": 0,
@@ -43,8 +43,8 @@
         "date_livraison_stock_fin": null,
         "classification": "",
         "remarques": "Echantillon de parcours audit",
-        "date_ajout": "2026-10-21T00:42:07.471382+01:00",
-        "updated_at": "2026-10-21T00:42:10.577409+01:00"
+        "date_ajout": "2026-10-21T21:52:10.972414+01:00",
+        "updated_at": "2026-10-21T21:52:16.112258+01:00"
       }
     ]
   }

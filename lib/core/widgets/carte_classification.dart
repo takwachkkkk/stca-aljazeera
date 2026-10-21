@@ -83,7 +83,7 @@ class CarteClassification extends StatelessWidget {
         children: [
           _entete(
             'Catégorie COI',
-            'Méd. défauts ${medianeDefauts.toStringAsFixed(1)}',
+            'Médiane des défauts : ${medianeDefauts.toStringAsFixed(1)}',
           ),
           const SizedBox(height: 7),
           _titre(coi?.label ?? 'En attente d\'évaluation', couleur),
@@ -115,7 +115,7 @@ class CarteClassification extends StatelessWidget {
           _justification(
             resultat.coi == null
                 ? 'Saisir le fruité et les défauts pour classifier'
-                : 'Réservée aux huiles extra vierges — un défaut a été perçu (§6)',
+                : 'Réservée aux huiles extra vierges : un défaut a été perçu.',
           ),
         ],
       ),
@@ -200,7 +200,7 @@ class CarteClassification extends StatelessWidget {
               const SizedBox(width: 8),
               const Expanded(
                 child: Text(
-                  'Profil non harmonieux — un attribut domine les autres (§9)',
+                  'Profil non harmonieux : un attribut domine les autres',
                   style: TextStyle(fontSize: 11.5, color: Color(0xFF5D6B62), height: 1.35),
                 ),
               ),
@@ -318,7 +318,7 @@ class CarteClassification extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Text(
-                    'Extra A+ et Extra A sont retirées : le §9 les interdit à une '
+                    'Extra A+ et Extra A sont retirées : la règle PR-48 les interdit à une '
                     'huile au profil non harmonieux.',
                     style: TextStyle(fontSize: 11.5, color: _horsGrille, height: 1.35),
                   ),

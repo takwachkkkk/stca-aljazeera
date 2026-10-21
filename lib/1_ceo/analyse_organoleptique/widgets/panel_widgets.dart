@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:project3/core/models/enums.dart';
 import 'package:project3/core/theme/app_colors.dart';
 import '../../utilisateurs/models/echantillon_ceo_view.dart';
 import '../../widgets/shared_evaluation_form_sheet.dart';
@@ -117,65 +118,53 @@ class PanelList extends StatelessWidget {
       child: Column(
         children: e.evaluations.map((ev) {
           final classColor = Color(ev.classification.colorValue);
+          final classeInterne = ev.classeInterne;
+          // Nom en entier (plus de pastille d'initiale, police plus petite,
+          // deux lignes au besoin), puis catégorie COI et classe interne ;
+          // l'icône « fiche » ouvre le formulaire.
           return Padding(
-            padding: const EdgeInsets.only(bottom: 6),
+            padding: const EdgeInsets.only(bottom: 8),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Container(
-                  width: 28,
-                  height: 28,
-                  decoration: BoxDecoration(
-                    color: classColor.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Text(
-                      (ev.tasteurNom != null && ev.tasteurNom!.isNotEmpty)
-                          ? ev.tasteurNom![0].toUpperCase()
-                          : '?',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: classColor,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
                 Expanded(
-                  child: Text(
-                    ev.tasteurNom ?? ev.tasteurId,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: kDark,
-                    ),
-                    overflow: TextOverflow.ellipsis,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        ev.tasteurNom ?? 'Dégustateur',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: kDark,
+                        ),
+                        maxLines: 2,
+                        softWrap: true,
+                      ),
+                      const SizedBox(height: 4),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 4,
+                        children: [
+                          CardBadge(
+                            label: ev.classification.label,
+                            color: classColor,
+                          ),
+                          if (classeInterne != null)
+                            CardBadge(
+                              label: classeInterne.label,
+                              color: kGreen,
+                            ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-                CardBadge(label: ev.classification.label, color: classColor),
-                const SizedBox(width: 6),
-                GestureDetector(
-                  onTap: () => onViewForm(ev),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: kGreen.withValues(alpha: 0.07),
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: kGreen.withValues(alpha: 0.2)),
-                    ),
-                    child: const Text(
-                      'Formulaire',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: kGreen,
-                      ),
-                    ),
-                  ),
+                IconButton(
+                  tooltip: 'Voir le formulaire',
+                  onPressed: () => onViewForm(ev),
+                  icon: const Icon(Icons.description_outlined, color: kGreen),
+                  visualDensity: VisualDensity.compact,
                 ),
               ],
             ),

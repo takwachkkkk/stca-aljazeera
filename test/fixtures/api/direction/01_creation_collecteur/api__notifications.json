@@ -7,16 +7,16 @@
     "previous": null,
     "results": [
       {
-        "id": "c1f99af7-49d7-4208-bd96-99f1da7c5774",
+        "id": "908ab290-6542-47f0-a479-f2dbc4399a50",
         "type": "NOUVEL_ECHANTILLON",
         "titre": "Nouvel echantillon",
         "message": "L'echantillon AUDIT-BOUT-001 a ete enregistre.",
-        "echantillon": "0ac37083-c14f-4ca5-ac88-6873d6ec84e7",
+        "echantillon": "6756528b-4692-4445-9d8a-b189d3ca51be",
         "echantillon_reference": "AUDIT-BOUT-001",
         "echantillon_numero": "2026/0001",
         "section": "ECHANTILLONS",
         "is_read": false,
-        "date_creation": "2026-10-21T00:42:07.474407+01:00"
+        "date_creation": "2026-10-21T21:52:10.978745+01:00"
       }
     ]
   }

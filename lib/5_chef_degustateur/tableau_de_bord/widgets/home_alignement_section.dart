@@ -23,7 +23,7 @@ class AlignementSection extends StatelessWidget {
     return fixedCard(
       height: 270,
       header: sectionBar(
-        title: 'Alignement avec le panel',
+        title: "Niveau d'harmonisation avec le panel",
         icon: Icons.check_box_outlined,
         dateDebut: dateDebut,
         dateFin: dateFin,
@@ -56,7 +56,9 @@ class AlignementSection extends StatelessWidget {
                   )
                 : buildScrollableRows(
                     items: alignement!.membres,
-                    getValue: (m) => m.divergencePct,
+                    // Harmonisation = part des notes proches de la moyenne du
+                    // panel (100 % − divergence). Plus c'est haut, mieux c'est.
+                    getValue: (m) => 100 - m.divergencePct,
                     getMax: (_) => 100.0,
                     getColor: (m) {
                       if (m.divergencePct >= 40) return chefRed;
@@ -64,7 +66,7 @@ class AlignementSection extends StatelessWidget {
                       return chefGreen;
                     },
                     getLabel: (m) =>
-                        '${m.divergencePct.toStringAsFixed(0)}%',
+                        '${(100 - m.divergencePct).toStringAsFixed(0)}%',
                     getName: (m) => m.nom,
                   ),
           ),
@@ -86,7 +88,7 @@ class AlignementSection extends StatelessWidget {
               ),
             ),
             child: const Text(
-              'Plus le % est élevé, plus le dégustateur classe différemment du reste du panel.',
+              'Plus le % est élevé, plus le dégustateur note comme le reste du panel.',
               style: TextStyle(fontSize: 10, color: Color(0xFF6B8E7A)),
             ),
           ),

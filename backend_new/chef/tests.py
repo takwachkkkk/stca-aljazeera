@@ -365,7 +365,7 @@ class ChefDashboardApiTests(APITestCase):
         self.assertEqual(classifications.status_code, status.HTTP_200_OK)
         self.assertEqual(
             set(classifications.json()[0]),
-            {'label', 'extra_vierge', 'vierge', 'lampante'},
+            {'label', 'annee', 'mois', 'extra_vierge', 'vierge', 'lampante'},
         )
         # Somme sur tous les mois : les trois evaluations sont soumises a 24h,
         # 48h et 72h d'intervalle, elles peuvent donc tomber a cheval sur deux
@@ -445,3 +445,87 @@ class ChefDashboardApiTests(APITestCase):
         self.assertEqual(len(activity.json()['results']), 2)
         self.assertIn('action', activity.json()['results'][0])
         self.assertIn('horodatage', activity.json()['results'][0])
+
+
+class PanelCoiEtRegionsTests(APITestCase):
+    """Tache 60 : resultat du panel (methode COI_CALC) et carte par gouvernorat."""
+
+    def setUp(self):
+        def creer(email, role):
+            return User.objects.create_user(
+                email=email, password='Test@12345', nom='N', prenom='P', role=role,
+            )
+
+        self.chef = creer('coi.chef@example.com', User.Role.CHEF_DEGUSTATION)
+        self.direction = creer('coi.direction@example.com', User.Role.DIRECTION)
+        self.taster = creer('coi.taster@example.com', User.Role.DEGUSTATEUR)
+        self.tasters = [
+            creer(f'coi.t{i}@example.com', User.Role.DEGUSTATEUR) for i in range(8)
+        ]
+        self.sample = Echantillon.objects.create(
+            reference_bouteille='COI-1', gouvernorat='Sfax', recu_physiquement=True,
+        )
+        # Echantillon 1 du fichier COI_CALC.xlsx (juges A a H).
+        rance = ['5', '5', '5', '6', '5', '7', '5', '7']
+        fruite = ['4.1', '3', '2.3', '3', '2.7', '3', '0', '0']
+        for user, r, f in zip(self.tasters, rance, fruite):
+            EvaluationOrganoleptique.objects.create(
+                echantillon=self.sample,
+                degustateur=user,
+                statut=EvaluationOrganoleptique.Statut.SOUMIS,
+                classification='vierge_ordinaire',
+                rance=r,
+                fruite=f,
+                soumis_le=timezone.now(),
+            )
+
+    def test_resultat_panel_suit_le_fichier_du_coi(self):
+        self.client.force_authenticate(user=self.chef)
+        response = self.client.get(f'/api/chef/panel-coi/?echantillon={self.sample.id}')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        ligne = response.json()[0]
+        self.assertEqual(ligne['nombre_degustateurs'], 8)
+        attributs = {a['champ']: a for a in ligne['attributs']}
+        self.assertEqual(attributs['rance']['mediane'], 5.0)
+        self.assertEqual(attributs['rance']['iqr'], 1.25)
+        self.assertEqual(attributs['rance']['cvr'], 8.2)
+        self.assertEqual(attributs['fruite']['mediane'], 2.85)
+        # Defaut principal 5 (> 3.5, <= 6) avec du fruite : vierge ordinaire.
+        self.assertEqual(ligne['mediane_defaut_principal'], 5.0)
+        self.assertEqual(ligne['classification'], 'vierge_ordinaire')
+        self.assertTrue(ligne['fiable'])
+
+    def test_panel_reserve_au_chef(self):
+        self.client.force_authenticate(user=self.taster)
+        response = self.client.get('/api/chef/panel-coi/')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_regions_pour_chef_et_direction(self):
+        Echantillon.objects.create(
+            reference_bouteille='R-2', gouvernorat='sfax ',
+            statut_collecteur=Echantillon.StatutCollecteur.ACHAT_CONFIRME,
+        )
+        Echantillon.objects.create(reference_bouteille='R-3', gouvernorat='Gabès')
+        for user, chemin in (
+            (self.chef, '/api/chef/dashboard/regions/'),
+            (self.direction, '/api/ceo/dashboard/regions/'),
+        ):
+            self.client.force_authenticate(user=user)
+            response = self.client.get(chemin)
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            premiere = response.json()[0]
+            # « Sfax » et « sfax » forment un seul gouvernorat.
+            self.assertEqual(premiere['gouvernorat'], 'Sfax')
+            self.assertEqual(premiere['echantillons'], 2)
+            self.assertEqual(premiere['achats'], 1)
+
+    def test_regions_refusees_au_degustateur(self):
+        self.client.force_authenticate(user=self.taster)
+        self.assertEqual(
+            self.client.get('/api/chef/dashboard/regions/').status_code,
+            status.HTTP_403_FORBIDDEN,
+        )
+        self.assertEqual(
+            self.client.get('/api/ceo/dashboard/regions/').status_code,
+            status.HTTP_403_FORBIDDEN,
+        )

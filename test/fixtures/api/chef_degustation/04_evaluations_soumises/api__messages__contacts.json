@@ -3,19 +3,19 @@
   "route": "/api/messages/contacts/",
   "data": [
     {
-      "id": "2a0c0acd-d678-40ce-9e11-243f7801e1d1",
+      "id": "950369dc-e070-4297-8cf9-a6d7df8d81ba",
       "nom": "Autre collecteur",
       "prenom": "Audit",
       "role": "collecteur"
     },
     {
-      "id": "f9101a00-2a16-4461-b9d5-ec5659dcbb4e",
+      "id": "2d1d0fb4-6d6d-4fa1-9edc-74517f539075",
       "nom": "Collecteur",
       "prenom": "Audit",
       "role": "collecteur"
     },
     {
-      "id": "fa9ce221-89e1-4fec-87d2-a5821a34b31d",
+      "id": "d4585c17-c5c0-4c95-acfe-a4b4e39c133a",
       "nom": "Direction",
       "prenom": "Audit",
       "role": "direction"

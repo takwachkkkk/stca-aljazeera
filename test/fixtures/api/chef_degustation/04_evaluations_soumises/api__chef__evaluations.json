@@ -3,18 +3,18 @@
   "route": "/api/chef/evaluations/",
   "data": [
     {
-      "echantillon_id": "0ac37083-c14f-4ca5-ac88-6873d6ec84e7",
-      "sample_id": "0ac37083-c14f-4ca5-ac88-6873d6ec84e7",
+      "echantillon_id": "6756528b-4692-4445-9d8a-b189d3ca51be",
+      "sample_id": "6756528b-4692-4445-9d8a-b189d3ca51be",
       "echantillon_numero": "2026/0001",
       "numero": "2026/0001",
       "reference_bouteille": "AUDIT-BOUT-001",
       "gouvernorat": "Sfax",
       "delegation": "Sakiet Ezzit",
       "variete": "Chemlali",
-      "date_ajout": "2026-10-20T23:42:07.471382+00:00",
+      "date_ajout": "2026-10-21T20:52:10.972414+00:00",
       "recu_physiquement": true,
-      "date_reception_physique": "2026-10-20T23:42:08.265030+00:00",
-      "date_reception_echantillon": "2026-10-20T23:42:08.265030+00:00",
+      "date_reception_physique": "2026-10-21T20:52:12.139880+00:00",
+      "date_reception_echantillon": "2026-10-21T20:52:12.139880+00:00",
       "date_arrivee_echantillon": "2026-09-25T09:00:00+00:00",
       "date_livraison_stock": null,
       "num_citerne": "C-47",
@@ -22,8 +22,8 @@
       "fournisseur_nom": "Domaine Audit",
       "evaluations": [
         {
-          "id": "47e1d5ca-8aed-4e52-b19f-889be426f2d2",
-          "degustateur_id": "a0eef613-a263-4de8-83a1-29a4603674eb",
+          "id": "ce1314b1-85e2-4a41-80c1-5b170c5db9e9",
+          "degustateur_id": "e93269bd-f64f-4081-8e4f-a3c199eac106",
           "degustateur": "Audit Chef",
           "degustateur_nom": "Audit Chef",
           "taster_name": "Audit Chef",
@@ -36,6 +36,12 @@
           "rance": 0.0,
           "gele": 0.0,
           "autres_defaut": 0.0,
+          "autres_defaut_nom": "",
+          "type_fruite": "vert",
+          "classe_interne": null,
+          "classe_interne_manuelle": false,
+          "classe_interne_motif": "",
+          "profil_non_harmonieux": false,
           "scores": [
             {
               "key": "fruite",
@@ -85,13 +91,13 @@
           ],
           "classification": "extra_vierge",
           "statut": "soumis",
-          "date_eval": "2026-10-20T23:42:09.795998+00:00",
-          "soumis_le": "2026-10-20T23:42:09.795998+00:00",
+          "date_eval": "2026-10-21T20:52:14.765299+00:00",
+          "soumis_le": "2026-10-21T20:52:14.765299+00:00",
           "commentaire": "Evaluation audit par chef@audit.test"
         },
         {
-          "id": "89b3d056-ff02-4db7-83c5-05d85f7bb329",
-          "degustateur_id": "a85e78da-449a-455c-aaf7-6d82c001372a",
+          "id": "c047086c-7186-43ab-b828-be009e42adfd",
+          "degustateur_id": "3f489bee-c4c9-41b9-8140-3517c1b23473",
           "degustateur": "Audit Degustateur",
           "degustateur_nom": "Audit Degustateur",
           "taster_name": "Audit Degustateur",
@@ -104,6 +110,12 @@
           "rance": 0.0,
           "gele": 0.0,
           "autres_defaut": 0.0,
+          "autres_defaut_nom": "",
+          "type_fruite": "vert",
+          "classe_interne": null,
+          "classe_interne_manuelle": false,
+          "classe_interne_motif": "",
+          "profil_non_harmonieux": false,
           "scores": [
             {
               "key": "fruite",
@@ -153,8 +165,8 @@
           ],
           "classification": "extra_vierge",
           "statut": "soumis",
-          "date_eval": "2026-10-20T23:42:09.782444+00:00",
-          "soumis_le": "2026-10-20T23:42:09.782444+00:00",
+          "date_eval": "2026-10-21T20:52:14.723749+00:00",
+          "soumis_le": "2026-10-21T20:52:14.723749+00:00",
           "commentaire": "Evaluation audit par degustateur@audit.test"
         }
       ],

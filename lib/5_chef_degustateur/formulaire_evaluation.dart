@@ -265,7 +265,7 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
                 ),
               ),
               Text(
-                widget.numero ?? widget.echantillonId,
+                widget.numero ?? 'Échantillon',
                 style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
               ),
             ],
@@ -616,7 +616,7 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                widget.numero ?? widget.echantillonId,
+                widget.numero ?? 'Échantillon',
                 style: GoogleFonts.domine(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
@@ -930,7 +930,7 @@ class _FormulaireEvaluationPageState extends State<FormulaireEvaluationPage> {
                     'Vous êtes sur le point de soumettre votre évaluation pour ',
               ),
               TextSpan(
-                text: widget.numero ?? widget.echantillonId,
+                text: widget.numero ?? 'Échantillon',
                 style: const TextStyle(
                   fontWeight: FontWeight.w700,
                   color: green,

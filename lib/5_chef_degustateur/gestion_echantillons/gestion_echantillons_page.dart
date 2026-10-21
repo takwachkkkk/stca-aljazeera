@@ -83,7 +83,10 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
     super.initState();
     _service =
         widget.service ??
-        GestionEchantillonsService(uniquementRecusPhysiquement: false);
+        GestionEchantillonsService(
+          uniquementRecusPhysiquement: false,
+          statutPersonnel: true,
+        );
     final referenceInitiale = widget.referenceInitiale?.trim();
     if (referenceInitiale != null && referenceInitiale.isNotEmpty) {
       _recherche = referenceInitiale;
@@ -141,7 +144,9 @@ class _GestionEchantillonsPageState extends State<GestionEchantillonsPage>
           (e.collecteurNom?.toLowerCase().contains(q) ?? false);
 
       final matchStatut =
-          _filtreStatut == null || e.statutDegustateur?.label == _filtreStatut;
+          _filtreStatut == null ||
+          (e.statutDegustateur ?? StatutDegustateur.nonEvaluee).libelleFiltre ==
+              _filtreStatut;
 
       final matchDate = dateCorrespondAuFiltre(
         dateGestionEchantillon(e, _dateType),

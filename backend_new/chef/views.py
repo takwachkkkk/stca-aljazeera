@@ -4,6 +4,7 @@ from django.db.models import Q
 from django.utils import timezone
 from echantillons.models import Echantillon
 from evaluations.models import EvaluationOrganoleptique
+from evaluations.statistiques_panel import resultat_panel
 from sessions_degustation.models import SessionDegustation
 from users.models import User
 from users.permissions import IsChefDegustation
@@ -12,6 +13,7 @@ from core.dashboard_calculations import (
     monthly_classification_distribution,
     pipeline_counts,
     presence_summary,
+    repartition_par_gouvernorat,
     rounded_average,
     sessions_for_user,
     urgent_evaluations_payload,
@@ -131,6 +133,12 @@ class ChefEvaluationsView(APIView):
                 'rance': _decimal_to_float(ev.rance),
                 'gele': _decimal_to_float(ev.gele),
                 'autres_defaut': _decimal_to_float(ev.autres_defaut),
+                'autres_defaut_nom': ev.autres_defaut_nom,
+                'type_fruite': ev.type_fruite,
+                'classe_interne': ev.classe_interne or None,
+                'classe_interne_manuelle': ev.classe_interne_manuelle,
+                'classe_interne_motif': ev.classe_interne_motif,
+                'profil_non_harmonieux': ev.profil_non_harmonieux,
                 'scores': scores,
                 'classification': ev.classification,
                 'statut': ev.statut,
@@ -448,3 +456,65 @@ class ChefDashboardActiviteView(APIView):
         total = len(activities)
         page = activities[offset:offset + limit]
         return Response({'count': total, 'results': page})
+
+
+class ChefDashboardRegionsView(APIView):
+    """Echantillons et achats par gouvernorat (meme calcul que la direction)."""
+    permission_classes = [IsChefDegustation]
+
+    def get(self, request):
+        return Response(repartition_par_gouvernorat(
+            Echantillon.objects.all(),
+            date_debut=request.query_params.get('date_debut'),
+            date_fin=request.query_params.get('date_fin'),
+        ))
+
+
+class ChefPanelCoiView(APIView):
+    """
+    Resultat du panel par echantillon, methode COI (mediane, CVr%, categorie).
+
+    Regroupe volontairement les evaluations de TOUS les degustateurs d'un
+    echantillon : c'est le principe du panel. Lecture seule, chef uniquement.
+    Parametres : echantillon=<id>, date_debut / date_fin (date de la derniere
+    soumission).
+    """
+    permission_classes = [IsChefDegustation]
+
+    def get(self, request):
+        qs = EvaluationOrganoleptique.objects.filter(
+            statut=EvaluationOrganoleptique.Statut.SOUMIS,
+            soumis_le__isnull=False,
+        ).select_related('echantillon')
+        echantillon_id = request.query_params.get('echantillon')
+        if echantillon_id:
+            qs = qs.filter(echantillon_id=echantillon_id)
+
+        par_echantillon = {}
+        for ev in qs:
+            par_echantillon.setdefault(ev.echantillon_id, []).append(ev)
+
+        date_debut = request.query_params.get('date_debut')
+        date_fin = request.query_params.get('date_fin')
+        lignes = []
+        for evaluations in par_echantillon.values():
+            echantillon = evaluations[0].echantillon
+            derniere = max(ev.soumis_le for ev in evaluations)
+            jour = timezone.localtime(derniere).date().isoformat()
+            if date_debut and jour < date_debut:
+                continue
+            if date_fin and jour > date_fin:
+                continue
+            lignes.append({
+                'echantillon_id': str(echantillon.id),
+                'numero': echantillon.numero,
+                'reference_bouteille': echantillon.reference_bouteille,
+                'variete': echantillon.variete,
+                'gouvernorat': echantillon.gouvernorat,
+                'derniere_soumission': derniere.isoformat(),
+                'annee': timezone.localtime(derniere).year,
+                'mois': timezone.localtime(derniere).month,
+                **resultat_panel(evaluations),
+            })
+        lignes.sort(key=lambda ligne: ligne['derniere_soumission'], reverse=True)
+        return Response(lignes)

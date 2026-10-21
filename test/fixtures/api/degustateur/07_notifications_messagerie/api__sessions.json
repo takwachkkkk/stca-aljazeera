@@ -7,7 +7,7 @@
     "previous": null,
     "results": [
       {
-        "id": "70b7da79-e2c0-4b02-b837-df330bd3377c",
+        "id": "36ba20a0-9637-4ae5-81f9-e875b03b754a",
         "titre": "Session audit cablage",
         "date": "2026-10-28",
         "heure": "10:30:00",
@@ -15,24 +15,24 @@
         "notes": "Creee par le test parcours",
         "statut": "planifiee",
         "nombre_echantillons_prevus": 1,
-        "created_by": "a85e78da-449a-455c-aaf7-6d82c001372a",
+        "created_by": "3f489bee-c4c9-41b9-8140-3517c1b23473",
         "created_by_nom": "Audit Degustateur",
-        "created_at": "2026-10-21T00:42:09.026185+01:00",
+        "created_at": "2026-10-21T21:52:13.362504+01:00",
         "participant_ids": [
-          "a0eef613-a263-4de8-83a1-29a4603674eb",
-          "a85e78da-449a-455c-aaf7-6d82c001372a"
+          "3f489bee-c4c9-41b9-8140-3517c1b23473",
+          "e93269bd-f64f-4081-8e4f-a3c199eac106"
         ],
         "participant_noms": [
-          "Audit Chef",
-          "Audit Degustateur"
+          "Audit Degustateur",
+          "Audit Chef"
         ],
         "confirmed_participant_ids": [
-          "a0eef613-a263-4de8-83a1-29a4603674eb",
-          "a85e78da-449a-455c-aaf7-6d82c001372a"
+          "3f489bee-c4c9-41b9-8140-3517c1b23473",
+          "e93269bd-f64f-4081-8e4f-a3c199eac106"
         ],
         "confirmed_participant_noms": [
-          "Audit Chef",
-          "Audit Degustateur"
+          "Audit Degustateur",
+          "Audit Chef"
         ],
         "can_modifier": true,
         "can_supprimer": true,

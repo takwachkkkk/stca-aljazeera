@@ -10,6 +10,8 @@ import 'package:project3/core/utils/date_utils.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../core/models/enums.dart';
+import '../../core/utils/json_utils.dart';
+import '../panel_coi/fiche_resultat_panel.dart';
 import '../../core/logout_navigation.dart';
 import '../../core/widgets/messagerie/conversations_page.dart';
 
@@ -57,12 +59,17 @@ class _TasterEval {
   final String? classification;
   final List<_EvalEntry> scores;
 
+  /// Réponse serveur complète : défauts, type de fruité et classe interne
+  /// servent à la fiche « formulaire » ouverte depuis la ligne du dégustateur.
+  final Map<String, dynamic> brut;
+
   const _TasterEval({
     required this.tasterName,
     required this.statut,
     this.dateEval,
     this.classification,
     this.scores = const [],
+    this.brut = const {},
   });
 }
 
@@ -371,6 +378,7 @@ class _VueEnsembleEvaluationsPageState extends State<VueEnsembleEvaluationsPage>
       dateEval: _formatDate(json['soumis_le'] ?? json['date_eval']),
       classification: _classificationLabel(json['classification'] as String?),
       scores: _scoresFromApi(json),
+      brut: json,
     );
   }
 
@@ -492,19 +500,34 @@ class _VueEnsembleEvaluationsPageState extends State<VueEnsembleEvaluationsPage>
     _TasterEval eval,
     _SampleEvalGroup group,
   ) {
+    final b = eval.brut;
     return EvaluationOrganoleptique(
-      id: '${group.sampleId}_${eval.tasterName}',
+      id: b['id'] as String? ?? '${group.sampleId}_${eval.tasterName}',
       echantillonId: group.sampleId,
-      tasteurId: eval.tasterName,
+      tasteurId: b['degustateur_id'] as String? ?? eval.tasterName,
       tasteurNom: eval.tasterName,
       soumisLe: eval.dateEval != null
           ? _parseDateToIso(eval.dateEval!)
           : DateTime.now().toIso8601String(),
       classification: _classificationFromStr(eval.classification!),
-      fruite: _scoreFor(eval.scores, 'Fruité'),
-      typeFruite: TypeFruite.vert,
-      amertume: _scoreFor(eval.scores, 'Amer'),
-      piquant: _scoreFor(eval.scores, 'Piquant'),
+      classeInterne: ClasseInterneX.fromJson(b['classe_interne'] as String?),
+      classeInterneManuelle: b['classe_interne_manuelle'] as bool? ?? false,
+      classeInterneMotif: b['classe_interne_motif'] as String?,
+      profilNonHarmonieux: b['profil_non_harmonieux'] as bool? ?? false,
+      fruite: nombreDepuisJson(b['fruite']) ?? _scoreFor(eval.scores, 'Fruité'),
+      typeFruite: TypeFruiteX.fromJson(b['type_fruite'] as String?),
+      amertume:
+          nombreDepuisJson(b['amertume']) ?? _scoreFor(eval.scores, 'Amer'),
+      piquant:
+          nombreDepuisJson(b['piquant']) ?? _scoreFor(eval.scores, 'Piquant'),
+      chome: nombreDepuisJson(b['chome']),
+      moisi: nombreDepuisJson(b['moisi']),
+      vinaigre: nombreDepuisJson(b['vinaigre']),
+      rance: nombreDepuisJson(b['rance']),
+      gele: nombreDepuisJson(b['gele']),
+      autresDefaut: nombreDepuisJson(b['autres_defaut']),
+      autresDefautNom: b['autres_defaut_nom'] as String?,
+      commentaire: b['commentaire'] as String?,
     );
   }
 
@@ -761,24 +784,63 @@ class _VueEnsembleEvaluationsPageState extends State<VueEnsembleEvaluationsPage>
                                     '${g.submitted} / ${g.total} soumises',
                                   ),
                                 ],
-                                bottomSection: PanelSection(
-                                  echantillon: vue,
-                                  isExpanded: _expandedPanel.contains(
-                                    g.sampleId,
-                                  ),
-                                  onToggle: () => setState(() {
-                                    _expandedPanel.contains(g.sampleId)
-                                        ? _expandedPanel.remove(g.sampleId)
-                                        : _expandedPanel.add(g.sampleId);
-                                  }),
-                                  // Le chef consulte, il ne decide pas de l'achat.
-                                  showDecisions: false,
-                                  showRecu: false,
-                                  onViewForm: (ev) => showEvaluationFormSheet(
-                                    context,
-                                    evaluation: ev,
-                                    sampleRef: g.referenceBouteille,
-                                  ),
+                                bottomSection: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    PanelSection(
+                                      echantillon: vue,
+                                      isExpanded: _expandedPanel.contains(
+                                        g.sampleId,
+                                      ),
+                                      onToggle: () => setState(() {
+                                        _expandedPanel.contains(g.sampleId)
+                                            ? _expandedPanel.remove(g.sampleId)
+                                            : _expandedPanel.add(g.sampleId);
+                                      }),
+                                      // Le chef consulte, il ne decide pas de l'achat.
+                                      showDecisions: false,
+                                      showRecu: false,
+                                      onViewForm: (ev) =>
+                                          showEvaluationFormSheet(
+                                            context,
+                                            evaluation: ev,
+                                            sampleRef: g.referenceBouteille,
+                                          ),
+                                    ),
+                                    // Mediane, CVr % et categorie du panel
+                                    // (methode COI) pour cet echantillon.
+                                    if (g.submitted > 0)
+                                      Padding(
+                                        padding: const EdgeInsets.fromLTRB(
+                                          12,
+                                          0,
+                                          12,
+                                          10,
+                                        ),
+                                        child: OutlinedButton.icon(
+                                          onPressed: () => ouvrirResultatPanel(
+                                            context,
+                                            g.sampleId,
+                                          ),
+                                          icon: const Icon(
+                                            Icons.functions,
+                                            size: 18,
+                                          ),
+                                          label: const Text(
+                                            'Résultat du panel (méthode COI)',
+                                          ),
+                                          style: OutlinedButton.styleFrom(
+                                            foregroundColor: chefGreen,
+                                            side: BorderSide(
+                                              color: chefGreen.withValues(
+                                                alpha: 0.4,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                  ],
                                 ),
                               );
                             },

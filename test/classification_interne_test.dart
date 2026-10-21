@@ -168,18 +168,18 @@ void main() {
     });
   });
 
-  group('Intensité rebasée sur l\'échelle', () {
-    test('un fruité au maximum est Robuste, pas Moyen', () {
-      expect(intensiteLabel(5.0, positif: true), 'Robuste');
-      expect(intensiteLabel(4.0, positif: true), 'Robuste');
-      expect(intensiteLabel(3.0, positif: true), 'Moyen');
-      expect(intensiteLabel(1.0, positif: true), 'Délicat');
+  group('Intensité : Léger / Moyen / Intense', () {
+    test('attributs positifs sur 0–10 : seuils 3 et 6', () {
+      expect(intensiteLabel(10.0, positif: true), 'Intense');
+      expect(intensiteLabel(7.0, positif: true), 'Intense');
+      expect(intensiteLabel(5.0, positif: true), 'Moyen');
+      expect(intensiteLabel(1.0, positif: true), 'Léger');
       expect(intensiteLabel(0.0, positif: true), '');
     });
-    test('les défauts gardent les seuils 3 et 6 sur 0–10', () {
-      expect(intensiteLabel(3.0, positif: false), 'Délicat');
+    test('défauts : seuils 3 et 6 sur 0–10', () {
+      expect(intensiteLabel(3.0, positif: false), 'Léger');
       expect(intensiteLabel(5.0, positif: false), 'Moyen');
-      expect(intensiteLabel(8.0, positif: false), 'Robuste');
+      expect(intensiteLabel(8.0, positif: false), 'Intense');
     });
   });
 
@@ -203,7 +203,7 @@ void main() {
         amertume: 3.5,
         piquant: 4.0,
       );
-      expect(motif, contains('§6'));
+      expect(motif, contains('extra vierges'));
     });
     test('nomme le §9 quand la case harmonie est cochée', () {
       final motif = motifHorsGrille(
@@ -214,7 +214,7 @@ void main() {
         piquant: 4.0,
         profilNonHarmonieux: true,
       );
-      expect(motif, contains('§9'));
+      expect(motif, contains('non harmonieux'));
       expect(motif, contains('Extra A+'));
     });
   });

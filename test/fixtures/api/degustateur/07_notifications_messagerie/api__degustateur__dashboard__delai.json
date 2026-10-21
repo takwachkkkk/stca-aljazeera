@@ -2,13 +2,13 @@
   "status_code": 200,
   "route": "/api/degustateur/dashboard/delai/",
   "data": {
-    "mon_delai_moyen": 25.6,
-    "panel_moyen": 25.6,
+    "mon_delai_moyen": 26.5,
+    "panel_moyen": 26.5,
     "nb_evals": 1,
     "points": [
       {
-        "date": "2026-10-20",
-        "delai": 25.61261322273148
+        "date": "2026-10-21",
+        "delai": 26.49461485820602
       }
     ]
   }

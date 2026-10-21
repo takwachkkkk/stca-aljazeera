@@ -93,7 +93,8 @@ def monthly_classification_distribution(evaluations):
         elif evaluation.classification == Echantillon.Classification.LAMPANTE:
             monthly[cle]['lampante'] += 1
     return [
-        {'label': date(annee, mois, 1).strftime('%b %Y'), **counts}
+        # annee / mois : l'application affiche le mois en francais.
+        {'label': date(annee, mois, 1).strftime('%b %Y'), 'annee': annee, 'mois': mois, **counts}
         for (annee, mois), counts in sorted(monthly.items())
     ]
 
@@ -130,3 +131,30 @@ def sessions_for_user(user):
     return SessionDegustation.objects.filter(
         Q(participants=user) | Q(cree_par=user)
     ).distinct()
+
+
+def repartition_par_gouvernorat(echantillons, date_debut=None, date_fin=None):
+    """Echantillons enregistres et achats confirmes par gouvernorat.
+
+    Sert au chef et a la direction : savoir d'ou viennent les echantillons et
+    ou l'entreprise achete le plus. Les noms sont regroupes sans tenir compte
+    de la casse ni des espaces ; du gouvernorat le plus actif au moins actif.
+    """
+    if date_debut:
+        echantillons = echantillons.filter(date_ajout__date__gte=date_debut)
+    if date_fin:
+        echantillons = echantillons.filter(date_ajout__date__lte=date_fin)
+
+    lignes = {}
+    for gouvernorat, statut in echantillons.values_list('gouvernorat', 'statut_collecteur'):
+        nom = (gouvernorat or '').strip() or 'Non précisé'
+        ligne = lignes.setdefault(
+            nom.lower(), {'gouvernorat': nom, 'echantillons': 0, 'achats': 0},
+        )
+        ligne['echantillons'] += 1
+        if statut == Echantillon.StatutCollecteur.ACHAT_CONFIRME:
+            ligne['achats'] += 1
+    return sorted(
+        lignes.values(),
+        key=lambda ligne: (-ligne['echantillons'], -ligne['achats'], ligne['gouvernorat']),
+    )

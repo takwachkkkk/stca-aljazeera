@@ -8,6 +8,7 @@ from rest_framework.views import APIView
 from analyses.models import AnalyseLabo
 from echantillons.models import Echantillon
 from evaluations.models import EvaluationOrganoleptique
+from core.dashboard_calculations import repartition_par_gouvernorat
 from users.permissions import IsDirection
 
 
@@ -258,3 +259,15 @@ class CeoDashboardView(APIView):
                 'valeur': _money(value),
             })
         return evolution
+
+
+class CeoDashboardRegionsView(APIView):
+    """Echantillons et achats confirmes par gouvernorat : ou l'entreprise achete."""
+    permission_classes = [IsDirection]
+
+    def get(self, request):
+        return Response(repartition_par_gouvernorat(
+            Echantillon.objects.all(),
+            date_debut=request.query_params.get('date_debut'),
+            date_fin=request.query_params.get('date_fin'),
+        ))

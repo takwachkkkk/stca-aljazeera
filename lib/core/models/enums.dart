@@ -130,6 +130,20 @@ extension StatutDegustateurX on StatutDegustateur {
     }
   }
 
+  /// Texte des boutons de filtre « Gestion des échantillons ». Les filtres
+  /// comparaient ces textes à [label] (« En cours », « Soumis ») : les boutons
+  /// « Évaluation en cours » et « Évaluation soumise » ne trouvaient jamais rien.
+  String get libelleFiltre {
+    switch (this) {
+      case StatutDegustateur.nonEvaluee:
+        return 'Non évaluée';
+      case StatutDegustateur.enCours:
+        return 'Évaluation en cours';
+      case StatutDegustateur.soumis:
+        return 'Évaluation soumise';
+    }
+  }
+
   static StatutDegustateur fromJson(String s) {
     switch (s) {
       case 'non_evaluee':
@@ -441,7 +455,7 @@ extension ClasseInterneX on ClasseInterne {
             'Plus sensible à l\'évolution au cours du stockage. Sans défaut.';
       case ClasseInterne.extraDesequilibre:
         return 'Amertume ou piquant très élevé par rapport au fruité. Conforme COI '
-            'mais déséquilibrée (§9).';
+            'mais déséquilibrée.';
     }
   }
 

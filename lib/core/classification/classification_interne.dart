@@ -87,13 +87,13 @@ ClassificationHuile? calculerClassificationCoi({
 String descriptionCoi(ClassificationHuile? coi) {
   switch (coi) {
     case ClassificationHuile.extraVierge:
-      return 'Médiane des défauts = 0.0 et fruité > 0.0';
+      return 'Aucun défaut perçu et un fruité présent.';
     case ClassificationHuile.vierge:
-      return '0.0 < médiane des défauts ≤ 3.5 et fruité > 0.0';
+      return 'Défaut léger (médiane jusqu\'à 3.5) et un fruité présent.';
     case ClassificationHuile.viergeOrdinaire:
-      return 'Médiane des défauts entre 3.5 et 6.0';
+      return 'Défaut marqué (médiane entre 3.5 et 6).';
     case ClassificationHuile.lampante:
-      return 'Médiane des défauts > 6.0 — non comestible en l\'état';
+      return 'Défaut fort (médiane au-dessus de 6) : non comestible en l\'état.';
     case null:
       return 'Saisir au moins le fruité pour classifier';
   }
@@ -210,7 +210,7 @@ String motifHorsGrille({
   bool profilNonHarmonieux = false,
 }) {
   if (coi != ClassificationHuile.extraVierge) {
-    return 'Réservée aux huiles extra vierges — un défaut a été perçu (§6)';
+    return 'Réservée aux huiles extra vierges : un défaut a été perçu (règle PR-48).';
   }
 
   if (profilNonHarmonieux) {
@@ -222,7 +222,7 @@ String motifHorsGrille({
       piquant: piquant,
     );
     if (sansHarmonie != null && classeSoumiseAHarmonie(sansHarmonie)) {
-      return 'Profil déclaré non harmonieux : ${sansHarmonie.label} est interdite (§9)';
+      return 'Profil déclaré non harmonieux : ${sansHarmonie.label} n\'est pas permise (règle PR-48).';
     }
   }
 
@@ -230,16 +230,16 @@ String motifHorsGrille({
 
   // Les deux trous de la grille sur l'axe du fruité.
   if (fruite >= 4.5 && fruite < 5) {
-    return 'Fruité $f : au-dessus d\'Extra A (< 4.5), en dessous d\'Extra A+ (≥ 5)';
+    return 'Fruité $f : trop haut pour Extra A (moins de 4.5) et trop bas pour Extra A+ (5 ou plus).';
   }
   if (fruite > 2 && fruite < 2.5) {
-    return 'Fruité $f : au-dessus d\'Extra B− (≤ 2), en dessous d\'Extra B (≥ 2.5)';
+    return 'Fruité $f : trop haut pour Extra B− (2 au plus) et trop bas pour Extra B (2.5 ou plus).';
   }
 
   // Cas §9 : les attributs de structure écrasent le fruité.
   if (fruite <= 2 && (amertume > 2.5 || piquant > 2.5)) {
     return 'Amertume ${_n(amertume)} et piquant ${_n(piquant)} très élevés pour un '
-        'fruité de $f — orienter vers Extra déséquilibrée (§9)';
+        'fruité de $f : orienter vers Extra déséquilibrée (règle PR-48).';
   }
 
   // Le fruité tombe dans une plage connue : c'est un autre attribut qui bloque.
@@ -248,7 +248,7 @@ String motifHorsGrille({
         '${typeFruite.label.toLowerCase()}';
   }
   return 'Fruité $f · amertume ${_n(amertume)} · piquant ${_n(piquant)} : aucune '
-      'ligne du tableau §8 ne correspond';
+      'classe de la grille PR-48 ne correspond.';
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -336,18 +336,17 @@ class ResultatClassification {
 // INTENSITÉ — dépend de l'échelle, donc de la nature de l'attribut
 // ═════════════════════════════════════════════════════════════════════════════
 
-/// Étiquette d'intensité COI, rebasée sur l'échelle de l'attribut.
+/// Étiquette d'intensité COI : Léger / Moyen / Intense.
 ///
-/// Les défauts gardent les seuils historiques 3 et 6 sur 0–10 ; les attributs
-/// positifs, passés en 0–5, prennent 1.5 et 3. Sans ce recalage, un fruité au
-/// maximum s'afficherait « Moyen » et rien ne serait jamais « Robuste ».
+/// Seuils à 30 % et 60 % de l'échelle de l'attribut — 3 et 6 sur 0–10, pour
+/// les défauts comme pour fruité, amertume et piquant (tous en 0–10 depuis la
+/// tâche 59). Calculés depuis l'échelle pour suivre un éventuel changement.
 String intensiteLabel(double valeur, {required bool positif}) {
   if (valeur == 0.0) return '';
-  final seuilBas = positif ? 1.5 : 3.0;
-  final seuilHaut = positif ? 3.0 : 6.0;
-  if (valeur <= seuilBas) return 'Délicat';
-  if (valeur <= seuilHaut) return 'Moyen';
-  return 'Robuste';
+  final max = positif ? kMaxPositif : kMaxDefaut;
+  if (valeur <= max * 0.3) return 'Léger';
+  if (valeur <= max * 0.6) return 'Moyen';
+  return 'Intense';
 }
 
 String _n(double v) => v.toStringAsFixed(1);

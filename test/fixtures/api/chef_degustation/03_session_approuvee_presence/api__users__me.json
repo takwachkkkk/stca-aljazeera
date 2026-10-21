@@ -2,7 +2,7 @@
   "status_code": 200,
   "route": "/api/users/me/",
   "data": {
-    "id": "a0eef613-a263-4de8-83a1-29a4603674eb",
+    "id": "e93269bd-f64f-4081-8e4f-a3c199eac106",
     "email": "chef@audit.test",
     "nom": "Chef",
     "prenom": "Audit",
@@ -10,7 +10,7 @@
     "telephone": "20000000",
     "is_active": true,
     "statut": "actif",
-    "date_creation": "2026-10-21T00:42:05.777570+01:00",
+    "date_creation": "2026-10-21T21:52:07.190132+01:00",
     "date_suppression": null,
     "doit_changer_mot_de_passe": false,
     "last_login": null

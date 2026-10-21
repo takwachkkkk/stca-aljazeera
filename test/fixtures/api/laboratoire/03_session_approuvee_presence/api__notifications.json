@@ -7,16 +7,16 @@
     "previous": null,
     "results": [
       {
-        "id": "3544ba0c-d452-4e3e-9307-f46616e39297",
+        "id": "671a50cb-cdd5-4d16-8742-c96b2df3a409",
         "type": "NOUVEL_ECHANTILLON",
         "titre": "Echantillon disponible pour analyse",
         "message": "L'echantillon AUDIT-BOUT-001 est disponible pour analyse laboratoire.",
-        "echantillon": "0ac37083-c14f-4ca5-ac88-6873d6ec84e7",
+        "echantillon": "6756528b-4692-4445-9d8a-b189d3ca51be",
         "echantillon_reference": "AUDIT-BOUT-001",
         "echantillon_numero": "2026/0001",
         "section": "ANALYSES",
         "is_read": false,
-        "date_creation": "2026-10-21T00:42:08.270043+01:00"
+        "date_creation": "2026-10-21T21:52:12.148635+01:00"
       }
     ]
   }

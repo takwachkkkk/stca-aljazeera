@@ -11,6 +11,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../core/classification/classification_interne.dart';
 import '../../core/models/enums.dart';
 import '../utilisateurs/models/echantillon_ceo_view.dart';
 
@@ -509,7 +510,7 @@ class _ClassificationCard extends StatelessWidget {
                   if (ev.profilNonHarmonieux) ...[
                     const SizedBox(height: 4),
                     Text(
-                      'Profil déclaré non harmonieux (§9)',
+                      'Profil déclaré non harmonieux',
                       style: TextStyle(
                         fontSize: 10.5,
                         color: Colors.orange.shade800,
@@ -589,7 +590,7 @@ class _CriteriaRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = isPositif ? _barColorPositif(value) : _barColorNegatif(value);
-    final intensite = _intensiteLabel(value);
+    final intensite = intensiteLabel(value, positif: isPositif);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -691,13 +692,6 @@ class _CriteriaRow extends StatelessWidget {
     if (v <= 3.0) return Colors.green.shade600;
     if (v <= 6.0) return Colors.orange.shade600;
     return Colors.red.shade600;
-  }
-
-  String _intensiteLabel(double v) {
-    if (v == 0.0) return '';
-    if (v <= 3.0) return 'Délicat';
-    if (v <= 6.0) return 'Moyen';
-    return 'Robuste';
   }
 }
 

@@ -7,12 +7,12 @@
     "previous": null,
     "results": [
       {
-        "id": "0ac37083-c14f-4ca5-ac88-6873d6ec84e7",
+        "id": "6756528b-4692-4445-9d8a-b189d3ca51be",
         "ref": "2026/0001",
         "numero": "2026/0001",
         "gouvernorat": "Sfax",
         "delegation": "Sakiet Ezzit",
-        "date_ajout": "2026-10-21T00:42:07.471382+01:00",
+        "date_ajout": "2026-10-21T21:52:10.972414+01:00",
         "fournisseur_nom": "Domaine Audit",
         "collecteur_nom": "Audit Collecteur",
         "reference_bouteille": "AUDIT-BOUT-001",
@@ -21,7 +21,7 @@
         "date_arrivee": "2026-09-25T10:00:00+01:00",
         "date_arrivee_echantillon": "2026-09-25T10:00:00+01:00",
         "recu_physiquement": true,
-        "date_reception_echantillon": "2026-10-21T00:42:08.265030+01:00",
+        "date_reception_echantillon": "2026-10-21T21:52:12.139880+01:00",
         "num_citerne": "C-47",
         "date_livraison_stock": null,
         "numero_lot": "",

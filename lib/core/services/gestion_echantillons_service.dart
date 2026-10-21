@@ -48,10 +48,18 @@ Map<String, dynamic> echantillonApiToGestionFlutterMap(
 
 class GestionEchantillonsService {
   final bool uniquementRecusPhysiquement;
+
+  /// Remplace le statut global de l'échantillon (`statut_degustateur`, mis à
+  /// jour dès qu'UN dégustateur commence) par le statut de l'évaluation de
+  /// l'utilisateur connecté. Sans cela, l'évaluation d'un collègue changeait
+  /// les filtres de tous les autres. Réservé aux pages des dégustateurs : le
+  /// collecteur n'a pas accès à /api/evaluations/.
+  final bool statutPersonnel;
   final ApiClient _api;
 
   GestionEchantillonsService({
     this.uniquementRecusPhysiquement = true,
+    this.statutPersonnel = false,
     ApiClient? api,
   }) : _api = api ?? apiClient;
 
@@ -106,11 +114,26 @@ class GestionEchantillonsService {
         ? '/api/echantillons/'
         : Uri(path: '/api/echantillons/', queryParameters: query).toString();
     final items = await _api.getList(path);
-    return items
-        .map(
-          (e) => Echantillon.fromJson(_toFlutterMap(e as Map<String, dynamic>)),
-        )
-        .toList();
+    // Le serveur ne renvoie que les évaluations de l'utilisateur connecté.
+    final statutsPersonnels = <String, String>{};
+    if (statutPersonnel) {
+      for (final item in await _api.getList('/api/evaluations/')) {
+        final evaluation = item as Map<String, dynamic>;
+        final id = evaluation['echantillon'] as String?;
+        final statut = evaluation['statut'] as String?;
+        if (id == null || statut == null) continue;
+        // Une évaluation soumise l'emporte sur un brouillon du même échantillon.
+        if (statutsPersonnels[id] != 'soumis') statutsPersonnels[id] = statut;
+      }
+    }
+    return items.map((e) {
+      final map = _toFlutterMap(e as Map<String, dynamic>);
+      if (statutPersonnel) {
+        map['statut_degustateur'] =
+            statutsPersonnels[map['id']] ?? 'non_evaluee';
+      }
+      return Echantillon.fromJson(map);
+    }).toList();
   }, () => List.of(mockEchantillonsGestion));
 
   /// Updates an existing echantillon via PATCH and returns the updated record.

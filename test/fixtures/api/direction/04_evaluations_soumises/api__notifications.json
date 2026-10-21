@@ -7,40 +7,40 @@
     "previous": null,
     "results": [
       {
-        "id": "0e5f2fba-4fb6-473a-97e2-ccd8abdd3a00",
+        "id": "20464320-e809-4ab7-bf7e-ad3d268199a0",
         "type": "TOUTES_EVALUATIONS",
         "titre": "Toutes les evaluations soumises",
         "message": "Toutes les evaluations de AUDIT-BOUT-001 sont soumises.",
-        "echantillon": "0ac37083-c14f-4ca5-ac88-6873d6ec84e7",
+        "echantillon": "6756528b-4692-4445-9d8a-b189d3ca51be",
         "echantillon_reference": "AUDIT-BOUT-001",
         "echantillon_numero": "2026/0001",
         "section": "EVALUATIONS",
         "is_read": false,
-        "date_creation": "2026-10-21T00:42:09.798977+01:00"
+        "date_creation": "2026-10-21T21:52:14.773595+01:00"
       },
       {
-        "id": "576f7332-cba4-45ae-81db-f3568881fe0a",
+        "id": "cbe6086a-3f57-4349-82f1-cc13b76db0d0",
         "type": "ECHANTILLON_RECU",
         "titre": "Confirmation réception d'échantillon",
-        "message": "La réception de l'échantillon AUDIT-BOUT-001 a été confirmée le 20/10/2026 a 23:42.",
-        "echantillon": "0ac37083-c14f-4ca5-ac88-6873d6ec84e7",
+        "message": "La réception de l'échantillon AUDIT-BOUT-001 a été confirmée le 21/10/2026 a 20:52.",
+        "echantillon": "6756528b-4692-4445-9d8a-b189d3ca51be",
         "echantillon_reference": "AUDIT-BOUT-001",
         "echantillon_numero": "2026/0001",
         "section": "ECHANTILLONS",
         "is_read": false,
-        "date_creation": "2026-10-21T00:42:08.269034+01:00"
+        "date_creation": "2026-10-21T21:52:12.139880+01:00"
       },
       {
-        "id": "c1f99af7-49d7-4208-bd96-99f1da7c5774",
+        "id": "908ab290-6542-47f0-a479-f2dbc4399a50",
         "type": "NOUVEL_ECHANTILLON",
         "titre": "Nouvel echantillon",
         "message": "L'echantillon AUDIT-BOUT-001 a ete enregistre.",
-        "echantillon": "0ac37083-c14f-4ca5-ac88-6873d6ec84e7",
+        "echantillon": "6756528b-4692-4445-9d8a-b189d3ca51be",
         "echantillon_reference": "AUDIT-BOUT-001",
         "echantillon_numero": "2026/0001",
         "section": "ECHANTILLONS",
         "is_read": false,
-        "date_creation": "2026-10-21T00:42:07.474407+01:00"
+        "date_creation": "2026-10-21T21:52:10.978745+01:00"
       }
     ]
   }

@@ -155,6 +155,15 @@ class AppDrawer extends StatelessWidget {
                     active: currentPage == ChefDestination.accueil,
                     onTap: () => _navigate(context, ChefDestination.accueil),
                   ),
+                  // Juste sous l'accueil : le nombre de messages non lus se voit
+                  // dès l'ouverture du menu, sans faire défiler.
+                  _DrawerItem(
+                    icon: Icons.chat_bubble_outline,
+                    label: 'Messagerie',
+                    trailing: const MessagerieBadge(),
+                    active: currentPage == ChefDestination.messagerie,
+                    onTap: () => _navigate(context, ChefDestination.messagerie),
+                  ),
 
                   const SizedBox(height: 4),
                   Divider(color: _olive.withValues(alpha: 0.15), height: 1),
@@ -214,9 +223,7 @@ class AppDrawer extends StatelessWidget {
                   Divider(color: _olive.withValues(alpha: 0.15), height: 1),
                   const SizedBox(height: 4),
 
-                  // Les trois entrées qui parlent de personnes, de la plus large
-                  // responsabilité à la plus étroite : les comptes de tous, puis
-                  // l'équipe, puis soi-même.
+                  // Les comptes de tous, puis soi-même.
                   _SectionLabel('Comptes'),
                   _DrawerItem(
                     icon: Icons.manage_accounts_outlined,
@@ -224,13 +231,6 @@ class AppDrawer extends StatelessWidget {
                     active: currentPage == ChefDestination.utilisateurs,
                     onTap: () =>
                         _navigate(context, ChefDestination.utilisateurs),
-                  ),
-                  _DrawerItem(
-                    icon: Icons.chat_bubble_outline,
-                    label: 'Messagerie',
-                    trailing: const MessagerieBadge(),
-                    active: currentPage == ChefDestination.messagerie,
-                    onTap: () => _navigate(context, ChefDestination.messagerie),
                   ),
                   _DrawerItem(
                     icon: Icons.person_outline,

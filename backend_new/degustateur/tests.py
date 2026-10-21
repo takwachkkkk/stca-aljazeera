@@ -155,7 +155,7 @@ class DegustateurDashboardApiTests(APITestCase):
         self.assertEqual(response.json()[0]['lampante'], 1)
         self.assertEqual(
             set(response.json()[0]),
-            {'label', 'extra_vierge', 'vierge', 'lampante'},
+            {'label', 'annee', 'mois', 'extra_vierge', 'vierge', 'lampante'},
         )
         self.assert_no_taster_b_identity(response)
 

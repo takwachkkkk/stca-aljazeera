@@ -7,55 +7,55 @@
     "previous": null,
     "results": [
       {
-        "id": "70b21f47-ddbc-471f-996d-2b761450b57c",
+        "id": "b7f8f3cc-f47a-4bb0-ad1c-0d3361f851ba",
         "type": "ECHANTILLON_MODIFIE",
         "titre": "Echantillon modifie",
         "message": "L'echantillon AUDIT-BOUT-001 a ete modifie.",
-        "echantillon": "0ac37083-c14f-4ca5-ac88-6873d6ec84e7",
+        "echantillon": "6756528b-4692-4445-9d8a-b189d3ca51be",
         "echantillon_reference": "AUDIT-BOUT-001",
         "echantillon_numero": "2026/0001",
         "section": "ECHANTILLONS",
         "is_read": false,
-        "date_creation": "2026-10-21T00:42:10.581367+01:00"
+        "date_creation": "2026-10-21T21:52:16.118591+01:00"
       },
       {
-        "id": "f351022a-60e4-4d02-81be-270d64903f56",
+        "id": "9a87cd06-4c38-4430-b03b-dcd5e9515a9e",
         "type": "ANALYSE_SOUMISE",
         "titre": "Analyse soumise",
         "message": "L'analyse de AUDIT-BOUT-001 a ete soumise.",
-        "echantillon": "0ac37083-c14f-4ca5-ac88-6873d6ec84e7",
+        "echantillon": "6756528b-4692-4445-9d8a-b189d3ca51be",
         "echantillon_reference": "AUDIT-BOUT-001",
         "echantillon_numero": "2026/0001",
         "section": "ANALYSES",
         "is_read": false,
-        "date_creation": "2026-10-21T00:42:10.575354+01:00"
+        "date_creation": "2026-10-21T21:52:16.108406+01:00"
       },
       {
-        "id": "d022cacc-9e17-43b3-b017-1364197df60d",
+        "id": "e2ebfbba-8b6d-4aec-b55e-7ff5086ee447",
         "type": "TOUTES_EVALUATIONS",
         "titre": "Toutes les evaluations soumises",
         "message": "Toutes les evaluations de AUDIT-BOUT-001 sont soumises.",
-        "echantillon": "0ac37083-c14f-4ca5-ac88-6873d6ec84e7",
+        "echantillon": "6756528b-4692-4445-9d8a-b189d3ca51be",
         "echantillon_reference": "AUDIT-BOUT-001",
         "echantillon_numero": "2026/0001",
         "section": "EVALUATIONS",
         "is_read": false,
-        "date_creation": "2026-10-21T00:42:09.798977+01:00"
+        "date_creation": "2026-10-21T21:52:14.773595+01:00"
       },
       {
-        "id": "253977f2-34cd-4d57-a011-77c599ba6054",
+        "id": "4f432f2b-fb30-4973-a92f-e47afba2b9f3",
         "type": "EVALUATION_SOUMISE",
         "titre": "Evaluation soumise",
         "message": "Audit Degustateur a soumis une evaluation de AUDIT-BOUT-001.",
-        "echantillon": "0ac37083-c14f-4ca5-ac88-6873d6ec84e7",
+        "echantillon": "6756528b-4692-4445-9d8a-b189d3ca51be",
         "echantillon_reference": "AUDIT-BOUT-001",
         "echantillon_numero": "2026/0001",
         "section": "EVALUATIONS",
         "is_read": false,
-        "date_creation": "2026-10-21T00:42:09.785443+01:00"
+        "date_creation": "2026-10-21T21:52:14.732051+01:00"
       },
       {
-        "id": "5fad3a76-ccb9-41f1-bc29-63ef086eaa61",
+        "id": "388dc95a-8b3f-4603-a7fe-0dad92149658",
         "type": "NOUVELLE_SESSION",
         "titre": "Nouvelle session",
         "message": "La session Session audit cablage a été créée.",
@@ -64,31 +64,31 @@
         "echantillon_numero": null,
         "section": "SESSIONS",
         "is_read": false,
-        "date_creation": "2026-10-21T00:42:09.027197+01:00"
+        "date_creation": "2026-10-21T21:52:13.366223+01:00"
       },
       {
-        "id": "c8ec9711-364a-4386-97b4-a54b95980937",
+        "id": "e24cda7e-f82b-4e2a-85f6-54a871cff531",
         "type": "ECHANTILLON_RECU",
         "titre": "Confirmation réception d'échantillon",
-        "message": "La réception de l'échantillon AUDIT-BOUT-001 a été confirmée le 20/10/2026 a 23:42.",
-        "echantillon": "0ac37083-c14f-4ca5-ac88-6873d6ec84e7",
+        "message": "La réception de l'échantillon AUDIT-BOUT-001 a été confirmée le 21/10/2026 a 20:52.",
+        "echantillon": "6756528b-4692-4445-9d8a-b189d3ca51be",
         "echantillon_reference": "AUDIT-BOUT-001",
         "echantillon_numero": "2026/0001",
         "section": "ECHANTILLONS",
         "is_read": false,
-        "date_creation": "2026-10-21T00:42:08.269034+01:00"
+        "date_creation": "2026-10-21T21:52:12.139880+01:00"
       },
       {
-        "id": "7f5ced40-6842-4428-81e3-51f4ea774902",
+        "id": "c57361b0-aecb-48bf-a497-1b4b5d5b6e45",
         "type": "NOUVEL_ECHANTILLON",
         "titre": "Nouvel echantillon",
         "message": "L'echantillon AUDIT-BOUT-001 a ete enregistre.",
-        "echantillon": "0ac37083-c14f-4ca5-ac88-6873d6ec84e7",
+        "echantillon": "6756528b-4692-4445-9d8a-b189d3ca51be",
         "echantillon_reference": "AUDIT-BOUT-001",
         "echantillon_numero": "2026/0001",
         "section": "ECHANTILLONS",
         "is_read": false,
-        "date_creation": "2026-10-21T00:42:07.474407+01:00"
+        "date_creation": "2026-10-21T21:52:10.978745+01:00"
       }
     ]
   }

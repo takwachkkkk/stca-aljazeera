@@ -9,7 +9,11 @@ class EvaluationService {
 
   Future<Resultat<List<Echantillon>>> fetchEchantillons() => avecSecours(
     () async {
-      final sampleItems = await apiClient.getList('/api/echantillons/');
+      // Seuls les échantillons dont la réception est confirmée peuvent être
+      // évalués : les autres ne sont pas encore dans la société.
+      final sampleItems = await apiClient.getList(
+        '/api/echantillons/?recu_physiquement=true',
+      );
       final evaluationItems = await apiClient.getList('/api/evaluations/');
       _usingMockData = false;
       _cachedEvaluationsBySample

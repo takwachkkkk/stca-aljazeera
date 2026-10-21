@@ -95,10 +95,6 @@ class _HomeBodyState extends State<HomeBody> with RafraichissementPeriodique {
         dateDebut: _presDateDebut,
         dateFin: _presDateFin,
       );
-      final fDelai = _service.fetchDelai(
-        dateDebut: _delaiDateDebut,
-        dateFin: _delaiDateFin,
-      );
       final fAct = _service.fetchActivite(
         dateDebut: _actDateDebut,
         dateFin: _actDateFin,
@@ -109,27 +105,23 @@ class _HomeBodyState extends State<HomeBody> with RafraichissementPeriodique {
         fPipeline,
         fCls,
         fPresence,
-        fDelai,
       ]);
       final activite = await fAct;
       final urgentes = results[0] as Resultat<List<EvaluationUrgente>>;
       final pipeline = results[1] as Resultat<PipelineData>;
       final classifications = results[2] as Resultat<List<ClassificationPoint>>;
       final presence = results[3] as Resultat<PresenceData>;
-      final delai = results[4] as Resultat<DelaiSummary>;
       if (!mounted) return;
       setState(() {
         _memoriserOrigine('urgentes', urgentes);
         _memoriserOrigine('pipeline', pipeline);
         _memoriserOrigine('classifications', classifications);
         _memoriserOrigine('presence', presence);
-        _memoriserOrigine('delai', delai);
         _memoriserOrigine('activite', activite);
         _urgentes = urgentes.donnees;
         _pipeline = pipeline.donnees;
         _classifications = classifications.donnees;
         _presence = presence.donnees;
-        _delai = delai.donnees;
         _activite = activite.donnees.items;
         _activiteTotal = activite.donnees.total;
         _erreurChargement = null;
@@ -157,10 +149,6 @@ class _HomeBodyState extends State<HomeBody> with RafraichissementPeriodique {
         dateDebut: _presDateDebut,
         dateFin: _presDateFin,
       );
-      final fDelai = _service.fetchDelai(
-        dateDebut: _delaiDateDebut,
-        dateFin: _delaiDateFin,
-      );
       final fAct = _service.fetchActivite(
         dateDebut: _actDateDebut,
         dateFin: _actDateFin,
@@ -171,20 +159,17 @@ class _HomeBodyState extends State<HomeBody> with RafraichissementPeriodique {
         fPipeline,
         fCls,
         fPresence,
-        fDelai,
       ]);
       final activite = await fAct;
       final urgentes = results[0] as Resultat<List<EvaluationUrgente>>;
       final pipeline = results[1] as Resultat<PipelineData>;
       final classifications = results[2] as Resultat<List<ClassificationPoint>>;
       final presence = results[3] as Resultat<PresenceData>;
-      final delai = results[4] as Resultat<DelaiSummary>;
       if (!mounted ||
           !_peutAppliquer('urgentes', urgentes) ||
           !_peutAppliquer('pipeline', pipeline) ||
           !_peutAppliquer('classifications', classifications) ||
           !_peutAppliquer('presence', presence) ||
-          !_peutAppliquer('delai', delai) ||
           !_peutAppliquer('activite', activite)) {
         return;
       }
@@ -193,13 +178,11 @@ class _HomeBodyState extends State<HomeBody> with RafraichissementPeriodique {
         _memoriserOrigine('pipeline', pipeline);
         _memoriserOrigine('classifications', classifications);
         _memoriserOrigine('presence', presence);
-        _memoriserOrigine('delai', delai);
         _memoriserOrigine('activite', activite);
         _urgentes = urgentes.donnees;
         _pipeline = pipeline.donnees;
         _classifications = classifications.donnees;
         _presence = presence.donnees;
-        _delai = delai.donnees;
         _activite = activite.donnees.items;
         _activiteTotal = activite.donnees.total;
         _erreurChargement = null;
@@ -577,13 +560,6 @@ class _HomeBodyState extends State<HomeBody> with RafraichissementPeriodique {
                 dateDebut: _presDateDebut,
                 dateFin: _presDateFin,
                 onDateTap: _openPresenceDateSheet,
-              ),
-              const SizedBox(height: 12),
-              HomeDelaiSection(
-                delai: _delai,
-                dateDebut: _delaiDateDebut,
-                dateFin: _delaiDateFin,
-                onDateTap: _openDelaiDateSheet,
               ),
               const SizedBox(height: 12),
               HomeClassificationsSection(

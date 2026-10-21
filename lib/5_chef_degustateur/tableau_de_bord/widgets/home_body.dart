@@ -11,6 +11,9 @@ import 'package:project3/core/widgets/search_date_filter_bar.dart';
 import '../../evaluation_echantillons/evaluation_echantillons_page.dart';
 import 'home_activite_section.dart';
 import 'home_alignement_section.dart';
+import '../../../core/services/repartition_regions_service.dart';
+import '../../../core/widgets/repartition_regions_card.dart';
+import 'home_panel_coi_section.dart';
 import 'home_classifications_section.dart';
 import 'home_delai_section.dart';
 import 'home_pipeline_section.dart';
@@ -99,10 +102,6 @@ class _HomeBodyState extends State<HomeBody> with RafraichissementPeriodique {
         dateDebut: _presDateDebut,
         dateFin: _presDateFin,
       );
-      final delai = await _service.fetchDelai(
-        dateDebut: _delaiDateDebut,
-        dateFin: _delaiDateFin,
-      );
       final alignement = await _service.fetchAlignement(
         dateDebut: _alignDateDebut,
         dateFin: _alignDateFin,
@@ -123,7 +122,6 @@ class _HomeBodyState extends State<HomeBody> with RafraichissementPeriodique {
         _memoriserOrigine('urgentes_ceo', urgentesCeo);
         _memoriserOrigine('sessions', sessions);
         _memoriserOrigine('presence', presence);
-        _memoriserOrigine('delai', delai);
         _memoriserOrigine('alignement', alignement);
         _memoriserOrigine('classifications', classifications);
         _memoriserOrigine('activite', activite);
@@ -132,7 +130,6 @@ class _HomeBodyState extends State<HomeBody> with RafraichissementPeriodique {
         _urgentesCeo = urgentesCeo.donnees;
         _sessions = sessions.donnees;
         _presence = presence.donnees;
-        _delai = delai.donnees;
         _alignement = alignement.donnees;
         _classifications = classifications.donnees;
         _activite = activite.donnees.items;
@@ -144,9 +141,17 @@ class _HomeBodyState extends State<HomeBody> with RafraichissementPeriodique {
     }
   }
 
+  final _regionsService = RepartitionRegionsService(
+    '/api/chef/dashboard/regions/',
+  );
+  final _regionsKey = GlobalKey<RepartitionRegionsCardState>();
+  final _panelCoiKey = GlobalKey<PanelCoiSectionState>();
+
   Future<void> _rafraichirTout() async {
     await widget.onRefreshParent?.call();
     await _loadAll();
+    await _regionsKey.currentState?.recharger();
+    await _panelCoiKey.currentState?.recharger();
   }
 
   @override
@@ -159,10 +164,6 @@ class _HomeBodyState extends State<HomeBody> with RafraichissementPeriodique {
       final presence = await _service.fetchPresence(
         dateDebut: _presDateDebut,
         dateFin: _presDateFin,
-      );
-      final delai = await _service.fetchDelai(
-        dateDebut: _delaiDateDebut,
-        dateFin: _delaiDateFin,
       );
       final alignement = await _service.fetchAlignement(
         dateDebut: _alignDateDebut,
@@ -183,7 +184,6 @@ class _HomeBodyState extends State<HomeBody> with RafraichissementPeriodique {
           !_peutAppliquer('urgentes_ceo', urgentesCeo) ||
           !_peutAppliquer('sessions', sessions) ||
           !_peutAppliquer('presence', presence) ||
-          !_peutAppliquer('delai', delai) ||
           !_peutAppliquer('alignement', alignement) ||
           !_peutAppliquer('classifications', classifications) ||
           !_peutAppliquer('activite', activite)) {
@@ -195,7 +195,6 @@ class _HomeBodyState extends State<HomeBody> with RafraichissementPeriodique {
         _memoriserOrigine('urgentes_ceo', urgentesCeo);
         _memoriserOrigine('sessions', sessions);
         _memoriserOrigine('presence', presence);
-        _memoriserOrigine('delai', delai);
         _memoriserOrigine('alignement', alignement);
         _memoriserOrigine('classifications', classifications);
         _memoriserOrigine('activite', activite);
@@ -204,7 +203,6 @@ class _HomeBodyState extends State<HomeBody> with RafraichissementPeriodique {
         _urgentesCeo = urgentesCeo.donnees;
         _sessions = sessions.donnees;
         _presence = presence.donnees;
-        _delai = delai.donnees;
         _alignement = alignement.donnees;
         _classifications = classifications.donnees;
         _activite = activite.donnees.items;
@@ -589,30 +587,6 @@ class _HomeBodyState extends State<HomeBody> with RafraichissementPeriodique {
                 ),
               ),
               const SizedBox(height: 12),
-              DelaiSection(
-                delai: _delai,
-                dateDebut: _delaiDateDebut,
-                dateFin: _delaiDateFin,
-                onDateTap: () => _openDateSheet(
-                  dateDebut: _delaiDateDebut,
-                  dateFin: _delaiDateFin,
-                  onApply: (debut, fin) {
-                    setState(() {
-                      _delaiDateDebut = debut;
-                      _delaiDateFin = fin;
-                    });
-                    _reloadDelai();
-                  },
-                  onClear: () {
-                    setState(() {
-                      _delaiDateDebut = null;
-                      _delaiDateFin = null;
-                    });
-                    _reloadDelai();
-                  },
-                ),
-              ),
-              const SizedBox(height: 12),
               AlignementSection(
                 alignement: _alignement,
                 dateDebut: _alignDateDebut,
@@ -659,6 +633,13 @@ class _HomeBodyState extends State<HomeBody> with RafraichissementPeriodique {
                     _reloadClassifications();
                   },
                 ),
+              ),
+              const SizedBox(height: 12),
+              PanelCoiSection(key: _panelCoiKey),
+              const SizedBox(height: 12),
+              RepartitionRegionsCard(
+                key: _regionsKey,
+                service: _regionsService,
               ),
               const SizedBox(height: 12),
               ActiviteSection(

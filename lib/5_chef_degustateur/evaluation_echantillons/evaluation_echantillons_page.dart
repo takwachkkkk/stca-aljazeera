@@ -202,10 +202,8 @@ class _EvaluationEchantillonsPageState extends State<EvaluationEchantillonsPage>
   // ── ACTION ────────────────────────────────────────────────────────────────────
 
   Future<void> _onActionEchantillon(Echantillon e) async {
-    if (e.statut == StatutEchantillon.enAttente) {
-      setState(() => e.statut = StatutEchantillon.enCours);
-    }
-
+    // Le statut n'est plus changé à l'ouverture : revenir sans enregistrer
+    // laissait l'échantillon en « Évaluation en cours » dans les filtres.
     final result = await Navigator.push<String>(
       context,
       MaterialPageRoute(
@@ -228,6 +226,8 @@ class _EvaluationEchantillonsPageState extends State<EvaluationEchantillonsPage>
         e.classification = result;
       });
     }
+    // Brouillon enregistré ou non : le serveur donne le vrai statut.
+    if (mounted) await rechargerEnSilence();
   }
 
   void _onVoir(Echantillon e) {

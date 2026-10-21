@@ -7,12 +7,12 @@
     "previous": null,
     "results": [
       {
-        "id": "5a12f01c-c99d-4b8a-847a-603eb2a965cc",
-        "expediteur": "f9101a00-2a16-4461-b9d5-ec5659dcbb4e",
-        "destinataire": "fa9ce221-89e1-4fec-87d2-a5821a34b31d",
+        "id": "5c71eb1a-8310-487f-b2fd-af68f9840b52",
+        "expediteur": "2d1d0fb4-6d6d-4fa1-9edc-74517f539075",
+        "destinataire": "d4585c17-c5c0-4c95-acfe-a4b4e39c133a",
         "contenu": "Le stock audit sera livre selon la fenetre convenue.",
         "photo_url": "",
-        "echantillon": "0ac37083-c14f-4ca5-ac88-6873d6ec84e7",
+        "echantillon": "6756528b-4692-4445-9d8a-b189d3ca51be",
         "echantillon_numero": "2026/0001",
         "echantillon_reference_bouteille": "AUDIT-BOUT-001",
         "echantillon_fournisseur_nom": "Domaine Audit",
@@ -20,9 +20,9 @@
         "modifie_le": null,
         "lu": false,
         "lu_le": null,
-        "date_envoi": "2026-10-21T00:42:12.476105+01:00",
+        "date_envoi": "2026-10-21T21:52:19.050683+01:00",
         "is_read": false,
-        "horodatage": "2026-10-21T00:42:12.476105+01:00",
+        "horodatage": "2026-10-21T21:52:19.050683+01:00",
         "expediteur_nom": "Audit Collecteur",
         "destinataire_nom": "Audit Direction"
       }

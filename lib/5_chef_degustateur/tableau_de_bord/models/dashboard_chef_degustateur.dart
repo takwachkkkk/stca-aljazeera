@@ -285,12 +285,33 @@ class ClassificationPoint {
   final int vierge;
   final int lampante;
 
+  /// Année et mois (1–12) du groupe, quand le serveur les envoie.
+  final int? annee;
+  final int? mois;
+
   const ClassificationPoint({
     required this.label,
     required this.extraVierge,
     required this.vierge,
     required this.lampante,
+    this.annee,
+    this.mois,
   });
+
+  int get total => extraVierge + vierge + lampante;
+
+  static const _moisCourts = [
+    'Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin',
+    'Juil', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc',
+  ];
+
+  /// « Oct 2026 » en français ; le libellé serveur est en anglais.
+  String get libelleMois {
+    final a = annee;
+    final m = mois;
+    if (a == null || m == null || m < 1 || m > 12) return label;
+    return '${_moisCourts[m - 1]} $a';
+  }
 
   factory ClassificationPoint.fromJson(Map<String, dynamic> json) =>
       ClassificationPoint(
@@ -298,6 +319,8 @@ class ClassificationPoint {
         extraVierge: json['extra_vierge'] as int,
         vierge: json['vierge'] as int,
         lampante: json['lampante'] as int,
+        annee: json['annee'] as int?,
+        mois: json['mois'] as int?,
       );
 
   Map<String, dynamic> toJson() => {
