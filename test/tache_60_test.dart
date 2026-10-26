@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:project3/5_chef_degustateur/panel_coi/resultat_panel.dart';
 import 'package:project3/5_chef_degustateur/tableau_de_bord/models/dashboard_chef_degustateur.dart';
 import 'package:project3/core/models/enums.dart';
+import 'package:project3/core/services/repartition_service.dart';
 
 void main() {
   test('les boutons de filtre correspondent aux statuts', () {
@@ -69,5 +70,16 @@ void main() {
     expect(r.fiable, isTrue);
     expect(r.attributs.single.cvr, 8.2);
     expect(r.typeFruiteMajoritaire, TypeFruite.vert);
+  });
+
+  test('répartition par fournisseur lue depuis le serveur', () {
+    final ligne = LigneRepartition.fromJson({
+      'nom': 'hami — Gabès',
+      'echantillons': 2,
+      'achats': 1,
+    });
+    expect(ligne.nom, 'hami — Gabès');
+    expect(ligne.echantillons, 2);
+    expect(ligne.achats, 1);
   });
 }

@@ -8,7 +8,10 @@ from rest_framework.views import APIView
 from analyses.models import AnalyseLabo
 from echantillons.models import Echantillon
 from evaluations.models import EvaluationOrganoleptique
-from core.dashboard_calculations import repartition_par_gouvernorat
+from core.dashboard_calculations import (
+    repartition_par_fournisseur,
+    repartition_par_gouvernorat,
+)
 from users.permissions import IsDirection
 
 
@@ -267,6 +270,18 @@ class CeoDashboardRegionsView(APIView):
 
     def get(self, request):
         return Response(repartition_par_gouvernorat(
+            Echantillon.objects.all(),
+            date_debut=request.query_params.get('date_debut'),
+            date_fin=request.query_params.get('date_fin'),
+        ))
+
+
+class CeoDashboardFournisseursView(APIView):
+    """Echantillons apportes et achats confirmes par fournisseur."""
+    permission_classes = [IsDirection]
+
+    def get(self, request):
+        return Response(repartition_par_fournisseur(
             Echantillon.objects.all(),
             date_debut=request.query_params.get('date_debut'),
             date_fin=request.query_params.get('date_fin'),

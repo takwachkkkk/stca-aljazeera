@@ -133,12 +133,11 @@ def sessions_for_user(user):
     ).distinct()
 
 
-def repartition_par_gouvernorat(echantillons, date_debut=None, date_fin=None):
-    """Echantillons enregistres et achats confirmes par gouvernorat.
+def _repartition(echantillons, cle_et_nom, date_debut=None, date_fin=None):
+    """Echantillons enregistres et achats confirmes, regroupes par `cle_et_nom`.
 
-    Sert au chef et a la direction : savoir d'ou viennent les echantillons et
-    ou l'entreprise achete le plus. Les noms sont regroupes sans tenir compte
-    de la casse ni des espaces ; du gouvernorat le plus actif au moins actif.
+    `cle_et_nom(echantillon)` rend (cle de regroupement, nom affiche). Sert au
+    chef et a la direction ; du groupe le plus actif au moins actif.
     """
     if date_debut:
         echantillons = echantillons.filter(date_ajout__date__gte=date_debut)
@@ -146,15 +145,43 @@ def repartition_par_gouvernorat(echantillons, date_debut=None, date_fin=None):
         echantillons = echantillons.filter(date_ajout__date__lte=date_fin)
 
     lignes = {}
-    for gouvernorat, statut in echantillons.values_list('gouvernorat', 'statut_collecteur'):
-        nom = (gouvernorat or '').strip() or 'Non précisé'
-        ligne = lignes.setdefault(
-            nom.lower(), {'gouvernorat': nom, 'echantillons': 0, 'achats': 0},
-        )
+    for echantillon in echantillons:
+        cle, nom = cle_et_nom(echantillon)
+        ligne = lignes.setdefault(cle, {'nom': nom, 'echantillons': 0, 'achats': 0})
         ligne['echantillons'] += 1
-        if statut == Echantillon.StatutCollecteur.ACHAT_CONFIRME:
+        if echantillon.statut_collecteur == Echantillon.StatutCollecteur.ACHAT_CONFIRME:
             ligne['achats'] += 1
     return sorted(
         lignes.values(),
-        key=lambda ligne: (-ligne['echantillons'], -ligne['achats'], ligne['gouvernorat']),
+        key=lambda ligne: (-ligne['echantillons'], -ligne['achats'], ligne['nom']),
+    )
+
+
+def repartition_par_gouvernorat(echantillons, date_debut=None, date_fin=None):
+    """D'ou viennent les echantillons : noms regroupes sans casse ni espaces."""
+    def cle_et_nom(echantillon):
+        nom = (echantillon.gouvernorat or '').strip() or 'Non précisé'
+        return nom.lower(), nom
+
+    return _repartition(
+        echantillons.only('gouvernorat', 'statut_collecteur'),
+        cle_et_nom, date_debut, date_fin,
+    )
+
+
+def repartition_par_fournisseur(echantillons, date_debut=None, date_fin=None):
+    """Combien d'echantillons chaque fournisseur a apportes, et combien achetes.
+
+    Un fournisseur = nom + lieu (tache 43) : deux homonymes de deux regions
+    restent deux lignes, avec leur gouvernorat pour les distinguer.
+    """
+    def cle_et_nom(echantillon):
+        fournisseur = echantillon.fournisseur
+        if fournisseur is None:
+            return None, 'Sans fournisseur'
+        lieu = (fournisseur.region or '').strip()
+        return fournisseur.id, f'{fournisseur.nom} — {lieu}' if lieu else fournisseur.nom
+
+    return _repartition(
+        echantillons.select_related('fournisseur'), cle_et_nom, date_debut, date_fin,
     )

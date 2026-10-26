@@ -52,3 +52,16 @@ mis à jour.
 
 Reste : les méthodes `_buildX` des deux `home_body.dart` (≈ 1 300 lignes chacune) ne sont plus
 appelées depuis le découpage en sections — à supprimer dans une tâche de nettoyage.
+
+## Suite (26/10/2026) — fournisseurs et histogramme de la médiane
+
+- **Échantillons par fournisseur** (chef + direction) : `core/dashboard_calculations._repartition`
+  sert aux gouvernorats et aux fournisseurs (`repartition_par_fournisseur`, fournisseur =
+  « nom — lieu », homonymes séparés, « Sans fournisseur ») ; `/api/chef|ceo/dashboard/fournisseurs/`.
+  La carte devient générique : `lib/core/widgets/repartition_card.dart`
+  (`RepartitionCard.gouvernorats` / `.fournisseurs`), service `repartition_service.dart`
+  (champ `nom` au lieu de `gouvernorat`).
+- **Histogramme de la médiane** : dans « Résultat du panel (méthode COI) », une colonne par mois
+  (6 derniers), une barre par catégorie selon la médiane du panel, nombre au-dessus ; toucher
+  un mois le sélectionne.
+- Pas de carte géographique (demande de l'utilisatrice).

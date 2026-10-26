@@ -5,15 +5,15 @@
     "membres": [
       {
         "nom": "Audit Degustateur",
-        "delai_moyen": 26.5,
-        "panel_moyen": 26.5
+        "delai_moyen": 31.4,
+        "panel_moyen": 31.4
       },
       {
         "nom": "Audit Chef",
-        "delai_moyen": 26.5,
-        "panel_moyen": 26.5
+        "delai_moyen": 31.4,
+        "panel_moyen": 31.4
       }
     ],
-    "panel_moyen": 26.5
+    "panel_moyen": 31.4
   }
 }

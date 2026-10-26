@@ -13,6 +13,7 @@ from core.dashboard_calculations import (
     monthly_classification_distribution,
     pipeline_counts,
     presence_summary,
+    repartition_par_fournisseur,
     repartition_par_gouvernorat,
     rounded_average,
     sessions_for_user,
@@ -518,3 +519,15 @@ class ChefPanelCoiView(APIView):
             })
         lignes.sort(key=lambda ligne: ligne['derniere_soumission'], reverse=True)
         return Response(lignes)
+
+
+class ChefDashboardFournisseursView(APIView):
+    """Echantillons et achats par fournisseur (meme calcul que la direction)."""
+    permission_classes = [IsChefDegustation]
+
+    def get(self, request):
+        return Response(repartition_par_fournisseur(
+            Echantillon.objects.all(),
+            date_debut=request.query_params.get('date_debut'),
+            date_fin=request.query_params.get('date_fin'),
+        ))

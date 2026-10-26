@@ -515,9 +515,39 @@ class PanelCoiEtRegionsTests(APITestCase):
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             premiere = response.json()[0]
             # « Sfax » et « sfax » forment un seul gouvernorat.
-            self.assertEqual(premiere['gouvernorat'], 'Sfax')
+            self.assertEqual(premiere['nom'], 'Sfax')
             self.assertEqual(premiere['echantillons'], 2)
             self.assertEqual(premiere['achats'], 1)
+
+    def test_fournisseurs_pour_chef_et_direction(self):
+        from fournisseurs.models import Fournisseur
+        hami_gabes = Fournisseur.objects.create(nom='hami', region='Gabès')
+        hami_sfax = Fournisseur.objects.create(nom='hami', region='Sfax')
+        for i in range(2):
+            Echantillon.objects.create(
+                reference_bouteille=f'F-{i}', gouvernorat='Gabès', fournisseur=hami_gabes,
+                statut_collecteur=(
+                    Echantillon.StatutCollecteur.ACHAT_CONFIRME if i == 0
+                    else Echantillon.StatutCollecteur.RECEPTIONNE
+                ),
+            )
+        Echantillon.objects.create(
+            reference_bouteille='F-S', gouvernorat='Sfax', fournisseur=hami_sfax,
+        )
+        for user, chemin in (
+            (self.chef, '/api/chef/dashboard/fournisseurs/'),
+            (self.direction, '/api/ceo/dashboard/fournisseurs/'),
+        ):
+            self.client.force_authenticate(user=user)
+            response = self.client.get(chemin)
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            lignes = {ligne['nom']: ligne for ligne in response.json()}
+            # Deux homonymes de deux lieux restent deux fournisseurs.
+            self.assertEqual(lignes['hami — Gabès']['echantillons'], 2)
+            self.assertEqual(lignes['hami — Gabès']['achats'], 1)
+            self.assertEqual(lignes['hami — Sfax']['echantillons'], 1)
+            # L'echantillon COI-1 du setUp n'a pas de fournisseur.
+            self.assertEqual(lignes['Sans fournisseur']['echantillons'], 1)
 
     def test_regions_refusees_au_degustateur(self):
         self.client.force_authenticate(user=self.taster)
@@ -525,7 +555,11 @@ class PanelCoiEtRegionsTests(APITestCase):
             self.client.get('/api/chef/dashboard/regions/').status_code,
             status.HTTP_403_FORBIDDEN,
         )
-        self.assertEqual(
-            self.client.get('/api/ceo/dashboard/regions/').status_code,
-            status.HTTP_403_FORBIDDEN,
-        )
+        for chemin in (
+            '/api/ceo/dashboard/regions/',
+            '/api/chef/dashboard/fournisseurs/',
+            '/api/ceo/dashboard/fournisseurs/',
+        ):
+            self.assertEqual(
+                self.client.get(chemin).status_code, status.HTTP_403_FORBIDDEN,
+            )

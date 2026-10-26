@@ -11,8 +11,7 @@ import 'package:project3/core/widgets/search_date_filter_bar.dart';
 import '../../evaluation_echantillons/evaluation_echantillons_page.dart';
 import 'home_activite_section.dart';
 import 'home_alignement_section.dart';
-import '../../../core/services/repartition_regions_service.dart';
-import '../../../core/widgets/repartition_regions_card.dart';
+import '../../../core/widgets/repartition_card.dart';
 import 'home_panel_coi_section.dart';
 import 'home_classifications_section.dart';
 import 'home_delai_section.dart';
@@ -141,16 +140,15 @@ class _HomeBodyState extends State<HomeBody> with RafraichissementPeriodique {
     }
   }
 
-  final _regionsService = RepartitionRegionsService(
-    '/api/chef/dashboard/regions/',
-  );
-  final _regionsKey = GlobalKey<RepartitionRegionsCardState>();
+  final _regionsKey = GlobalKey<RepartitionCardState>();
+  final _fournisseursKey = GlobalKey<RepartitionCardState>();
   final _panelCoiKey = GlobalKey<PanelCoiSectionState>();
 
   Future<void> _rafraichirTout() async {
     await widget.onRefreshParent?.call();
     await _loadAll();
     await _regionsKey.currentState?.recharger();
+    await _fournisseursKey.currentState?.recharger();
     await _panelCoiKey.currentState?.recharger();
   }
 
@@ -637,10 +635,9 @@ class _HomeBodyState extends State<HomeBody> with RafraichissementPeriodique {
               const SizedBox(height: 12),
               PanelCoiSection(key: _panelCoiKey),
               const SizedBox(height: 12),
-              RepartitionRegionsCard(
-                key: _regionsKey,
-                service: _regionsService,
-              ),
+              RepartitionCard.gouvernorats(key: _regionsKey, role: 'chef'),
+              const SizedBox(height: 12),
+              RepartitionCard.fournisseurs(key: _fournisseursKey, role: 'chef'),
               const SizedBox(height: 12),
               ActiviteSection(
                 activite: _activite,

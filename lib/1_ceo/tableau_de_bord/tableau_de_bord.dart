@@ -27,8 +27,7 @@ import 'widgets/sales_evolution_card.dart';
 import 'widgets/classification_card.dart';
 import 'widgets/supplier_frequency_card.dart';
 import 'widgets/stock_donut_card.dart';
-import '../../core/services/repartition_regions_service.dart';
-import '../../core/widgets/repartition_regions_card.dart';
+import '../../core/widgets/repartition_card.dart';
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 const Color _pageBg = Color(0xFFF2F4F2);
@@ -139,10 +138,6 @@ class _HomePageCeoState extends State<HomePageCeo>
     _loadUnreadCount();
     _loadDashboard();
   }
-
-  final _regionsService = RepartitionRegionsService(
-    '/api/ceo/dashboard/regions/',
-  );
 
   @override
   Future<void> rechargerEnSilence() async {
@@ -482,8 +477,11 @@ class _HomePageCeoState extends State<HomePageCeo>
                           ),
                         ),
                         const SizedBox(height: 12),
-                        // Où l'entreprise achète : même carte que le chef.
-                        RepartitionRegionsCard(service: _regionsService),
+                        // Où et chez qui l'entreprise achète : mêmes cartes
+                        // que le chef.
+                        RepartitionCard.gouvernorats(role: 'ceo'),
+                        const SizedBox(height: 12),
+                        RepartitionCard.fournisseurs(role: 'ceo'),
                         const SizedBox(height: 12),
                         _fs(
                           7,

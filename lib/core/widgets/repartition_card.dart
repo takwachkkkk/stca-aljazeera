@@ -1,14 +1,15 @@
 // ═════════════════════════════════════════════════════════════════════════════
-// FILE    : core/widgets/repartition_regions_card.dart
-// PURPOSE : Carte « Échantillons par gouvernorat » des tableaux de bord du chef
-//           et de la direction : d'où viennent les échantillons, où l'entreprise
-//           achète le plus. Une seule carte pour les deux rôles ; elle charge
-//           ses propres données et a son propre choix de période.
+// FILE    : core/widgets/repartition_card.dart
+// PURPOSE : Cartes « Échantillons par gouvernorat » et « Échantillons par
+//           fournisseur » des tableaux de bord du chef et de la direction :
+//           d'où viennent les échantillons, chez qui l'entreprise achète.
+//           Une seule carte pour les deux usages et les deux rôles ; elle
+//           charge ses propres données et a son propre choix de période.
 // ═════════════════════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
 
-import '../services/repartition_regions_service.dart';
+import '../services/repartition_service.dart';
 
 const Color _green = Color(0xFF38835A);
 const Color _dark = Color(0xFF1A2E1F);
@@ -32,18 +33,49 @@ extension on _Periode {
   };
 }
 
-class RepartitionRegionsCard extends StatefulWidget {
-  final RepartitionRegionsService service;
+class RepartitionCard extends StatefulWidget {
+  final RepartitionService service;
+  final String titre;
+  final String sousTitre;
+  final IconData icone;
 
-  const RepartitionRegionsCard({super.key, required this.service});
+  const RepartitionCard({
+    super.key,
+    required this.service,
+    required this.titre,
+    required this.sousTitre,
+    required this.icone,
+  });
+
+  /// Par gouvernorat — chemin `/api/<role>/dashboard/regions/`.
+  factory RepartitionCard.gouvernorats({Key? key, required String role}) =>
+      RepartitionCard(
+        key: key,
+        service: RepartitionService('/api/$role/dashboard/regions/'),
+        titre: 'Échantillons par gouvernorat',
+        sousTitre:
+            "D'où viennent les échantillons et où l'entreprise achète le plus.",
+        icone: Icons.map_outlined,
+      );
+
+  /// Par fournisseur — chemin `/api/<role>/dashboard/fournisseurs/`.
+  factory RepartitionCard.fournisseurs({Key? key, required String role}) =>
+      RepartitionCard(
+        key: key,
+        service: RepartitionService('/api/$role/dashboard/fournisseurs/'),
+        titre: 'Échantillons par fournisseur',
+        sousTitre:
+            'Combien chaque fournisseur a apporté et combien a été acheté.',
+        icone: Icons.storefront_outlined,
+      );
 
   @override
-  State<RepartitionRegionsCard> createState() => RepartitionRegionsCardState();
+  State<RepartitionCard> createState() => RepartitionCardState();
 }
 
-class RepartitionRegionsCardState extends State<RepartitionRegionsCard> {
+class RepartitionCardState extends State<RepartitionCard> {
   _Periode _periode = _Periode.annee;
-  List<RepartitionRegion> _lignes = const [];
+  List<LigneRepartition> _lignes = const [];
   bool _chargement = true;
   bool _erreur = false;
 
@@ -102,14 +134,14 @@ class RepartitionRegionsCardState extends State<RepartitionRegionsCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Icon(Icons.map_outlined, size: 18, color: _green),
-              SizedBox(width: 8),
+              Icon(widget.icone, size: 18, color: _green),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Échantillons par gouvernorat',
-                  style: TextStyle(
+                  widget.titre,
+                  style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
                     color: _dark,
@@ -120,7 +152,7 @@ class RepartitionRegionsCardState extends State<RepartitionRegionsCard> {
           ),
           const SizedBox(height: 4),
           Text(
-            "D'où viennent les échantillons et où l'entreprise achète le plus.",
+            widget.sousTitre,
             style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
           ),
           const SizedBox(height: 10),
@@ -183,7 +215,7 @@ class RepartitionRegionsCardState extends State<RepartitionRegionsCard> {
     );
   }
 
-  Widget _ligne(RepartitionRegion l, int max) {
+  Widget _ligne(LigneRepartition l, int max) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Column(
@@ -193,7 +225,7 @@ class RepartitionRegionsCardState extends State<RepartitionRegionsCard> {
             children: [
               Expanded(
                 child: Text(
-                  l.gouvernorat,
+                  l.nom,
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,

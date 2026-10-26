@@ -2,7 +2,7 @@
   "status_code": 200,
   "route": "/api/users/me/",
   "data": {
-    "id": "f97aedb4-f2c4-4872-be3e-202ec7e29cbd",
+    "id": "03d572f4-ef88-4070-bfcb-1b9d784a5410",
     "email": "labo@audit.test",
     "nom": "Labo",
     "prenom": "Audit",
@@ -10,7 +10,7 @@
     "telephone": "20000000",
     "is_active": true,
     "statut": "actif",
-    "date_creation": "2026-10-21T21:52:09.060995+01:00",
+    "date_creation": "2026-10-26T20:44:05.273513+01:00",
     "date_suppression": null,
     "doit_changer_mot_de_passe": false,
     "last_login": null

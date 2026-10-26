@@ -6,6 +6,7 @@
 //           mois ; toucher un échantillon ouvre sa fiche détaillée.
 // ═════════════════════════════════════════════════════════════════════════════
 
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/models/enums.dart';
@@ -216,6 +217,24 @@ class PanelCoiSectionState extends State<PanelCoiSection> {
                 ),
               ],
             ),
+            const SizedBox(height: 14),
+            const Text(
+              'Histogramme par mois (catégorie selon la médiane du panel)',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: _dark,
+              ),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(height: 190, child: _histogramme()),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 12,
+              runSpacing: 4,
+              alignment: WrapAlignment.center,
+              children: [for (final c in _categories) _legende(c)],
+            ),
             const SizedBox(height: 10),
             const Divider(height: 1),
             for (final r in choisis.take(5)) _ligne(r),
@@ -337,6 +356,133 @@ class PanelCoiSectionState extends State<PanelCoiSection> {
       ),
     );
   }
+
+  static const _categories = [
+    ClassificationHuile.extraVierge,
+    ClassificationHuile.vierge,
+    ClassificationHuile.viergeOrdinaire,
+    ClassificationHuile.lampante,
+  ];
+
+  /// Une colonne de barres par mois (du plus ancien au plus récent, 6 derniers
+  /// mois), une barre par catégorie, le nombre d'échantillons au-dessus.
+  /// Toucher un mois le sélectionne dans les puces au-dessus.
+  Widget _histogramme() {
+    final mois = _moisDisponibles.take(6).toList().reversed.toList();
+    final comptes = [
+      for (final m in mois)
+        [
+          for (final c in _categories)
+            _resultats
+                .where((r) => _moisDe(r) == m && r.classification == c)
+                .length,
+        ],
+    ];
+    final maxY =
+        comptes.expand((l) => l).fold(0, (a, b) => a > b ? a : b) + 1.0;
+
+    return BarChart(
+      BarChartData(
+        alignment: BarChartAlignment.spaceAround,
+        maxY: maxY,
+        barTouchData: BarTouchData(
+          // Le nombre exact reste affiché au-dessus de chaque barre.
+          handleBuiltInTouches: false,
+          touchCallback: (evenement, reponse) {
+            final groupe = reponse?.spot?.touchedBarGroupIndex;
+            if (evenement is FlTapUpEvent && groupe != null) {
+              setState(() => _mois = mois[groupe]);
+            }
+          },
+          touchTooltipData: BarTouchTooltipData(
+            getTooltipColor: (_) => Colors.transparent,
+            tooltipPadding: EdgeInsets.zero,
+            tooltipMargin: 2,
+            getTooltipItem: (_, _, barre, _) => barre.toY == 0
+                ? null
+                : BarTooltipItem(
+                    barre.toY.toInt().toString(),
+                    TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w700,
+                      color: barre.color,
+                    ),
+                  ),
+          ),
+        ),
+        barGroups: [
+          for (var i = 0; i < mois.length; i++)
+            BarChartGroupData(
+              x: i,
+              barsSpace: 2,
+              showingTooltipIndicators: const [0, 1, 2, 3],
+              barRods: [
+                for (var k = 0; k < _categories.length; k++)
+                  BarChartRodData(
+                    toY: comptes[i][k].toDouble(),
+                    color: Color(_categories[k].colorValue),
+                    width: 7,
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(3),
+                    ),
+                  ),
+              ],
+            ),
+        ],
+        titlesData: FlTitlesData(
+          leftTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          rightTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          topTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 22,
+              getTitlesWidget: (v, _) {
+                final i = v.toInt();
+                if (i < 0 || i >= mois.length) return const SizedBox();
+                final actif = _mois == mois[i];
+                return Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Text(
+                    '${_moisCourts[mois[i].$2 - 1]} ${mois[i].$1 % 100}',
+                    style: TextStyle(
+                      fontSize: 9,
+                      fontWeight: actif ? FontWeight.w800 : FontWeight.w600,
+                      color: actif ? _green : const Color(0xFF9E9E9E),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+        borderData: FlBorderData(show: false),
+        gridData: const FlGridData(show: false),
+      ),
+    );
+  }
+
+  Widget _legende(ClassificationHuile c) => Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Container(
+        width: 10,
+        height: 10,
+        decoration: BoxDecoration(
+          color: Color(c.colorValue),
+          borderRadius: BorderRadius.circular(3),
+        ),
+      ),
+      const SizedBox(width: 4),
+      Text(c.label, style: const TextStyle(fontSize: 10)),
+    ],
+  );
 
   Widget _message(String texte) => Padding(
     padding: const EdgeInsets.symmetric(vertical: 18),

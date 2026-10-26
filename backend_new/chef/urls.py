@@ -6,6 +6,7 @@ from .views import (
     ChefDashboardAlignementView, ChefDashboardClassificationsView,
     ChefDashboardPresenceView, ChefDashboardUrgentesCeoView,
     ChefDashboardActiviteView, ChefDashboardRegionsView, ChefPanelCoiView,
+    ChefDashboardFournisseursView,
 )
 
 urlpatterns = [
@@ -20,5 +21,6 @@ urlpatterns = [
     path('dashboard/urgentes-ceo/', ChefDashboardUrgentesCeoView.as_view(), name='chef-urgentes-ceo'),
     path('dashboard/activite/', ChefDashboardActiviteView.as_view(), name='chef-activite'),
     path('dashboard/regions/', ChefDashboardRegionsView.as_view(), name='chef-regions'),
+    path('dashboard/fournisseurs/', ChefDashboardFournisseursView.as_view(), name='chef-fournisseurs'),
     path('panel-coi/', ChefPanelCoiView.as_view(), name='chef-panel-coi'),
 ]
