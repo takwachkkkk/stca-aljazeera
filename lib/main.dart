@@ -1,3 +1,4 @@
+import '6_service_achat/achats/achats_service_achat_page.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '3_degustateur/tableau_de_bord/homepage_page.dart';
@@ -66,6 +67,7 @@ Widget _destinationForRole(RoleUtilisateur role) {
     RoleUtilisateur.degustateur => const HomePage(),
     RoleUtilisateur.laboratoire => const EchantillonsLaboPage(),
     RoleUtilisateur.chefDegustation => const chef.HomePage(),
+    RoleUtilisateur.serviceAchat => const AchatsServiceAchatPage(),
   };
 }
 

@@ -3,19 +3,19 @@
   "route": "/api/messages/contacts/",
   "data": [
     {
-      "id": "3ec0aae4-1def-4e6f-ab21-64dbafee1ec6",
+      "id": "ab67353a-99af-41b1-8d27-004b04f0b7f6",
       "nom": "Autre collecteur",
       "prenom": "Audit",
       "role": "collecteur"
     },
     {
-      "id": "1f2ddc30-bca8-4d13-8bc0-875bc231df12",
+      "id": "59a4c1dd-ddf4-4b83-b675-6dd7e4934f1b",
       "nom": "Chef",
       "prenom": "Audit",
       "role": "chef_degustation"
     },
     {
-      "id": "9eba230c-44a9-4815-b3dd-cd67515b4808",
+      "id": "6f3faa4b-b13d-4437-8dc2-242ed6928355",
       "nom": "Collecteur",
       "prenom": "Audit",
       "role": "collecteur"

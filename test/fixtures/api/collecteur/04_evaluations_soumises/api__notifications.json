@@ -7,16 +7,16 @@
     "previous": null,
     "results": [
       {
-        "id": "8bf64a00-18d9-4d65-86ad-480e45de6499",
+        "id": "d4a27469-e481-4a4b-9528-29896f73f2ef",
         "type": "ECHANTILLON_RECU",
         "titre": "Confirmation réception d'échantillon",
-        "message": "La réception de l'échantillon AUDIT-BOUT-001 a été confirmée le 26/10/2026 a 19:44.",
-        "echantillon": "a5bce5d8-867b-440b-a319-28ae299cccf5",
+        "message": "La réception de l'échantillon AUDIT-BOUT-001 a été confirmée le 27/10/2026 a 11:27.",
+        "echantillon": "f43c5a9d-3b90-4e7a-9a3e-5d212b39a09c",
         "echantillon_reference": "AUDIT-BOUT-001",
         "echantillon_numero": "2026/0001",
         "section": "ECHANTILLONS",
         "is_read": false,
-        "date_creation": "2026-10-26T20:44:08.737529+01:00"
+        "date_creation": "2026-10-27T12:27:04.294023+01:00"
       }
     ]
   }

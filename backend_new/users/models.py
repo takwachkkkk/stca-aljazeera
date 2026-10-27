@@ -30,6 +30,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         LABORATOIRE           = 'laboratoire',           'Laboratoire'
         CHEF_DEGUSTATION      = 'chef_degustation',      'Chef de Dégustation'
         RESPONSABLE_FINANCIER = 'responsable_financier', 'Responsable Financier'
+        SERVICE_ACHAT         = 'service_achat',         'Service achat'
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = models.EmailField()

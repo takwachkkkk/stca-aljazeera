@@ -7,12 +7,12 @@
     "previous": null,
     "results": [
       {
-        "id": "f696fdc1-a830-4822-bd1e-e0014919f275",
-        "echantillon": "a5bce5d8-867b-440b-a319-28ae299cccf5",
-        "echantillon_id": "a5bce5d8-867b-440b-a319-28ae299cccf5",
+        "id": "a61fec00-9442-4b0e-9cd4-448f5bf90afc",
+        "echantillon": "f43c5a9d-3b90-4e7a-9a3e-5d212b39a09c",
+        "echantillon_id": "f43c5a9d-3b90-4e7a-9a3e-5d212b39a09c",
         "echantillon_ref": "AUDIT-BOUT-001",
-        "technicien": "03d572f4-ef88-4070-bfcb-1b9d784a5410",
-        "technicien_id": "03d572f4-ef88-4070-bfcb-1b9d784a5410",
+        "technicien": "8d545b9f-d664-4052-bd6e-93e6ae2954e2",
+        "technicien_id": "8d545b9f-d664-4052-bd6e-93e6ae2954e2",
         "technicien_nom": "Audit Labo",
         "statut": "soumis",
         "numero_certificat": "CERT-AUDIT-001",
@@ -54,8 +54,8 @@
         "photo": null,
         "notes": "Analyse saisie par le parcours audit",
         "criteres": [],
-        "date_analyse": "2026-10-26T20:44:13.274842+01:00",
-        "date_modification": "2026-10-26T20:44:13.291283+01:00"
+        "date_analyse": "2026-10-27T12:27:05.988694+01:00",
+        "date_modification": "2026-10-27T12:27:05.988694+01:00"
       }
     ]
   }

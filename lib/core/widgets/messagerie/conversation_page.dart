@@ -418,6 +418,7 @@ class _ConversationPageState extends State<ConversationPage>
         break;
       case RoleUtilisateur.degustateur:
       case RoleUtilisateur.laboratoire:
+      case RoleUtilisateur.serviceAchat:
         _showError(
           'Navigation vers cet échantillon indisponible pour ce rôle.',
         );

@@ -7,7 +7,7 @@
     "previous": null,
     "results": [
       {
-        "id": "60f6a255-5984-4aa1-b034-4c097628ccc4",
+        "id": "b9c28960-c5a9-494c-9315-3e2244376151",
         "email": "direction@audit.test",
         "nom": "Direction",
         "prenom": "Audit",
@@ -15,13 +15,13 @@
         "telephone": "20000000",
         "is_active": true,
         "statut": "actif",
-        "date_creation": "2026-10-26T20:43:55.790144+01:00",
+        "date_creation": "2026-10-27T12:26:59.282460+01:00",
         "date_suppression": null,
         "doit_changer_mot_de_passe": false,
         "last_login": null
       },
       {
-        "id": "9eba230c-44a9-4815-b3dd-cd67515b4808",
+        "id": "6f3faa4b-b13d-4437-8dc2-242ed6928355",
         "email": "collecteur@audit.test",
         "nom": "Collecteur",
         "prenom": "Audit",
@@ -29,13 +29,13 @@
         "telephone": "20000000",
         "is_active": true,
         "statut": "actif",
-        "date_creation": "2026-10-26T20:43:57.713167+01:00",
+        "date_creation": "2026-10-27T12:27:00.019405+01:00",
         "date_suppression": null,
         "doit_changer_mot_de_passe": false,
         "last_login": null
       },
       {
-        "id": "3ec0aae4-1def-4e6f-ab21-64dbafee1ec6",
+        "id": "ab67353a-99af-41b1-8d27-004b04f0b7f6",
         "email": "collecteur2@audit.test",
         "nom": "Autre collecteur",
         "prenom": "Audit",
@@ -43,13 +43,13 @@
         "telephone": "20000000",
         "is_active": true,
         "statut": "actif",
-        "date_creation": "2026-10-26T20:43:59.591688+01:00",
+        "date_creation": "2026-10-27T12:27:00.744953+01:00",
         "date_suppression": null,
         "doit_changer_mot_de_passe": false,
         "last_login": null
       },
       {
-        "id": "2cf62fac-4850-4c8f-99ef-9542abaab7fd",
+        "id": "bb9faa89-8dbc-4f99-9f48-95d2f46a1bc0",
         "email": "degustateur@audit.test",
         "nom": "Degustateur",
         "prenom": "Audit",
@@ -57,13 +57,13 @@
         "telephone": "20000000",
         "is_active": true,
         "statut": "actif",
-        "date_creation": "2026-10-26T20:44:01.493409+01:00",
+        "date_creation": "2026-10-27T12:27:01.510421+01:00",
         "date_suppression": null,
         "doit_changer_mot_de_passe": false,
         "last_login": null
       },
       {
-        "id": "1f2ddc30-bca8-4d13-8bc0-875bc231df12",
+        "id": "59a4c1dd-ddf4-4b83-b675-6dd7e4934f1b",
         "email": "chef@audit.test",
         "nom": "Chef",
         "prenom": "Audit",
@@ -71,13 +71,13 @@
         "telephone": "20000000",
         "is_active": true,
         "statut": "actif",
-        "date_creation": "2026-10-26T20:44:03.362966+01:00",
+        "date_creation": "2026-10-27T12:27:02.301762+01:00",
         "date_suppression": null,
         "doit_changer_mot_de_passe": false,
         "last_login": null
       },
       {
-        "id": "03d572f4-ef88-4070-bfcb-1b9d784a5410",
+        "id": "8d545b9f-d664-4052-bd6e-93e6ae2954e2",
         "email": "labo@audit.test",
         "nom": "Labo",
         "prenom": "Audit",
@@ -85,7 +85,7 @@
         "telephone": "20000000",
         "is_active": true,
         "statut": "actif",
-        "date_creation": "2026-10-26T20:44:05.273513+01:00",
+        "date_creation": "2026-10-27T12:27:03.033429+01:00",
         "date_suppression": null,
         "doit_changer_mot_de_passe": false,
         "last_login": null

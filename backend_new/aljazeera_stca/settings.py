@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'ceo',
     'chef',
     'degustateur',
+    'service_achat',
     # Third party
     'django_filters',
     'rest_framework_simplejwt.token_blacklist',
@@ -197,7 +198,7 @@ SPECTACULAR_SETTINGS = {
     'TITLE': 'Al Jazeera STCA — API',
     'DESCRIPTION': (
         'Backend API for the olive oil sample evaluation and stock acquisition system. '
-        'Roles: direction, collecteur, degustateur, laboratoire, chef_degustation, responsable_financier.'
+        'Roles: direction, collecteur, degustateur, laboratoire, chef_degustation, responsable_financier, service_achat.'
     ),
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,

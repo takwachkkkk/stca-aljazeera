@@ -53,6 +53,7 @@ urlpatterns = [
     path('api/ceo/', include('ceo.urls')),
     path('api/chef/', include('chef.urls')),
     path('api/degustateur/', include('degustateur.urls')),
+    path('api/service-achat/', include('service_achat.urls')),
 
     # ── Interactive API docs (Swagger UI) ─────────────────────────────────────
     # Visit http://localhost:8000/api/docs/  to see and test every endpoint

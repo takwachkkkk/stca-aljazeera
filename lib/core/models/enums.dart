@@ -11,6 +11,10 @@ enum RoleUtilisateur {
   degustateur,
   laboratoire,
   chefDegustation,
+
+  /// Service achat : voit les achats confirmés et leurs livraisons, rien de la
+  /// dégustation ni du laboratoire.
+  serviceAchat,
 }
 
 extension RoleUtilisateurX on RoleUtilisateur {
@@ -26,6 +30,8 @@ extension RoleUtilisateurX on RoleUtilisateur {
         return 'laboratoire';
       case RoleUtilisateur.chefDegustation:
         return 'chef_degustation';
+      case RoleUtilisateur.serviceAchat:
+        return 'service_achat';
     }
   }
 
@@ -41,6 +47,8 @@ extension RoleUtilisateurX on RoleUtilisateur {
         return 'Technicien Labo';
       case RoleUtilisateur.chefDegustation:
         return 'Chef de Dégustation';
+      case RoleUtilisateur.serviceAchat:
+        return 'Service achat';
     }
   }
 
@@ -56,6 +64,8 @@ extension RoleUtilisateurX on RoleUtilisateur {
         return RoleUtilisateur.laboratoire;
       case 'chef_degustation':
         return RoleUtilisateur.chefDegustation;
+      case 'service_achat':
+        return RoleUtilisateur.serviceAchat;
       default:
         return RoleUtilisateur.degustateur;
     }
@@ -507,7 +517,13 @@ extension ModePlanificationX on ModePlanification {
 }
 
 // ── Session status ────────────────────────────────────────────────────────────
-enum StatutSession { enAttenteValidation, planifiee, enCours, terminee, refusee }
+enum StatutSession {
+  enAttenteValidation,
+  planifiee,
+  enCours,
+  terminee,
+  refusee,
+}
 
 extension StatutSessionX on StatutSession {
   String get toJson {

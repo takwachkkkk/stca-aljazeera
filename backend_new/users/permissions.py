@@ -33,3 +33,8 @@ class IsDegustateurOrChef(BasePermission):
         return request.user.is_authenticated and request.user.role in (
             User.Role.DEGUSTATEUR, User.Role.CHEF_DEGUSTATION
         )
+
+
+class IsServiceAchat(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and request.user.role == User.Role.SERVICE_ACHAT

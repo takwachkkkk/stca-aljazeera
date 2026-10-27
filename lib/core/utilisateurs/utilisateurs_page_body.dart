@@ -49,6 +49,7 @@ class _UtilisateursPageBodyState extends State<UtilisateursPageBody>
     UserRole.degustateur: (bg: Color(0xFFF1F3F2), fg: Color(0xFF4A5A50)),
     UserRole.collecteur: (bg: Color(0xFFF1F3F2), fg: Color(0xFF4A5A50)),
     UserRole.chefDegustation: (bg: Color(0xFFF1F3F2), fg: Color(0xFF4A5A50)),
+    UserRole.serviceAchat: (bg: Color(0xFFF1F3F2), fg: Color(0xFF4A5A50)),
   };
 
   // ── Data ──────────────────────────────────────────────────────────────────
@@ -308,6 +309,12 @@ class _UtilisateursPageBodyState extends State<UtilisateursPageBody>
         role: UserRole.chefDegustation as UserRole?,
         activeBg: Color(0xFFF3EBF9),
         activeFg: Color(0xFF6A3D9A),
+      ),
+      (
+        label: 'Service achat',
+        role: UserRole.serviceAchat as UserRole?,
+        activeBg: Color(0xFFFEF3E8),
+        activeFg: Color(0xFFD07B2F),
       ),
     ];
 
