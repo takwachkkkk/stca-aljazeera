@@ -6,6 +6,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:project3/core/fonctionnalites.dart';
 import 'package:project3/core/widgets/messagerie/messagerie_badge.dart';
 import '../homepage_page.dart';
 import '../../../core/logout_navigation.dart';
@@ -53,14 +54,12 @@ class AppDrawer extends StatelessWidget {
       ChefDestination.panel => const MembresPanelPage(),
       ChefDestination.utilisateurs => const UtilisateursChefPage(),
       ChefDestination.vueEnsemble => const VueEnsembleEvaluationsPage(),
-      ChefDestination.messagerie => const ConversationsPage(),
+      ChefDestination.messagerie => const ConversationsPage(
+        menu: AppDrawer(currentPage: ChefDestination.messagerie),
+      ),
       ChefDestination.profil => const ProfilePage(),
     };
-    // La messagerie s'ouvre PAR-DESSUS la page courante : sa flèche de
-    // retour ramène à la page d'où l'on vient (elle n'a pas de menu).
-    if (destination == ChefDestination.messagerie) {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => page));
-    } else if (destination == ChefDestination.accueil) {
+    if (destination == ChefDestination.accueil) {
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => page),
@@ -186,13 +185,14 @@ class AppDrawer extends StatelessWidget {
                     active: currentPage == ChefDestination.evaluation,
                     onTap: () => _navigate(context, ChefDestination.evaluation),
                   ),
-                  _DrawerItem(
-                    icon: Icons.science_outlined,
-                    label: 'Analyse de laboratoire',
-                    active: currentPage == ChefDestination.laboratoire,
-                    onTap: () =>
-                        _navigate(context, ChefDestination.laboratoire),
-                  ),
+                  if (kLaboActif)
+                    _DrawerItem(
+                      icon: Icons.science_outlined,
+                      label: 'Analyse de laboratoire',
+                      active: currentPage == ChefDestination.laboratoire,
+                      onTap: () =>
+                          _navigate(context, ChefDestination.laboratoire),
+                    ),
 
                   const SizedBox(height: 4),
                   Divider(color: _olive.withValues(alpha: 0.15), height: 1),

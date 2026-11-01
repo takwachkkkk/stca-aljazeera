@@ -83,7 +83,7 @@ List<EchantillonCollecteur> mockEchantillons() => [
     collecteurNom: 'Ahmed D.',
     recuPhysiquement: true,
     dateReceptionEchantillon: DateTime(2026, 3, 5),
-    budgetNegociation: '9.50 TND/L',
+    budgetNegociation: '9.50 DT/kg',
     dateStockSouhaiteeDebut: DateTime(2026, 4, 1),
     dateStockSouhaiteeFin: DateTime(2026, 4, 15),
   ),
@@ -124,7 +124,7 @@ List<EchantillonCollecteur> mockEchantillons() => [
     collecteurNom: 'Ahmed D.',
     recuPhysiquement: true,
     dateReceptionEchantillon: DateTime(2026, 2, 22),
-    prixFinal: '8.80 TND/L',
+    prixFinal: '8.80 DT/kg',
     camionLivraison: 'CAM-05',
   ),
   // Scenario 7 : Achat confirmé — livraison planifiée
@@ -145,7 +145,7 @@ List<EchantillonCollecteur> mockEchantillons() => [
     collecteurNom: 'Ahmed D.',
     recuPhysiquement: true,
     dateReceptionEchantillon: DateTime(2026, 2, 25),
-    prixFinal: '9.20 TND/L',
+    prixFinal: '9.20 DT/kg',
     camionLivraison: 'CAM-03',
     livraison: PlanificationLivraison.exact(
       date: DateTime(2026, 3, 15),

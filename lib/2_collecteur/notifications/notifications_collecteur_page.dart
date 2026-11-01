@@ -578,8 +578,10 @@ class _NegotiationPanel extends StatelessWidget {
           const SizedBox(height: 8),
           _DetailRow(
             icon: Icons.payments_outlined,
-            label: 'Budget alloué',
-            value: MontantAchat.formaterPrixParTonne(budget.toString())!,
+            label: 'Prix proposé',
+            value:
+                '${MontantAchat.formaterPrixParKg(budget.toString())} '
+                '(${MontantAchat.formaterPrixParTonne(budget.toString())})',
             color: color,
           ),
           if (dateSouhaitee != null) ...[

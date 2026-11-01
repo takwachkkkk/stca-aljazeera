@@ -35,6 +35,14 @@ class Message {
     required this.dateEnvoi,
   });
 
+  /// Le texte court montré dans une alerte, même si le message n'a pas de texte.
+  String get apercu {
+    final texte = contenu.trim();
+    if (texte.isNotEmpty) return texte;
+    if (photoUrl?.trim().isNotEmpty == true) return 'Photo';
+    return 'Échantillon cité';
+  }
+
   factory Message.fromJson(Map<String, dynamic> json) => Message(
     id: json['id'] as String,
     expediteur: json['expediteur'] as String,

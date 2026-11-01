@@ -2,7 +2,7 @@
   "status_code": 200,
   "route": "/api/users/me/",
   "data": {
-    "id": "6f3faa4b-b13d-4437-8dc2-242ed6928355",
+    "id": "04b32a25-339e-40c9-aab0-3ef146cf5ab8",
     "email": "collecteur@audit.test",
     "nom": "Collecteur",
     "prenom": "Audit",
@@ -10,7 +10,7 @@
     "telephone": "20000000",
     "is_active": true,
     "statut": "actif",
-    "date_creation": "2026-10-27T12:27:00.019405+01:00",
+    "date_creation": "2026-11-01T23:15:30.047871+01:00",
     "date_suppression": null,
     "doit_changer_mot_de_passe": false,
     "last_login": null

@@ -8,6 +8,7 @@ import '../../core/utils/date_utils.dart';
 
 import '../utilisateurs/models/echantillon_ceo_view.dart';
 import '../../core/widgets/grille_details.dart';
+import '../../core/utils/montant_achat.dart';
 
 const Color _green = Color(0xFF38835A);
 const Color _white = Color.fromARGB(255, 255, 255, 255);
@@ -32,6 +33,8 @@ StatutCfg statutConfig(StatutCeo s) {
       return StatutCfg(Colors.orange.shade500, 'En négociation');
     case StatutCeo.achatConfirme:
       return const StatutCfg(_green, 'Achat confirmé');
+    case StatutCeo.achatNonConclu:
+      return StatutCfg(Colors.grey.shade600, 'Achat non conclu');
     case StatutCeo.refuse:
       return StatutCfg(Colors.red.shade400, 'Refusé');
   }
@@ -73,6 +76,8 @@ class _SampleDetailsState extends State<SampleDetails> {
         return Colors.orange.shade600;
       case StatutCeo.achatConfirme:
         return _green;
+      case StatutCeo.achatNonConclu:
+        return Colors.grey.shade600;
       case StatutCeo.refuse:
         return Colors.red.shade500;
     }
@@ -86,6 +91,8 @@ class _SampleDetailsState extends State<SampleDetails> {
         return 'En négociation';
       case StatutCeo.achatConfirme:
         return 'Achat confirmé';
+      case StatutCeo.achatNonConclu:
+        return 'Achat non conclu';
       case StatutCeo.refuse:
         return 'Refusé';
     }
@@ -183,7 +190,8 @@ class _SampleDetailsState extends State<SampleDetails> {
               )
             else
               _dLine('Livraison de l\'échantillon non planifiée'),
-          ] else if (e.statut == StatutCeo.enNegociation) ...[
+          ] else if (e.statut == StatutCeo.enNegociation ||
+              e.statut == StatutCeo.achatNonConclu) ...[
             _dLine(
               e.dateReceptionEchantillon != null
                   ? 'Échantillon réceptionné le ${DegDateUtils.formaterDateHeureOuTiret(e.dateReceptionEchantillon)}'
@@ -217,9 +225,7 @@ class _SampleDetailsState extends State<SampleDetails> {
 
           // ── Purchase details (collapsible, achat confirmé only) ───────────
           if (e.statut == StatutCeo.achatConfirme &&
-              (e.quantiteCibleT != null ||
-                  e.budgetNegociation != null ||
-                  e.camionReserve != null)) ...[
+              PurchaseDetailsPanel.aDesDetails(e)) ...[
             const SizedBox(height: 6),
             GestureDetector(
               onTap: () =>
@@ -259,6 +265,25 @@ class _SampleDetailsState extends State<SampleDetails> {
                   ? CrossFadeState.showSecond
                   : CrossFadeState.showFirst,
               duration: const Duration(milliseconds: 200),
+            ),
+          ],
+
+          // ── Achat non conclu : raison du collecteur ───────────────────────
+          if (e.statut == StatutCeo.achatNonConclu) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.grey.shade300),
+              ),
+              child: Text(
+                (e.raisonNonConclu?.isNotEmpty ?? false)
+                    ? 'Achat non conclu par le collecteur : ${e.raisonNonConclu}'
+                    : 'Achat non conclu par le collecteur (aucune raison donnée)',
+                style: TextStyle(fontSize: 13, color: Colors.grey.shade800),
+              ),
             ),
           ],
 
@@ -305,13 +330,15 @@ class PurchaseDetailsPanel extends StatelessWidget {
   final Color color;
   const PurchaseDetailsPanel({super.key, required this.e, required this.color});
 
+  static bool aDesDetails(EchantillonCeoView e) =>
+      (e.prixFinal?.isNotEmpty ?? false) ||
+      e.quantiteCibleT != null ||
+      (e.numCiterne?.isNotEmpty ?? false) ||
+      (e.remarqueCollecteur?.isNotEmpty ?? false);
+
   @override
   Widget build(BuildContext context) {
-    final hasDetails =
-        e.quantiteCibleT != null ||
-        e.budgetNegociation != null ||
-        e.camionReserve != null;
-    if (!hasDetails) return const SizedBox.shrink();
+    if (!aDesDetails(e)) return const SizedBox.shrink();
 
     return Container(
       margin: const EdgeInsets.only(top: 8),
@@ -323,11 +350,22 @@ class PurchaseDetailsPanel extends StatelessWidget {
       ),
       child: GrilleDetails(
         items: [
+          if (e.prixFinal?.isNotEmpty ?? false)
+            DetailItem(
+              'Prix convenu',
+              MontantAchat.formaterPrixParKg(e.prixFinal) ?? e.prixFinal!,
+            ),
           if (e.quantiteCibleT != null)
-            DetailItem('Quantité livrée', '${e.quantiteCibleT} T'),
-          if (e.budgetNegociation != null)
-            DetailItem('Montant total', e.budgetNegociation!),
-          if (e.camionReserve != null) DetailItem('Camion', e.camionReserve!),
+            DetailItem('Quantité', '${e.quantiteCibleT} T'),
+          if (MontantAchat.formater(e.prixFinal, e.quantiteCibleT) != null)
+            DetailItem(
+              'Montant total',
+              MontantAchat.formater(e.prixFinal, e.quantiteCibleT)!,
+            ),
+          if (e.numCiterne?.isNotEmpty ?? false)
+            DetailItem('N° citerne', e.numCiterne!),
+          if (e.remarqueCollecteur?.isNotEmpty ?? false)
+            DetailItem('Remarque du collecteur', e.remarqueCollecteur!),
         ],
       ),
     );
@@ -384,7 +422,7 @@ class SampleRow extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
 
-                // Left: bottle reference (top) + sample ID (bottom)
+                // Left: bottle reference (top) + sample number (bottom)
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -399,7 +437,7 @@ class SampleRow extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                       Text(
-                        e.id,
+                        e.numero,
                         style: const TextStyle(
                           fontSize: 12,
                           color: Color.fromARGB(255, 111, 111, 111),

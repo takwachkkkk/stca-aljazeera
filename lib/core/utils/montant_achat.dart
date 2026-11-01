@@ -2,24 +2,23 @@
 // FILE    : core/utils/montant_achat.dart
 // PURPOSE : What a purchase actually costs — unit price × quantity.
 //
-//           The unit price is stored as free text ("8 000 TND/T") while the
-//           quantity is in tonnes, so the two have to be reconciled before they
-//           can be multiplied. That reconciliation lives here and nowhere else:
-//           the confirmation dialog and the proposal details must never be able
-//           to show two different totals for the same purchase.
+//           The company negotiates in DT/kg; the price per tonne is always
+//           derived from it, never typed or stored. The quantity is in tonnes,
+//           so the two have to be reconciled before they can be multiplied.
+//           That reconciliation lives here and nowhere else: the confirmation
+//           dialog and the proposal details must never be able to show two
+//           different totals for the same purchase.
 // ═════════════════════════════════════════════════════════════════════════════
 
 /// Olive oil is lighter than water: about 0.916 kg per litre at 20 °C.
 ///
-/// Only used when the price is quoted per litre and the quantity in tonnes.
-/// If the company prices per kilo instead, the price string says so and this
-/// constant is never touched.
+/// Only used for a legacy price that explicitly says it is per litre.
 const double kDensiteHuileOlive = 0.916;
 
 class MontantAchat {
   /// Total cost, or null when either figure is missing or unreadable.
   ///
-  /// [prixUnitaire] is the stored text, e.g. "8 000 TND/T".
+  /// [prixUnitaire] is the stored price, e.g. "8.750".
   /// [quantiteTonnes] is the stored quantity in tonnes, e.g. "28".
   static double? calculer(String? prixUnitaire, String? quantiteTonnes) {
     final tonnes = _nombre(quantiteTonnes);
@@ -28,39 +27,54 @@ class MontantAchat {
     return prix * tonnes;
   }
 
-  /// Converts an explicit legacy unit to its equivalent TND/T price.
-  ///
-  /// A price with no unit is now a price per tonne. Explicit `/L` and `/kg`
-  /// values remain supported so existing records keep the same total.
-  static double? prixParTonne(String? prixUnitaire) {
+  /// Price in DT/kg. A price with no unit is a price per kilo; explicit `/L`
+  /// and `/T` values remain supported for existing text.
+  static double? prixParKg(String? prixUnitaire) {
     final prix = _nombre(prixUnitaire);
     if (prix == null || prixUnitaire == null) return null;
     switch (_unite(prixUnitaire)) {
       case _Unite.parLitre:
-        return prix * 1000 / kDensiteHuileOlive;
+        return prix / kDensiteHuileOlive;
       case _Unite.parKilo:
-        return prix * 1000;
-      case _Unite.parTonne:
         return prix;
+      case _Unite.parTonne:
+        return prix / 1000;
     }
   }
 
-  /// Display price normalized to the company's TND/T unit.
+  /// Price in DT/tonne, always derived from the price per kilo.
+  static double? prixParTonne(String? prixUnitaire) {
+    final prix = prixParKg(prixUnitaire);
+    return prix == null ? null : prix * 1000;
+  }
+
+  /// "8.750 DT/kg" — three decimals, the millime being the dinar's subunit.
+  static String? formaterPrixParKg(String? prixUnitaire) {
+    final prix = prixParKg(prixUnitaire);
+    if (prix == null) return null;
+    return '${prix.toStringAsFixed(3)} DT/kg';
+  }
+
+  /// "8 750 DT/tonne" — grouped by thousands.
   static String? formaterPrixParTonne(String? prixUnitaire) {
     final prix = prixParTonne(prixUnitaire);
     if (prix == null) return null;
-    return '${prix.toStringAsFixed(2)} TND/T';
+    return '${_espacerMilliers(prix.round())} DT/tonne';
   }
 
-  /// "243 015 TND" — grouped by thousands, no decimals.
+  /// "243 015 DT" — grouped by thousands, no decimals.
   ///
   /// A purchase total runs into the hundreds of thousands; centimes would only
   /// add noise to a figure read at a glance before committing.
   static String? formater(String? prixUnitaire, String? quantiteTonnes) {
     final total = calculer(prixUnitaire, quantiteTonnes);
     if (total == null) return null;
-    return '${_espacerMilliers(total.round())} TND';
+    return formaterMontant(total);
   }
+
+  /// "243 015 DT" for an amount already computed.
+  static String formaterMontant(double montant) =>
+      '${_espacerMilliers(montant.round())} DT';
 
   // ── Parsing ─────────────────────────────────────────────────────────────────
 
@@ -77,8 +91,8 @@ class MontantAchat {
     if (t.contains('/kg') || t.contains('/ kg')) return _Unite.parKilo;
     if (t.contains('/t')) return _Unite.parTonne;
     if (t.contains('/l') || t.contains('/ l')) return _Unite.parLitre;
-    // The company quotes its prices by tonne. A legacy litre price must say so.
-    return _Unite.parTonne;
+    // The company quotes its prices by kilo. Any other unit must say so.
+    return _Unite.parKilo;
   }
 
   static String _espacerMilliers(int n) {

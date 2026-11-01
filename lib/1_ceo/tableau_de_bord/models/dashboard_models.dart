@@ -21,18 +21,40 @@ class CardDateRange {
   final DateTime to;
   const CardDateRange(this.from, this.to);
 
+  /// Les jours ne sont omis que pour des mois entiers : « Mar 2026 » pour une
+  /// plage du 3 au 20 ferait croire que le filtre n'a pas été appliqué.
   String get label {
-    if (from.year == to.year && from.month == to.month && from.day == to.day) {
-      return '${from.day} ${_moisAbr[from.month - 1]} ${from.year}';
-    }
-    if (from.year == to.year && from.month == to.month) {
-      return '${_moisAbr[from.month - 1]} ${from.year}';
-    }
-    if (from.year == to.year) {
-      return '${_moisAbr[from.month - 1]} – ${_moisAbr[to.month - 1]} ${from.year}';
-    }
-    return '${_moisAbr[from.month - 1]} ${from.year} – ${_moisAbr[to.month - 1]} ${to.year}';
+    final memeAnnee = from.year == to.year;
+    final memeMois = memeAnnee && from.month == to.month;
+    if (memeMois && from.day == to.day) return dateCourte(from);
+
+    final moisEntiers =
+        from.day == 1 && to.day == DateTime(to.year, to.month + 1, 0).day;
+    final debut =
+        '${_moisAbr[from.month - 1]}${memeAnnee ? '' : ' ${from.year}'}';
+    final fin = '${_moisAbr[to.month - 1]} ${to.year}';
+    if (moisEntiers) return memeMois ? fin : '$debut – $fin';
+    if (memeMois) return '${from.day} – ${to.day} $fin';
+    return '${from.day} $debut – ${to.day} $fin';
   }
+
+  @override
+  bool operator ==(Object other) =>
+      other is CardDateRange && other.from == from && other.to == to;
+
+  @override
+  int get hashCode => Object.hash(from, to);
+}
+
+/// « 20 Oct 2026 ».
+String dateCourte(DateTime date) =>
+    '${date.day} ${_moisAbr[date.month - 1]} ${date.year}';
+
+/// « James Nasri » → « James.N » : le prénom reste entier quand la place manque.
+String nomFournisseurCourt(String nom) {
+  final mots = nom.trim().split(RegExp(r'\s+'));
+  if (mots.length < 2) return nom.trim();
+  return '${mots.first}.${mots.last[0].toUpperCase()}';
 }
 
 /// One row in the collector performance chart.
@@ -82,8 +104,79 @@ class FournisseurStat {
 class PurchaseEvolutionPoint {
   final String label;
   final double value;
+  final int count;
 
-  const PurchaseEvolutionPoint(this.label, this.value);
+  const PurchaseEvolutionPoint(this.label, this.value, [this.count = 0]);
+}
+
+/// Ce qui a été acheté dans une catégorie d'huile sur la période.
+class AchatCategorie {
+  final String cle;
+  final double quantiteT;
+  final double montant;
+  final int nombre;
+
+  const AchatCategorie(this.cle, this.quantiteT, this.montant, this.nombre);
+
+  String get libelle => switch (cle) {
+    'extra_vierge' => 'Extra vierge',
+    'vierge' => 'Vierge',
+    'vierge_ordinaire' => 'Vierge ordinaire',
+    'lampante' => 'Lampante',
+    _ => 'Non classé',
+  };
+}
+
+/// Prix du dernier achat d'une catégorie, en DT/kg.
+class DernierPrix {
+  final double prix;
+  final DateTime date;
+
+  const DernierPrix(this.prix, this.date);
+}
+
+/// Les achats confirmés de la période : montant, quantités, derniers prix.
+class SyntheseAchats {
+  final double montantTotal;
+  final double quantiteTotaleT;
+  final int nombre;
+
+  /// Achats sans quantité : leur montant ne peut pas être calculé.
+  final int sansQuantite;
+  final List<AchatCategorie> categories;
+  final DernierPrix? dernierPrixExtra;
+  final DernierPrix? dernierPrixVierge;
+
+  const SyntheseAchats({
+    required this.montantTotal,
+    required this.quantiteTotaleT,
+    required this.nombre,
+    required this.sansQuantite,
+    required this.categories,
+    required this.dernierPrixExtra,
+    required this.dernierPrixVierge,
+  });
+
+  factory SyntheseAchats.fromJson(Map<String, dynamic> json) {
+    final derniersPrix = _map(json['dernier_prix']);
+    return SyntheseAchats(
+      montantTotal: _double(json['montant_total']),
+      quantiteTotaleT: _double(json['quantite_totale_t']),
+      nombre: _int(json['nombre']),
+      sansQuantite: _int(json['sans_quantite']),
+      categories: _list(json['categories']).map((item) {
+        final ligne = _map(item);
+        return AchatCategorie(
+          (ligne['cle'] ?? '').toString(),
+          _double(ligne['quantite_t']),
+          _double(ligne['montant']),
+          _int(ligne['nombre']),
+        );
+      }).toList(),
+      dernierPrixExtra: _dernierPrix(derniersPrix['extra_vierge']),
+      dernierPrixVierge: _dernierPrix(derniersPrix['vierge']),
+    );
+  }
 }
 
 class DashboardCeoSnapshot {
@@ -93,11 +186,7 @@ class DashboardCeoSnapshot {
   final int arrivedStocks;
   final int pendingEvaluations;
   final int submittedAnalyses;
-  final double totalInvestment;
-  final int pipelineReceptionne;
-  final int pipelineRecu;
-  final int pipelineNegotiation;
-  final int pipelineConfirmed;
+  final SyntheseAchats achats;
   final int stockTransit;
   final int stockReceived;
   final Map<String, int> classifications;
@@ -113,11 +202,7 @@ class DashboardCeoSnapshot {
     required this.arrivedStocks,
     required this.pendingEvaluations,
     required this.submittedAnalyses,
-    required this.totalInvestment,
-    required this.pipelineReceptionne,
-    required this.pipelineRecu,
-    required this.pipelineNegotiation,
-    required this.pipelineConfirmed,
+    required this.achats,
     required this.stockTransit,
     required this.stockReceived,
     required this.classifications,
@@ -129,7 +214,6 @@ class DashboardCeoSnapshot {
 
   factory DashboardCeoSnapshot.fromJson(Map<String, dynamic> json) {
     final kpis = _map(json['kpis']);
-    final pipeline = _map(json['pipeline']);
     final stock = _map(json['stock']);
     final classifications = _map(json['classifications']);
 
@@ -146,13 +230,7 @@ class DashboardCeoSnapshot {
       submittedAnalyses: _int(
         json['analyses_soumises'] ?? kpis['analyses_soumises'],
       ),
-      totalInvestment: _double(kpis['investissement_total']),
-      pipelineReceptionne: _int(pipeline['receptionne']),
-      pipelineRecu: _int(
-        json['evaluations_en_attente'] ?? kpis['evaluations_en_attente'],
-      ),
-      pipelineNegotiation: _int(pipeline['en_negociation']),
-      pipelineConfirmed: _int(pipeline['achat_confirme']),
+      achats: SyntheseAchats.fromJson(_map(json['achats'])),
       stockTransit: _int(stock['en_transit']),
       stockReceived: _int(stock['recu']),
       classifications: {
@@ -183,11 +261,20 @@ class DashboardCeoSnapshot {
     arrivedStocks: 2,
     pendingEvaluations: 3,
     submittedAnalyses: 6,
-    totalInvestment: 284500,
-    pipelineReceptionne: 12,
-    pipelineRecu: 8,
-    pipelineNegotiation: 5,
-    pipelineConfirmed: 9,
+    achats: SyntheseAchats(
+      montantTotal: 284500,
+      quantiteTotaleT: 37,
+      nombre: 5,
+      sansQuantite: 0,
+      categories: [
+        AchatCategorie('extra_vierge', 24, 196800, 3),
+        AchatCategorie('vierge', 10, 72000, 1),
+        AchatCategorie('vierge_ordinaire', 0, 0, 0),
+        AchatCategorie('lampante', 3, 15700, 1),
+      ],
+      dernierPrixExtra: null,
+      dernierPrixVierge: null,
+    ),
     stockTransit: 3,
     stockReceived: 6,
     classifications: {
@@ -277,4 +364,12 @@ PurchaseEvolutionPoint _evolution(Map<String, dynamic> json) =>
     PurchaseEvolutionPoint(
       (json['label'] ?? '').toString(),
       _double(json['valeur'] ?? json['value']),
+      _int(json['count']),
     );
+
+DernierPrix? _dernierPrix(dynamic value) {
+  final json = _map(value);
+  final date = DateTime.tryParse((json['date'] ?? '').toString());
+  if (date == null) return null;
+  return DernierPrix(_double(json['prix']), date);
+}

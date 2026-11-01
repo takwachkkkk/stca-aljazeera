@@ -44,6 +44,8 @@ Color _accentColor(StatutCollecteur s) {
       return const Color(0xFFD07B2F);
     case StatutCollecteur.achatConfirme:
       return const Color(0xFF38835A);
+    case StatutCollecteur.achatNonConclu:
+      return const Color(0xFF616161);
   }
 }
 
@@ -55,6 +57,7 @@ class EchantillonComCard extends StatefulWidget {
   final VoidCallback? onModifier;
   final VoidCallback? onSupprimer;
   final VoidCallback? onConfirmerAchat;
+  final VoidCallback? onNonConclu;
   final VoidCallback? onPlanifierLivraison;
   final VoidCallback? onScheduleArrivee;
   final bool initiallyExpanded;
@@ -65,6 +68,7 @@ class EchantillonComCard extends StatefulWidget {
     this.onModifier,
     this.onSupprimer,
     this.onConfirmerAchat,
+    this.onNonConclu,
     this.onPlanifierLivraison,
     this.onScheduleArrivee,
     this.initiallyExpanded = false,
@@ -181,7 +185,7 @@ class _EchantillonComCardState extends State<EchantillonComCard> {
                                 Tooltip(
                                   message: e.dateReceptionEchantillon != null
                                       ? 'Reçu le ${fmtDate(e.dateReceptionEchantillon!)}'
-                                      : 'Réceptionné par le labo',
+                                      : 'Réceptionné par la société',
                                   child: const Icon(
                                     Icons.check_circle,
                                     size: 16,
@@ -215,7 +219,10 @@ class _EchantillonComCardState extends State<EchantillonComCard> {
 
           // ── Confirmer l'achat button (always visible when enNegociation) ──
           if (widget.onConfirmerAchat != null)
-            _ConfirmerAchatRow(onConfirmerAchat: widget.onConfirmerAchat!),
+            _ConfirmerAchatRow(
+              onConfirmerAchat: widget.onConfirmerAchat!,
+              onNonConclu: widget.onNonConclu,
+            ),
 
           // ── Expandable detail panel ────────────────────────────────────────
           AnimatedCrossFade(
@@ -299,11 +306,13 @@ class _SmallIconBtn extends StatelessWidget {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CONFIRMER L'ACHAT ROW  (always visible when enNegociation)
-// Compact chip-style button — not full-width
+// Compact chip-style buttons — not full-width. Le collecteur conclut lui-même
+// la négociation : achat confirmé, ou non conclu.
 // ─────────────────────────────────────────────────────────────────────────────
 class _ConfirmerAchatRow extends StatelessWidget {
   final VoidCallback onConfirmerAchat;
-  const _ConfirmerAchatRow({required this.onConfirmerAchat});
+  final VoidCallback? onNonConclu;
+  const _ConfirmerAchatRow({required this.onConfirmerAchat, this.onNonConclu});
 
   @override
   Widget build(BuildContext context) {
@@ -335,6 +344,29 @@ class _ConfirmerAchatRow extends StatelessWidget {
                   style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
                 ),
               ),
+              if (onNonConclu != null) ...[
+                const SizedBox(width: 8),
+                OutlinedButton(
+                  onPressed: onNonConclu,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.grey.shade700,
+                    side: BorderSide(color: Colors.grey.shade400),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 6,
+                    ),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text(
+                    'Achat non conclu',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -587,9 +619,11 @@ class _NegociationDetails extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isNego = e.statut == StatutCollecteur.enNegociation;
+    final prixParKg = MontantAchat.formaterPrixParKg(e.budgetNegociation);
     final prixParTonne = MontantAchat.formaterPrixParTonne(e.budgetNegociation);
     final total = MontantAchat.formater(e.budgetNegociation, e.quantiteCibleT);
-    final prixFinal = MontantAchat.formaterPrixParTonne(e.prixFinal);
+    final prixFinal = MontantAchat.formaterPrixParKg(e.prixFinal);
+    final prixFinalTonne = MontantAchat.formaterPrixParTonne(e.prixFinal);
 
     return Container(
       margin: const EdgeInsets.fromLTRB(12, 0, 12, 12),
@@ -604,6 +638,7 @@ class _NegociationDetails extends StatelessWidget {
           if (isNego) ...[
             if (e.quantiteCibleT != null && e.quantiteCibleT!.isNotEmpty)
               DetailItem('Quantité proposée', '${e.quantiteCibleT} T'),
+            if (prixParKg != null) DetailItem('Prix par kg', prixParKg),
             if (prixParTonne != null)
               DetailItem('Prix par tonne', prixParTonne),
             if (e.quantiteCibleT != null &&
@@ -614,6 +649,8 @@ class _NegociationDetails extends StatelessWidget {
               DetailItem('Date souhaitée', _dateStockStr(e)!),
           ] else ...[
             if (prixFinal != null) DetailItem('Prix final', prixFinal),
+            if (prixFinalTonne != null)
+              DetailItem('Prix par tonne', prixFinalTonne),
             if (e.camionLivraison != null)
               DetailItem('Camion', e.camionLivraison!),
           ],

@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../models/contact_messagerie.dart';
 import '../../models/message.dart';
+import '../../services/alerte_message_service.dart';
 import '../../services/messagerie_service.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/rafraichissement_periodique.dart';
@@ -10,7 +13,10 @@ import '../bandeau_demonstration.dart';
 import 'conversation_page.dart';
 
 class ConversationsPage extends StatefulWidget {
-  const ConversationsPage({super.key});
+  /// Le menu du rôle connecté : il remplace la flèche de retour.
+  final Widget? menu;
+
+  const ConversationsPage({super.key, this.menu});
 
   @override
   State<ConversationsPage> createState() => _ConversationsPageState();
@@ -25,6 +31,7 @@ class _ConversationsPageState extends State<ConversationsPage>
   bool _messagesDemo = false;
   bool _contactsDemo = false;
   Object? _erreurChargement;
+  StreamSubscription<void>? _nouveauxMessages;
 
   bool get _estDemonstration => _messagesDemo || _contactsDemo;
 
@@ -32,6 +39,15 @@ class _ConversationsPageState extends State<ConversationsPage>
   void initState() {
     super.initState();
     _loadData();
+    _nouveauxMessages = alerteMessages.nouveauxMessages.listen(
+      (_) => rechargerEnSilence(),
+    );
+  }
+
+  @override
+  void dispose() {
+    _nouveauxMessages?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadData() async {
@@ -172,6 +188,7 @@ class _ConversationsPageState extends State<ConversationsPage>
     final conversations = _conversations;
     return Scaffold(
       backgroundColor: kBg,
+      drawer: widget.menu,
       appBar: AppBar(
         backgroundColor: kHeaderBg,
         elevation: 0,

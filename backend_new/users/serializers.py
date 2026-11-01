@@ -21,6 +21,16 @@ def generer_mot_de_passe_compte(prenom, nom):
     return f'{prenom}@{nom}'
 
 
+def _role_masque(role):
+    return role == User.Role.LABORATOIRE and not settings.LABO_ACTIF
+
+
+def _refuser_role_masque(role):
+    if _role_masque(role):
+        raise serializers.ValidationError("Ce rôle n'est pas disponible.")
+    return role
+
+
 class UserSerializer(serializers.ModelSerializer):
     statut = serializers.SerializerMethodField()
 
@@ -122,6 +132,9 @@ class UserAdminUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['email', 'nom', 'prenom', 'role', 'telephone', 'is_active']
+
+    def validate_role(self, value):
+        return _refuser_role_masque(value)
 
     def validate_email(self, value):
         value = User.objects.normalize_email(value)
@@ -239,7 +252,7 @@ class LoginSerializer(TokenObtainPairSerializer):
                 'detail': 'Mot de passe incorrect.',
             })
 
-        if not user.is_active:
+        if not user.is_active or _role_masque(user.role):
             raise serializers.ValidationError({
                 'code': 'account_inactive',
                 'detail': 'Ce compte est desactive.',
@@ -273,6 +286,9 @@ class UserCreateSerializer(serializers.ModelSerializer):
             'email_createur_envoye',
         ]
         read_only_fields = ['id']
+
+    def validate_role(self, value):
+        return _refuser_role_masque(value)
 
     def validate_email(self, value):
         value = User.objects.normalize_email(value)

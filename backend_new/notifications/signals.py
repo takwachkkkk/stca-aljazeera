@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db.models.signals import post_save, pre_delete, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
@@ -33,7 +34,10 @@ STOCK_DELIVERY_FIELDS = (
 
 
 def _get_users_by_roles(*roles):
-    return User.objects.filter(role__in=roles, is_active=True, date_suppression__isnull=True)
+    users = User.objects.filter(role__in=roles, is_active=True, date_suppression__isnull=True)
+    if not settings.LABO_ACTIF:
+        users = users.exclude(role=User.Role.LABORATOIRE)
+    return users
 
 
 def _notify(recipients, type_, titre, message, echantillon=None, section='ECHANTILLONS'):
@@ -56,6 +60,13 @@ def _sample_ref(echantillon):
     if not echantillon:
         return '-'
     return echantillon.reference_bouteille or echantillon.numero or str(echantillon.id)[:8]
+
+
+def _collecteur_nom(echantillon):
+    collecteur = echantillon.collecteur
+    if not collecteur:
+        return 'Le collecteur'
+    return f"{collecteur.prenom} {collecteur.nom}".strip() or 'Le collecteur'
 
 
 def _snapshot(instance, fields):
@@ -185,11 +196,31 @@ def on_echantillon_saved(sender, instance, created, **kwargs):
             )
     elif old_statut != 'achat_confirme' and instance.statut_collecteur == 'achat_confirme':
         recipients = _get_users_by_roles(User.Role.DIRECTION, User.Role.CHEF_DEGUSTATION)
+        prix = (
+            f" a {instance.prix_final.normalize():f} DT/kg"
+            if instance.prix_final is not None
+            else ''
+        )
         _notify(
             recipients,
             Notification.Type.ACHAT_CONFIRME,
             'Achat confirme',
-            f"L'achat de {ref} a ete confirme.",
+            f"{_collecteur_nom(instance)} a confirme l'achat de {ref}{prix}.",
+            echantillon=instance,
+            section=Notification.Section.ACHATS,
+        )
+    elif old_statut != 'achat_non_conclu' and instance.statut_collecteur == 'achat_non_conclu':
+        # Seule la direction peut rouvrir la negociation : elle seule est prevenue.
+        raison = (
+            f" Raison : {instance.raison_non_conclu}"
+            if instance.raison_non_conclu
+            else ''
+        )
+        _notify(
+            _get_users_by_roles(User.Role.DIRECTION),
+            Notification.Type.ACHAT_NON_CONCLU,
+            'Achat non conclu',
+            f"{_collecteur_nom(instance)} n'a pas conclu l'achat de {ref}.{raison}",
             echantillon=instance,
             section=Notification.Section.ACHATS,
         )

@@ -15,7 +15,8 @@ class BaseSampleCard extends StatefulWidget {
   final String numero;
   final Color tintColor;
   final Color? accentColor; // left accent bar color (collecteur-style)
-  final Widget badge;
+  /// Sans badge, la référence prend toute la largeur de l'en-tête.
+  final Widget? badge;
 
   /// Cellules du panneau de détails — voir [GrilleDetails.items].
   final List<Widget> detailItems;
@@ -30,7 +31,7 @@ class BaseSampleCard extends StatefulWidget {
     String? id,
     required this.tintColor,
     this.accentColor,
-    required this.badge,
+    this.badge,
     required this.detailItems,
     this.bottomSection,
     this.deliveryWidget,
@@ -99,6 +100,9 @@ class _BaseSampleCardState extends State<BaseSampleCard> {
                                     color: _dark,
                                     letterSpacing: -0.2,
                                   ),
+                                  // Sans badge à côté, une longue référence
+                                  // passe à la ligne au lieu d'être coupée.
+                                  maxLines: widget.badge == null ? 2 : 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
                                 const SizedBox(height: 2),
@@ -122,7 +126,8 @@ class _BaseSampleCardState extends State<BaseSampleCard> {
                           // chevron. Il cède quand même de la place au lieu de
                           // déborder — certains badges s'ouvrent au clic et
                           // deviennent bien plus larges que la carte.
-                          Expanded(child: widget.badge),
+                          if (widget.badge != null)
+                            Expanded(child: widget.badge!),
                           const SizedBox(width: 8),
                           AnimatedRotation(
                             turns: _detailExpanded ? 0.5 : 0.0,

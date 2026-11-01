@@ -16,6 +16,9 @@ class Notification(models.Model):
         TOUTES_EVALUATIONS = 'TOUTES_EVALUATIONS', 'Toutes les evaluations soumises'
         ANALYSE_SOUMISE = 'ANALYSE_SOUMISE', 'Analyse laboratoire soumise'
         ACHAT_CONFIRME = 'ACHAT_CONFIRME', 'Achat confirme'
+        ACHAT_NON_CONCLU = 'ACHAT_NON_CONCLU', 'Achat non conclu'
+        # Ancien circuit (validation des achats par la direction) : plus emis,
+        # garde pour lire les notifications deja enregistrees.
         PROPOSITION_ACHAT_ATTENTE = 'proposition_achat_attente', "Proposition d'achat en attente"
         ANALYSE_URGENTE = 'ANALYSE_URGENTE', 'Analyse urgente demandee'
         EVALUATION_URGENTE = 'EVALUATION_URGENTE', 'Evaluation urgente demandee'
@@ -24,8 +27,7 @@ class Notification(models.Model):
         NOUVELLE_SESSION = 'NOUVELLE_SESSION', 'Nouvelle session'
         NEGOCIATION_PROPOSEE = 'NEGOCIATION_PROPOSEE', 'Negociation proposee'
         NEGOCIATION_MISE_A_JOUR = 'NEGOCIATION_MISE_A_JOUR', 'Negociation mise a jour'
-        # La direction refuse le PRIX, pas le stock : le collecteur recoit une
-        # contre-proposition et l'echantillon reste en negociation.
+        # Ancien circuit, plus emis : garde pour les notifications existantes.
         NEGOCIATION_A_REVOIR = 'NEGOCIATION_A_REVOIR', 'Negociation a revoir'
 
     class Section(models.TextChoices):

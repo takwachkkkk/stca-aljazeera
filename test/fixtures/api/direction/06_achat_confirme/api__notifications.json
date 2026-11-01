@@ -2,81 +2,69 @@
   "status_code": 200,
   "route": "/api/notifications/",
   "data": {
-    "count": 6,
+    "count": 5,
     "next": null,
     "previous": null,
     "results": [
       {
-        "id": "d682de57-acf7-482e-b834-1e638b3c915d",
+        "id": "59ce30f1-f75a-4ff8-9592-ae8ed90d2785",
         "type": "ACHAT_CONFIRME",
         "titre": "Achat confirme",
-        "message": "L'achat de AUDIT-BOUT-001 a ete confirme.",
-        "echantillon": "f43c5a9d-3b90-4e7a-9a3e-5d212b39a09c",
+        "message": "Audit Collecteur a confirme l'achat de AUDIT-BOUT-001 a 7.4 DT/kg.",
+        "echantillon": "78f36a60-636b-44d4-8ebc-f2beb2641e73",
         "echantillon_reference": "AUDIT-BOUT-001",
         "echantillon_numero": "2026/0001",
         "section": "ACHATS",
         "is_read": false,
-        "date_creation": "2026-10-27T12:27:06.667710+01:00"
+        "date_creation": "2026-11-01T23:15:40.524848+01:00"
       },
       {
-        "id": "5acb4b4f-c092-4504-9537-c59fb5754c28",
-        "type": "proposition_achat_attente",
-        "titre": "Proposition d'achat en attente",
-        "message": "AUDIT-BOUT-001 (11.5 T) : Audit Collecteur propose 7.4 TND/L. A valider.",
-        "echantillon": "f43c5a9d-3b90-4e7a-9a3e-5d212b39a09c",
-        "echantillon_reference": "AUDIT-BOUT-001",
-        "echantillon_numero": "2026/0001",
-        "section": "ACHATS_VALIDATION",
-        "is_read": false,
-        "date_creation": "2026-10-27T12:27:06.665150+01:00"
-      },
-      {
-        "id": "5a338865-3371-4f8b-8879-aebcdcc95b76",
+        "id": "d3ff31e8-97ea-44f7-98d9-c7df341893a2",
         "type": "ANALYSE_SOUMISE",
         "titre": "Analyse soumise",
         "message": "L'analyse de AUDIT-BOUT-001 a ete soumise.",
-        "echantillon": "f43c5a9d-3b90-4e7a-9a3e-5d212b39a09c",
+        "echantillon": "78f36a60-636b-44d4-8ebc-f2beb2641e73",
         "echantillon_reference": "AUDIT-BOUT-001",
         "echantillon_numero": "2026/0001",
         "section": "ANALYSES",
         "is_read": false,
-        "date_creation": "2026-10-27T12:27:05.988694+01:00"
+        "date_creation": "2026-11-01T23:15:38.453768+01:00"
       },
       {
-        "id": "bb6e5211-e2e9-43e0-a860-0f2067f7832b",
+        "id": "9debb64c-1505-4eb9-be6d-4d5f6ae86a48",
         "type": "TOUTES_EVALUATIONS",
         "titre": "Toutes les evaluations soumises",
         "message": "Toutes les evaluations de AUDIT-BOUT-001 sont soumises.",
-        "echantillon": "f43c5a9d-3b90-4e7a-9a3e-5d212b39a09c",
+        "echantillon": "78f36a60-636b-44d4-8ebc-f2beb2641e73",
         "echantillon_reference": "AUDIT-BOUT-001",
         "echantillon_numero": "2026/0001",
         "section": "EVALUATIONS",
         "is_read": false,
-        "date_creation": "2026-10-27T12:27:05.398835+01:00"
+        "date_creation": "2026-11-01T23:15:36.558890+01:00"
       },
       {
-        "id": "9a2c994b-e8a5-44f3-bd9a-a1af03905d6f",
+        "id": "394887ef-1084-43d5-9432-e1fb3e1f01d1",
         "type": "ECHANTILLON_RECU",
         "titre": "Confirmation réception d'échantillon",
-        "message": "La réception de l'échantillon AUDIT-BOUT-001 a été confirmée le 27/10/2026 a 11:27.",
-        "echantillon": "f43c5a9d-3b90-4e7a-9a3e-5d212b39a09c",
+        "message": "La réception de l'échantillon AUDIT-BOUT-001 a été confirmée le 01/11/2026 a 22:15.",
+        "echantillon": "78f36a60-636b-44d4-8ebc-f2beb2641e73",
         "echantillon_reference": "AUDIT-BOUT-001",
         "echantillon_numero": "2026/0001",
         "section": "ECHANTILLONS",
         "is_read": false,
-        "date_creation": "2026-10-27T12:27:04.294023+01:00"
+        "date_creation": "2026-11-01T23:15:32.400682+01:00"
       },
       {
-        "id": "7e924c85-49cf-4e47-aeab-2eb0f8d5490f",
+        "id": "a2b2d323-5d0d-4e26-b434-99cee689c315",
         "type": "NOUVEL_ECHANTILLON",
         "titre": "Nouvel echantillon",
         "message": "L'echantillon AUDIT-BOUT-001 a ete enregistre.",
-        "echantillon": "f43c5a9d-3b90-4e7a-9a3e-5d212b39a09c",
+        "echantillon": "78f36a60-636b-44d4-8ebc-f2beb2641e73",
         "echantillon_reference": "AUDIT-BOUT-001",
         "echantillon_numero": "2026/0001",
         "section": "ECHANTILLONS",
         "is_read": false,
-        "date_creation": "2026-10-27T12:27:03.784695+01:00"
+        "date_creation": "2026-11-01T23:15:30.100816+01:00"
       }
     ]
   }

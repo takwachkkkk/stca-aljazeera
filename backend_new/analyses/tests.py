@@ -1,3 +1,4 @@
+from django.test import override_settings
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -42,6 +43,7 @@ RAPPORT_188 = {
 }
 
 
+@override_settings(LABO_ACTIF=True)
 class AnalyseLaboApiTests(APITestCase):
     def setUp(self):
         self.lab = User.objects.create_user(

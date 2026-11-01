@@ -11,6 +11,7 @@ class Echantillon(models.Model):
         RECEPTIONNE    = 'receptionne',    'Réceptionné'
         EN_NEGOCIATION = 'en_negociation', 'En négociation'
         ACHAT_CONFIRME = 'achat_confirme', 'Achat confirmé'
+        ACHAT_NON_CONCLU = 'achat_non_conclu', 'Achat non conclu'
 
     class StatutDegustateur(models.TextChoices):
         NON_EVALUEE = 'non_evaluee', 'Non évaluée'
@@ -26,6 +27,7 @@ class Echantillon(models.Model):
         SELECTIONNE    = 'selectionne',    'Sélectionné'
         EN_NEGOCIATION = 'en_negociation', 'En négociation'
         ACHAT_CONFIRME = 'achat_confirme', 'Achat confirmé'
+        ACHAT_NON_CONCLU = 'achat_non_conclu', 'Achat non conclu'
         REFUSE         = 'refuse',         'Refusé'
 
     class Classification(models.TextChoices):
@@ -90,28 +92,49 @@ class Echantillon(models.Model):
     date_reception_echantillon = models.DateTimeField(null=True, blank=True)
 
     # CEO negotiation details (set when CEO approves)
-    budget_negociation  = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    # Prix en DT/kg, au millime pres. Le prix par tonne en decoule (x 1000) et
+    # n'est pas stocke.
+    budget_negociation  = models.DecimalField(max_digits=12, decimal_places=3, null=True, blank=True)
     # Borne haute quand la direction propose un intervalle de prix plutot qu'un
     # prix ferme. Vide = prix unique, porte par budget_negociation seul.
-    budget_negociation_max = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    budget_negociation_max = models.DecimalField(max_digits=12, decimal_places=3, null=True, blank=True)
     quantite_cible_t    = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     camion_reserve      = models.CharField(max_length=50, blank=True)
     note_interne        = models.TextField(blank=True)
     raison_refus        = models.TextField(blank=True)
 
-    # Nombre de fois que la direction a renvoye la proposition en negociation.
-    # Aucun plafond : la decision de refuser reste humaine. Ce compteur est donc
-    # le seul signal qu'un dossier s'enlise — d'ou son affichage sur la carte.
+    # Nombre de fois que la direction a rouvert la negociation apres un achat
+    # non conclu. Aucun plafond : la decision d'abandonner reste humaine. Ce
+    # compteur est donc le seul signal qu'un dossier s'enlise — d'ou son
+    # affichage sur la carte.
     nb_renegociations   = models.PositiveIntegerField(default=0)
 
-    # Purchase confirmation (set by collector when confirming achat)
-    prix_final = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    # Issue de la negociation, decidee par le collecteur : il confirme l'achat
+    # (prix final, livraison...) ou le declare non conclu, raison facultative.
+    # La raison est separee de raison_refus, qui reste celle de la direction.
+    prix_final = models.DecimalField(max_digits=12, decimal_places=3, null=True, blank=True)
+    # Jour de l'achat : c'est la date que suivent les chiffres d'achat du tableau
+    # de bord. updated_at ne convient pas, il change a chaque modification.
+    date_achat_confirme = models.DateTimeField(null=True, blank=True)
     remarque_collecteur = models.TextField(blank=True, default='')
+    raison_non_conclu = models.TextField(blank=True, default='')
 
     # Stock delivery tracking
     stock_arrive        = models.BooleanField(default=False)
     date_livraison_stock = models.DateTimeField(null=True, blank=True)
     date_livraison_stock_fin = models.DateTimeField(null=True, blank=True)
+
+    # Facturation : le Service achat a etabli la facture dans son logiciel et le
+    # signale ici. La date et l'auteur restent ceux de la premiere facturation.
+    facture      = models.BooleanField(default=False)
+    date_facture = models.DateTimeField(null=True, blank=True)
+    facture_par  = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='echantillons_factures',
+    )
 
     # Quality assessment
     classification = models.CharField(max_length=20, choices=Classification.choices, blank=True)

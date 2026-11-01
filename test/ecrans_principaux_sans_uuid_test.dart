@@ -87,7 +87,8 @@ evaluation_model.Echantillon _evaluationDepuisFixture(
 
 EchantillonCeoView _ceoDepuisFixture(Map<String, dynamic> json) {
   return EchantillonCeoView(
-    id: json['numero'] as String,
+    id: json['id'] as String,
+    numero: json['numero'] as String,
     referenceBouteille: json['reference_bouteille'] as String,
     gouvernorat: json['gouvernorat'] as String? ?? '',
     delegation: json['delegation'] as String?,

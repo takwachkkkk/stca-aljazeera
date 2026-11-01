@@ -62,6 +62,13 @@ dire à l'utilisatrice « envoyé sur GitHub » seulement si l'étape 5 est vér
   sur le téléphone (décision définitive).
 - Ne jamais afficher de code d'erreur technique (« 400 », « 500 »…) à l'utilisateur.
 
+- **Laboratoire masqué depuis le 31/10/2026** (demande de l'utilisatrice) : pages, rôle, comptes
+  et notifications n'apparaissent plus, mais rien n'est supprimé (code, tables, comptes, analyses).
+  Interrupteurs : `kLaboActif` dans `lib/core/fonctionnalites.dart` et `LABO_ACTIF` dans le `.env`
+  du serveur, à passer à vrai **tous les deux** pour tout retrouver :
+  `flutter run --dart-define=LABO_ACTIF=true` et `LABO_ACTIF=True`.
+  Détail : `files/taches/62-labo-masque.md`.
+
 ## 3. Vérifications avant chaque commit
 
 ```
@@ -69,7 +76,12 @@ flutter analyze            # regarder les lignes « error - » (il reste des « 
 flutter test               # 177 tests aujourd'hui
 cd backend_new && python manage.py test      # tests Django
 python manage.py makemigrations --check --dry-run
+python manage.py migrate --check   # échec = la base locale est en retard : lancer migrate
 ```
+
+**Après un `git pull` ou une migration : `python manage.py migrate`.** Une migration non
+appliquée fait répondre 500 au serveur, et l'application en debug affiche alors les données de
+démonstration, sans lien avec les autres utilisateurs (tâche 62).
 
 ## 4. Ce qu'il reste à faire
 

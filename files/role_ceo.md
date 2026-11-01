@@ -6,8 +6,9 @@ Cannot register or modify samples directly.
 
 ## Pages
 
-- **Échantillons** — all samples grouped by collector, filterable by date. Status badges: `Réceptionné`, `En négociation`, `Achat confirmé`. Click → full details including delivery info and purchase details.
-- **Analyse Organoleptique** — all samples with each panel member's completed sensory evaluation. CEO approves a sample for purchase from this page → sets `budgetNegociation` and `dateLivraisonStockSouhaitee`.
+- **Échantillons** — all samples grouped by collector, filterable by date. Status badges: `Réceptionné`, `En négociation`, `Achat confirmé`, `Achat non conclu`. Click → full details including delivery info and purchase details.
+- **Analyse Organoleptique** — all samples with each panel member's completed sensory evaluation. CEO approves a sample for purchase from this page → sets `budgetNegociation` (price in DT/kg; the DT/tonne price is derived, never stored) and `dateLivraisonStockSouhaitee`. After an `Achat non conclu`, the same button reads **Rouvrir** and reopens the negotiation. A confirmed purchase cannot be reopened.
+- **No purchase validation page.** The collector concludes the purchase himself (confirmed, or not concluded with an optional reason); the CEO is notified and only sees the result.
 - **Analyse Laboratoire** — samples with linked lab analysis results, filterable by date.
 - **Achats Confirmés** — confirmed purchases in two sub-states: **Stock en transit** (purchased, not yet arrived) and **Stock reçu** (physically arrived). Filterable by date.
 - **Carte** — map showing per collector which Tunisian delegations have been visited vs not reached.
@@ -20,6 +21,10 @@ Cannot register or modify samples directly.
 ## What CEO Sees on a Sample
 
 All samples from all collectors. Status badge. Approve/refuse action from Analyse Organoleptique page. Negotiation details after approval. Purchase details after confirmation.
+
+## Decision Log (`ceo.DecisionDirection`)
+
+Each `approuver` / `refuser` adds one row with the CEO account, the type (`negociation`, `reouverture`, `refus`), the offer or reason at that moment, and the date. Rows are never edited, so a reopening keeps the earlier decision. `GET /api/echantillons/` returns them as `decisions_direction`, newest first, and only to `direction` accounts (empty list for other roles). `statut_ceo`, `budget_negociation`, `budget_negociation_max`, `quantite_cible_t`, `note_interne` and `raison_refus` are read-only on the ordinary edit route: they change only through those two actions (statuses also change when the collector concludes a purchase). Decisions made before this table existed have no author.
 
 ---
 
@@ -36,8 +41,9 @@ Display as gray `— sentence —` text. No chips or icons.
 | `dateLivraisonPrevue != null` | `— Échantillon attendu le [dateLivraisonPrevue] —` |
 | none | `— Livraison de l'échantillon non planifiée —` |
 
-**`StatutCeo.enNegociation`:**
+**`StatutCeo.enNegociation` / `StatutCeo.achatNonConclu`:**
 - `— Échantillon réceptionné le [dateArriveeEchantillon] —`
+- `achatNonConclu` also shows the collector's reason in a grey box (or "aucune raison donnée").
 
 **`StatutCeo.achatConfirme`** — two lines:
 - Line 1: `— Échantillon réceptionné le [dateArriveeEchantillon] —`
@@ -71,7 +77,8 @@ Sent automatically to all active CEO accounts (`role='direction'`) via Django si
 | `PREMIERE_EVALUATION` | First taster submits evaluation (count 0 → 1) | EVALUATIONS |
 | `TOUTES_EVALUATIONS` | All active tasters submitted for that sample | EVALUATIONS |
 | `ANALYSE_SOUMISE` | Lab technician submits lab analysis | ANALYSES |
-| `ACHAT_CONFIRME` | `statut_collecteur` transitions to `achat_confirme` | ACHATS |
+| `ACHAT_CONFIRME` | `statut_collecteur` transitions to `achat_confirme` (collector, with price) | ACHATS |
+| `ACHAT_NON_CONCLU` | `statut_collecteur` transitions to `achat_non_conclu` (collector, with reason if given) — opens Analyse Organoleptique | ACHATS |
 
 ### Signal logic
 - `pre_save` stores `_old_recu_physiquement` and `_old_statut_collecteur` so `post_save` can diff.

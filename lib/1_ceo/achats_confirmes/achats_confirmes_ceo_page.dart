@@ -24,7 +24,6 @@ import '../widgets/sample_card_echantillon.dart';
 import '../widgets/base_sample_card.dart';
 import '../widgets/status_filter_chip.dart';
 import 'widgets/achat_section.dart';
-import '../validation_achats/validation_achats_ceo_page.dart';
 import '../tableau_de_bord/tableau_de_bord.dart';
 import '../echantillons/services/echantillon_ceo_service.dart';
 import '../../core/widgets/grille_details.dart';
@@ -208,7 +207,6 @@ class _AchatsConfirmesCeoPageState extends State<AchatsConfirmesCeoPage>
         onAnalyseOrganoleptique: () =>
             goToPage(const AnalyseOrganoleptiqueCeoPage()),
         onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoireCeoPage()),
-        onValidationAchats: () => goToPage(const ValidationAchatsCeoPage()),
         onAchatsConfirmes: () => goToPage(const AchatsConfirmesCeoPage()),
         onTableauDeBord: () => goToPage(const HomePageCeo()),
         onProfil: () => goToPage(const ProfilceoPage()),

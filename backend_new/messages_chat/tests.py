@@ -496,4 +496,21 @@ class MessageApiTests(APITestCase):
         response = self.client.get('/api/messages/non-lus/')
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.json(), {'total': 1})
+        self.assertEqual(response.json()['total'], 1)
+        self.assertEqual(
+            [m['contenu'] for m in response.json()['derniers']],
+            ['Non lu recu'],
+        )
+
+    def test_derniers_non_lus_ne_montrent_pas_les_messages_des_autres(self):
+        Message.objects.create(
+            expediteur=self.sender,
+            destinataire=self.recipient,
+            contenu='Pour le destinataire',
+        )
+        self.authenticate(self.sender)
+
+        response = self.client.get('/api/messages/non-lus/')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json(), {'total': 0, 'derniers': []})

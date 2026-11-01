@@ -6,6 +6,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:project3/core/fonctionnalites.dart';
 import '../homepage_page.dart';
 import '../../analyse_labo/analyse_laboratoire_page.dart';
 import '../../evaluation_echantillons/evaluation_echantillons_page.dart';
@@ -164,13 +165,17 @@ class AppDrawer extends StatelessWidget {
                     onTap: () =>
                         _navigate(context, DegustateurDestination.evaluation),
                   ),
-                  _DrawerItem(
-                    icon: Icons.science_outlined,
-                    label: 'Analyse de laboratoire',
-                    active: currentPage == DegustateurDestination.laboratoire,
-                    onTap: () =>
-                        _navigate(context, DegustateurDestination.laboratoire),
-                  ),
+                  if (kLaboActif)
+                    _DrawerItem(
+                      icon: Icons.science_outlined,
+                      label: 'Analyse de laboratoire',
+                      active:
+                          currentPage == DegustateurDestination.laboratoire,
+                      onTap: () => _navigate(
+                        context,
+                        DegustateurDestination.laboratoire,
+                      ),
+                    ),
 
                   const SizedBox(height: 4),
                   Divider(color: _olive.withValues(alpha: 0.15), height: 1),

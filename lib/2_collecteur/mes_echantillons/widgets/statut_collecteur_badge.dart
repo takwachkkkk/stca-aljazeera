@@ -70,5 +70,12 @@ _Cfg _cfg(StatutCollecteur s) {
         Color(0xFF38835A),
         'Achat conclu',
       );
+    case StatutCollecteur.achatNonConclu:
+      return const _Cfg(
+        Color(0xFFF0F0F0),
+        Color(0xFF616161),
+        Color(0xFF616161),
+        'Achat non conclu',
+      );
   }
 }

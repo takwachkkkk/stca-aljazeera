@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
+import '../../services/alerte_message_service.dart';
 import '../../services/messagerie_service.dart';
 import '../../utils/rafraichissement_periodique.dart';
 
@@ -13,11 +16,19 @@ class MessagerieBadge extends StatefulWidget {
 class _MessagerieBadgeState extends State<MessagerieBadge>
     with RafraichissementPeriodique {
   int _count = 0;
+  StreamSubscription<void>? _nouveauxMessages;
 
   @override
   void initState() {
     super.initState();
     _load();
+    _nouveauxMessages = alerteMessages.nouveauxMessages.listen((_) => _load());
+  }
+
+  @override
+  void dispose() {
+    _nouveauxMessages?.cancel();
+    super.dispose();
   }
 
   Future<void> _load() async {

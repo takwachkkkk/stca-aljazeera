@@ -7,12 +7,12 @@
     "previous": null,
     "results": [
       {
-        "id": "f43c5a9d-3b90-4e7a-9a3e-5d212b39a09c",
+        "id": "78f36a60-636b-44d4-8ebc-f2beb2641e73",
         "ref": "2026/0001",
         "numero": "2026/0001",
         "gouvernorat": "Sfax",
         "delegation": "Sakiet Ezzit",
-        "date_ajout": "2026-10-27T12:27:03.784695+01:00",
+        "date_ajout": "2026-11-01T23:15:30.091120+01:00",
         "fournisseur_nom": "Domaine Audit",
         "collecteur_nom": "Audit Collecteur",
         "reference_bouteille": "AUDIT-BOUT-001",
@@ -21,7 +21,7 @@
         "date_arrivee": "2026-09-25T10:00:00+01:00",
         "date_arrivee_echantillon": "2026-09-25T10:00:00+01:00",
         "recu_physiquement": true,
-        "date_reception_echantillon": "2026-10-27T12:27:04.290047+01:00",
+        "date_reception_echantillon": "2026-11-01T23:15:32.392117+01:00",
         "num_citerne": "C-47",
         "date_livraison_stock": null,
         "numero_lot": "",
@@ -30,12 +30,12 @@
         "notes_reception": "Echantillon de parcours audit",
         "statut_labo": "soumis",
         "analyse": {
-          "id": "a61fec00-9442-4b0e-9cd4-448f5bf90afc",
-          "echantillon": "f43c5a9d-3b90-4e7a-9a3e-5d212b39a09c",
-          "echantillon_id": "f43c5a9d-3b90-4e7a-9a3e-5d212b39a09c",
+          "id": "580ab8fa-74dd-40be-b363-6ce760796ba3",
+          "echantillon": "78f36a60-636b-44d4-8ebc-f2beb2641e73",
+          "echantillon_id": "78f36a60-636b-44d4-8ebc-f2beb2641e73",
           "echantillon_ref": "AUDIT-BOUT-001",
-          "technicien": "8d545b9f-d664-4052-bd6e-93e6ae2954e2",
-          "technicien_id": "8d545b9f-d664-4052-bd6e-93e6ae2954e2",
+          "technicien": "60effe9a-8750-49ef-a259-36c5612a313f",
+          "technicien_id": "60effe9a-8750-49ef-a259-36c5612a313f",
           "technicien_nom": "Audit Labo",
           "statut": "soumis",
           "numero_certificat": "CERT-AUDIT-001",
@@ -77,8 +77,8 @@
           "photo": null,
           "notes": "Analyse saisie par le parcours audit",
           "criteres": [],
-          "date_analyse": "2026-10-27T12:27:05.988694+01:00",
-          "date_modification": "2026-10-27T12:27:05.988694+01:00"
+          "date_analyse": "2026-11-01T23:15:38.430842+01:00",
+          "date_modification": "2026-11-01T23:15:38.444208+01:00"
         }
       }
     ]

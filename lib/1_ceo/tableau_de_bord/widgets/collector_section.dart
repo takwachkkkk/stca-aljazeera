@@ -32,7 +32,7 @@ class CollectorSection extends StatelessWidget {
 
   String _metricDesc(int metric) {
     switch (metric) {
-      case 0: return 'Montant total (TND) des achats négociés par collecteur cette saison';
+      case 0: return 'Montant total (TND) des achats confirmés par collecteur sur la période';
       case 1: return 'Nombre d\'échantillons collectés et soumis à l\'évaluation qualité';
       default: return 'Taux d\'approbation : part des échantillons acceptés pour l\'achat par la direction';
     }
@@ -51,9 +51,13 @@ class CollectorSection extends StatelessWidget {
   }
 
   double _maxRaw(int metric, List<CollecteurDashStat> sorted) {
-    if (metric == 0) return sorted.first.totalValue.toDouble();
-    if (metric == 1) return sorted.first.samples.toDouble();
-    return 1.0;
+    // Une période sans achat ne doit pas diviser par zéro.
+    final max = metric == 0
+        ? sorted.first.totalValue.toDouble()
+        : metric == 1
+        ? sorted.first.samples.toDouble()
+        : 1.0;
+    return max > 0 ? max : 1.0;
   }
 
   String _yLabel(double frac, int metric, double maxRaw) {

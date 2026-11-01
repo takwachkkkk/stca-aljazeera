@@ -2,8 +2,12 @@ from collections import defaultdict
 from datetime import date
 
 from django.db.models import Q
+from django.db.models.functions import Coalesce
+from django.utils import timezone
 
 from echantillons.models import Echantillon
+from evaluations.models import EvaluationOrganoleptique
+from evaluations.statistiques_panel import resultat_panel
 
 
 def user_full_name(user):
@@ -133,24 +137,126 @@ def sessions_for_user(user):
     ).distinct()
 
 
+def achats_confirmes(echantillons, date_debut=None, date_fin=None):
+    """Les achats confirmes de la periode, dates par le jour de l'achat.
+
+    Un echantillon enregistre en octobre et achete en decembre est un achat de
+    decembre. `date_ajout` ne sert que de secours pour un achat sans date.
+    """
+    achats = echantillons.filter(
+        statut_collecteur=Echantillon.StatutCollecteur.ACHAT_CONFIRME,
+    ).annotate(date_achat=Coalesce('date_achat_confirme', 'date_ajout'))
+    if date_debut:
+        achats = achats.filter(date_achat__date__gte=date_debut)
+    if date_fin:
+        achats = achats.filter(date_achat__date__lte=date_fin)
+    return achats
+
+
+def montant_achat(echantillon):
+    """Ce que coute un achat en DT : prix en DT/kg x quantite en tonnes x 1000.
+
+    Meme calcul que MontantAchat cote application. None si le prix ou la
+    quantite manque : additionner des prix au kilo ne donnerait pas un montant.
+    """
+    if echantillon.prix_final is None or echantillon.quantite_cible_t is None:
+        return None
+    return echantillon.prix_final * echantillon.quantite_cible_t * 1000
+
+
+def montant_total(achats):
+    return sum(montant_achat(achat) or 0 for achat in achats)
+
+
+def _categories_des_achats(achats):
+    """La categorie de chaque achat : la sienne, sinon le resultat du panel."""
+    panels = defaultdict(list)
+    evaluations = EvaluationOrganoleptique.objects.filter(
+        statut=EvaluationOrganoleptique.Statut.SOUMIS,
+        echantillon__in=[achat.id for achat in achats],
+    )
+    for evaluation in evaluations:
+        panels[evaluation.echantillon_id].append(evaluation)
+
+    categories = {}
+    for achat in achats:
+        resultat = resultat_panel(panels[achat.id]) or {}
+        categories[achat.id] = achat.classification or resultat.get('classification')
+    return categories
+
+
+def synthese_achats(achats):
+    """Ce qui a ete achete sur la periode : montant, quantites, derniers prix.
+
+    `sans_quantite` compte les achats dont le montant n'est pas calculable : ils
+    sont annonces a l'ecran plutot que comptes pour zero sans le dire.
+    """
+    achats = list(achats.order_by('date_achat'))
+    categories = _categories_des_achats(achats)
+    lignes = {
+        cle: {'cle': cle, 'quantite_t': 0, 'montant': 0, 'nombre': 0}
+        for cle in Echantillon.Classification.values
+    }
+    derniers_prix = {
+        Echantillon.Classification.EXTRA_VIERGE: None,
+        Echantillon.Classification.VIERGE: None,
+    }
+    for achat in achats:
+        categorie = categories[achat.id]
+        ligne = lignes.setdefault(categorie or 'non_classe', {
+            'cle': 'non_classe', 'quantite_t': 0, 'montant': 0, 'nombre': 0,
+        })
+        ligne['nombre'] += 1
+        ligne['quantite_t'] += achat.quantite_cible_t or 0
+        ligne['montant'] += montant_achat(achat) or 0
+        # Tri par date croissante : le dernier vu est le plus recent.
+        if categorie in derniers_prix and achat.prix_final is not None:
+            derniers_prix[categorie] = {
+                'prix': float(achat.prix_final),
+                'date': timezone.localtime(achat.date_achat).date().isoformat(),
+            }
+
+    return {
+        'montant_total': float(sum(ligne['montant'] for ligne in lignes.values())),
+        'quantite_totale_t': float(sum(ligne['quantite_t'] for ligne in lignes.values())),
+        'nombre': len(achats),
+        'sans_quantite': sum(1 for achat in achats if montant_achat(achat) is None),
+        'categories': [
+            {
+                **ligne,
+                'quantite_t': float(ligne['quantite_t']),
+                'montant': float(ligne['montant']),
+            }
+            for ligne in lignes.values()
+        ],
+        'dernier_prix': {str(cle): prix for cle, prix in derniers_prix.items()},
+    }
+
+
 def _repartition(echantillons, cle_et_nom, date_debut=None, date_fin=None):
     """Echantillons enregistres et achats confirmes, regroupes par `cle_et_nom`.
 
     `cle_et_nom(echantillon)` rend (cle de regroupement, nom affiche). Sert au
     chef et a la direction ; du groupe le plus actif au moins actif.
+    Un echantillon compte a sa date d'enregistrement, un achat a sa date d'achat.
     """
-    if date_debut:
-        echantillons = echantillons.filter(date_ajout__date__gte=date_debut)
-    if date_fin:
-        echantillons = echantillons.filter(date_ajout__date__lte=date_fin)
+    def dans_la_periode(moment):
+        jour = timezone.localtime(moment).date().isoformat()
+        return (not date_debut or jour >= date_debut) and (not date_fin or jour <= date_fin)
 
     lignes = {}
     for echantillon in echantillons:
+        enregistre = dans_la_periode(echantillon.date_ajout)
+        achete = (
+            echantillon.statut_collecteur == Echantillon.StatutCollecteur.ACHAT_CONFIRME
+            and dans_la_periode(echantillon.date_achat_confirme or echantillon.date_ajout)
+        )
+        if not enregistre and not achete:
+            continue
         cle, nom = cle_et_nom(echantillon)
         ligne = lignes.setdefault(cle, {'nom': nom, 'echantillons': 0, 'achats': 0})
-        ligne['echantillons'] += 1
-        if echantillon.statut_collecteur == Echantillon.StatutCollecteur.ACHAT_CONFIRME:
-            ligne['achats'] += 1
+        ligne['echantillons'] += int(enregistre)
+        ligne['achats'] += int(achete)
     return sorted(
         lignes.values(),
         key=lambda ligne: (-ligne['echantillons'], -ligne['achats'], ligne['nom']),
@@ -164,7 +270,9 @@ def repartition_par_gouvernorat(echantillons, date_debut=None, date_fin=None):
         return nom.lower(), nom
 
     return _repartition(
-        echantillons.only('gouvernorat', 'statut_collecteur'),
+        echantillons.only(
+            'gouvernorat', 'statut_collecteur', 'date_ajout', 'date_achat_confirme',
+        ),
         cle_et_nom, date_debut, date_fin,
     )
 

@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+from django.test import override_settings
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -13,6 +14,7 @@ from users.models import User
 from .models import Notification
 
 
+@override_settings(LABO_ACTIF=True)
 class NotificationApiTests(APITestCase):
     def setUp(self):
         self.direction = User.objects.create_user(
@@ -315,6 +317,7 @@ class NotificationApiTests(APITestCase):
         )
 
 
+@override_settings(LABO_ACTIF=True)
 class NotificationSignalTests(APITestCase):
     def setUp(self):
         self.direction = User.objects.create_user(

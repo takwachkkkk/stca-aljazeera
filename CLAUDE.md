@@ -33,6 +33,8 @@ flutter build ios --release
 | `4_laboratoire/` | Lab Technician | Technicien Labo |
 | `5_chef_degustateur/` | Head Taster | Chef Dégustateur |
 
+**Le laboratoire est masqué, pas supprimé** (`kLaboActif` / `LABO_ACTIF`) : voir `files/taches/62-labo-masque.md`.
+
 Al Jazeera STCA collects olive oil samples from suppliers across Tunisia, evaluates them, and purchases the best stocks to process and sell under their own brand. The collector travels the country registering samples on-site, sometimes offline. The taster physically receives samples at the company and runs sensory evaluations. The lab technician performs chemical analysis on those same received samples. The CEO oversees everything â€” reviewing evaluations, approving purchases, and tracking stock delivery â€” but never touches a sample directly.
 
 

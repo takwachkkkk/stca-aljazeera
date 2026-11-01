@@ -125,5 +125,17 @@ class MessageUnreadCountView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        total = Message.objects.filter(destinataire=request.user, lu=False).count()
-        return Response({'total': total})
+        non_lus = Message.objects.filter(destinataire=request.user, lu=False)
+        derniers = (
+            non_lus
+            .select_related('expediteur', 'destinataire', 'echantillon')
+            .order_by('-date_envoi')[:5]
+        )
+        return Response({
+            'total': non_lus.count(),
+            'derniers': MessageSerializer(
+                derniers,
+                many=True,
+                context={'request': request},
+            ).data,
+        })

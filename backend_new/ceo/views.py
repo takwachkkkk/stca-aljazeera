@@ -1,7 +1,9 @@
+from datetime import timedelta
 from decimal import Decimal
 
-from django.db.models import Count, Sum
+from django.db.models import Count
 from django.utils import timezone
+from django.utils.dateparse import parse_date
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -9,33 +11,71 @@ from analyses.models import AnalyseLabo
 from echantillons.models import Echantillon
 from evaluations.models import EvaluationOrganoleptique
 from core.dashboard_calculations import (
+    achats_confirmes,
+    montant_achat,
+    montant_total,
     repartition_par_fournisseur,
     repartition_par_gouvernorat,
+    synthese_achats,
 )
 from users.permissions import IsDirection
 
 
-def _month_start(base_dt, months_back):
-    month = base_dt.month - months_back
-    year = base_dt.year
+_MOIS = ('Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc')
+
+# Au-dela, un point par jour ou par semaine rendrait la courbe illisible.
+_JOURS_MAX_PAR_JOUR = 14
+_JOURS_MAX_PAR_SEMAINE = 92
+
+
+def _jour(valeur):
+    """Une date du filtre, ou None si elle est absente ou illisible."""
+    try:
+        return parse_date(valeur) if valeur else None
+    except ValueError:
+        return None
+
+
+def _month_start(base_day, months_back):
+    month = base_day.month - months_back
+    year = base_day.year
     while month <= 0:
         month += 12
         year -= 1
-    return base_dt.replace(
-        year=year,
-        month=month,
-        day=1,
-        hour=0,
-        minute=0,
-        second=0,
-        microsecond=0,
-    )
+    return base_day.replace(year=year, month=month, day=1)
 
 
 def _next_month(dt):
     if dt.month == 12:
         return dt.replace(year=dt.year + 1, month=1)
     return dt.replace(month=dt.month + 1)
+
+
+def _tranches(debut, fin):
+    """Decoupe la periode pour la courbe : (premier jour, jour suivant, libelle)."""
+    jours = (fin - debut).days + 1
+    if jours <= _JOURS_MAX_PAR_SEMAINE:
+        pas = 1 if jours <= _JOURS_MAX_PAR_JOUR else 7
+        return [
+            (
+                jour,
+                min(jour + timedelta(days=pas), fin + timedelta(days=1)),
+                f'{jour.day} {_MOIS[jour.month - 1]}',
+            )
+            for jour in (debut + timedelta(days=i) for i in range(0, jours, pas))
+        ]
+
+    tranches = []
+    jour = debut
+    while jour <= fin:
+        suivant = _next_month(jour.replace(day=1))
+        tranches.append((
+            jour,
+            min(suivant, fin + timedelta(days=1)),
+            f'{_MOIS[jour.month - 1]} {jour.year % 100:02d}',
+        ))
+        jour = suivant
+    return tranches
 
 
 def _full_name(user):
@@ -63,25 +103,30 @@ class CeoDashboardView(APIView):
 
     def get(self, request):
         now = timezone.now()
-        date_debut = request.query_params.get('date_debut')
-        date_fin = request.query_params.get('date_fin')
+        date_debut = _jour(request.query_params.get('date_debut'))
+        date_fin = _jour(request.query_params.get('date_fin'))
 
-        samples = Echantillon.objects.select_related('collecteur', 'fournisseur')
+        tous = Echantillon.objects.select_related('collecteur', 'fournisseur')
+        samples = tous
         if date_debut:
             samples = samples.filter(date_ajout__date__gte=date_debut)
         if date_fin:
             samples = samples.filter(date_ajout__date__lte=date_fin)
 
         total_samples = samples.count()
-        purchases = samples.filter(statut_collecteur=Echantillon.StatutCollecteur.ACHAT_CONFIRME)
+        # Les achats suivent leur date d'achat, pas celle de l'echantillon.
+        purchases = achats_confirmes(tous, date_debut, date_fin)
         confirmed_count = purchases.count()
-        investment = purchases.aggregate(total=Sum('prix_final'))['total'] or Decimal('0')
+        achats = synthese_achats(purchases)
 
         kpis = {
             'total': total_samples,
             'receptionnes': samples.filter(statut_collecteur=Echantillon.StatutCollecteur.RECEPTIONNE).count(),
             'en_negociation': samples.filter(statut_collecteur=Echantillon.StatutCollecteur.EN_NEGOCIATION).count(),
             'achat_confirme': confirmed_count,
+            'achats_non_conclus': samples.filter(
+                statut_collecteur=Echantillon.StatutCollecteur.ACHAT_NON_CONCLU
+            ).count(),
             'refuses': samples.filter(statut_ceo=Echantillon.StatutCEO.REFUSE).count(),
             'stocks_arrives': purchases.filter(stock_arrive=True).count(),
             'evaluations_en_attente': samples.filter(
@@ -91,17 +136,10 @@ class CeoDashboardView(APIView):
                 statut=AnalyseLabo.Statut.SOUMIS,
                 echantillon__in=samples,
             ).count(),
-            'investissement_total': _money(investment),
+            'investissement_total': achats['montant_total'],
         }
 
-        pipeline = {
-            'receptionne': kpis['receptionnes'],
-            'en_negociation': kpis['en_negociation'],
-            'achat_confirme': kpis['achat_confirme'],
-            'refuse': kpis['refuses'],
-        }
-
-        collector_stats = self._collector_performance(samples)
+        collector_stats = self._collector_performance(samples, purchases)
         supplier_stats = self._supplier_frequency(purchases)
         classification_counts = self._classification_counts(samples)
         urgent_decisions = self._urgent_decisions(samples, now)
@@ -109,7 +147,7 @@ class CeoDashboardView(APIView):
             'en_transit': purchases.filter(stock_arrive=False).count(),
             'recu': purchases.filter(stock_arrive=True).count(),
         }
-        evolution_achats = self._purchase_evolution(samples, now)
+        evolution_achats = self._purchase_evolution(purchases, date_debut, date_fin, now)
 
         return Response({
             # Legacy/top-level Flutter-friendly keys kept for easy wiring.
@@ -124,7 +162,7 @@ class CeoDashboardView(APIView):
 
             # Structured dashboard payload.
             'kpis': kpis,
-            'pipeline': pipeline,
+            'achats': achats,
             'performance_collecteurs': collector_stats,
             'collecteurs': collector_stats,
             'fournisseurs': supplier_stats,
@@ -134,11 +172,11 @@ class CeoDashboardView(APIView):
             'evolution_achats': evolution_achats,
         })
 
-    def _collector_performance(self, samples):
+    def _collector_performance(self, samples, purchases):
         stats = []
         collecteurs = {
             sample.collecteur_id: sample.collecteur
-            for sample in samples
+            for sample in [*samples, *purchases]
             if sample.collecteur_id
         }
         for collecteur_id, collecteur in collecteurs.items():
@@ -146,14 +184,13 @@ class CeoDashboardView(APIView):
             total = qs.count()
             confirmed = qs.filter(
                 statut_collecteur=Echantillon.StatutCollecteur.ACHAT_CONFIRME
-            )
-            total_value = confirmed.aggregate(total=Sum('prix_final'))['total'] or Decimal('0')
-            closed_delays = []
-            for sample in confirmed:
-                if sample.date_ajout and sample.updated_at:
-                    closed_delays.append((sample.updated_at - sample.date_ajout).days)
+            ).count()
+            achats = list(purchases.filter(collecteur_id=collecteur_id))
+            closed_delays = [
+                (achat.date_achat - achat.date_ajout).days for achat in achats
+            ]
             avg_days = round(sum(closed_delays) / len(closed_delays), 1) if closed_delays else 0
-            approval_rate = round(confirmed.count() / total, 2) if total else 0
+            approval_rate = round(confirmed / total, 2) if total else 0
             item = {
                 'collecteur_id': str(collecteur_id),
                 'nom': _full_name(collecteur),
@@ -162,7 +199,7 @@ class CeoDashboardView(APIView):
                 'samples': total,
                 'nb': total,
                 'approval_rate': approval_rate,
-                'total_value': _money(total_value),
+                'total_value': _money(montant_total(achats)),
                 'avg_days_to_close': avg_days,
             }
             stats.append(item)
@@ -177,14 +214,13 @@ class CeoDashboardView(APIView):
         }
         for fournisseur_id, fournisseur in fournisseurs.items():
             qs = purchases.filter(fournisseur_id=fournisseur_id)
-            value = qs.aggregate(total=Sum('prix_final'))['total'] or Decimal('0')
             stats.append({
                 'fournisseur_id': str(fournisseur_id),
                 'name': fournisseur.nom,
                 'nom': fournisseur.nom,
                 'region': fournisseur.region,
                 'achats': qs.count(),
-                'valeur': _money(value),
+                'valeur': _money(montant_total(qs)),
             })
         return sorted(stats, key=lambda item: item['achats'], reverse=True)[:10]
 
@@ -248,18 +284,23 @@ class CeoDashboardView(APIView):
             })
         return result
 
-    def _purchase_evolution(self, samples, now):
+    def _purchase_evolution(self, purchases, date_debut, date_fin, now):
+        fin = date_fin or timezone.localdate(now)
+        debut = date_debut or _month_start(fin, 5)
+        achats = [
+            (timezone.localtime(achat.date_achat).date(), montant_achat(achat) or 0)
+            for achat in purchases
+        ]
         evolution = []
-        purchases = samples.filter(statut_collecteur=Echantillon.StatutCollecteur.ACHAT_CONFIRME)
-        for i in range(5, -1, -1):
-            month_start = _month_start(now, i)
-            month_end = _next_month(month_start)
-            month_qs = purchases.filter(date_ajout__gte=month_start, date_ajout__lt=month_end)
-            value = month_qs.aggregate(total=Sum('prix_final'))['total'] or Decimal('0')
+        for premier_jour, jour_suivant, libelle in _tranches(debut, fin):
+            montants = [
+                montant for jour, montant in achats
+                if premier_jour <= jour < jour_suivant
+            ]
             evolution.append({
-                'label': month_start.strftime('%b %Y'),
-                'count': month_qs.count(),
-                'valeur': _money(value),
+                'label': libelle,
+                'count': len(montants),
+                'valeur': _money(sum(montants)),
             })
         return evolution
 

@@ -15,6 +15,7 @@ import '../../models/contact_messagerie.dart';
 import '../../models/echantillon.dart';
 import '../../models/enums.dart';
 import '../../models/message.dart';
+import '../../services/alerte_message_service.dart';
 import '../../services/auth_service.dart';
 import '../../services/gestion_echantillons_service.dart';
 import '../../services/messagerie_service.dart';
@@ -59,10 +60,17 @@ class _ConversationPageState extends State<ConversationPage>
   _EchantillonMessageRef? _echantillonJoint;
   RoleUtilisateur? _roleUtilisateur;
   String? _errorMessage;
+  String? _conversationPrecedente;
+  StreamSubscription<void>? _nouveauxMessages;
 
   @override
   void initState() {
     super.initState();
+    _conversationPrecedente = alerteMessages.conversationOuverte;
+    alerteMessages.conversationOuverte = widget.contact.id;
+    _nouveauxMessages = alerteMessages.nouveauxMessages.listen(
+      (_) => rechargerEnSilence(),
+    );
     _loadCurrentUser();
     final initial = widget.initialMessages;
     if (initial != null) {
@@ -78,6 +86,8 @@ class _ConversationPageState extends State<ConversationPage>
 
   @override
   void dispose() {
+    _nouveauxMessages?.cancel();
+    alerteMessages.conversationOuverte = _conversationPrecedente;
     _controller.dispose();
     _scrollController.dispose();
     super.dispose();

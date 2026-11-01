@@ -30,6 +30,9 @@ class AchatServiceAchat {
   final DateTime? dateLivraisonPrevue;
   final DateTime? dateLivraisonPrevueFin;
   final bool stockArrive;
+  final bool facture;
+  final DateTime? dateFacture;
+  final String? factureParNom;
   final DateTime? dateEnregistrement;
   final String? imageUrl;
 
@@ -53,6 +56,9 @@ class AchatServiceAchat {
     this.dateLivraisonPrevue,
     this.dateLivraisonPrevueFin,
     this.stockArrive = false,
+    this.facture = false,
+    this.dateFacture,
+    this.factureParNom,
     this.dateEnregistrement,
     this.imageUrl,
   });
@@ -81,6 +87,9 @@ class AchatServiceAchat {
         dateLivraisonPrevue: _date(json['date_livraison_prevue']),
         dateLivraisonPrevueFin: _date(json['date_livraison_prevue_fin']),
         stockArrive: json['stock_arrive'] as bool? ?? false,
+        facture: json['facture'] as bool? ?? false,
+        dateFacture: _date(json['date_facture']),
+        factureParNom: json['facture_par_nom'] as String?,
         dateEnregistrement: _date(json['date_enregistrement']),
         imageUrl: json['image_url'] as String?,
       );
@@ -105,6 +114,9 @@ class AchatServiceAchat {
     'date_livraison_prevue': dateLivraisonPrevue?.toIso8601String(),
     'date_livraison_prevue_fin': dateLivraisonPrevueFin?.toIso8601String(),
     'stock_arrive': stockArrive,
+    'facture': facture,
+    'date_facture': dateFacture?.toIso8601String(),
+    'facture_par_nom': factureParNom,
     'date_enregistrement': dateEnregistrement?.toIso8601String(),
     'image_url': imageUrl,
   };

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:project3/core/utils/montant_achat.dart';
 import '../models/dashboard_models.dart';
 import 'dash_line_painter.dart';
 
@@ -29,6 +30,11 @@ class SalesEvolutionCard extends StatelessWidget {
     final values = effectivePoints.map((point) => point.value).toList();
     final maxInput = values.fold(0.0, (a, b) => a > b ? a : b);
     final maxVal = maxInput <= 0 ? 1.0 : maxInput * 1.25;
+    final total = values.fold(0.0, (s, e) => s + e);
+    final nombreAchats = effectivePoints.fold(0, (s, p) => s + p.count);
+    // Une année de mois ou trente jours ne tiennent pas tous sous la courbe.
+    final pasLibelles = (effectivePoints.length / 6).ceil();
+    final dernierPoint = (effectivePoints.length - 1).toDouble();
 
     Widget legendLine({required Color color, bool dashed = false}) => SizedBox(
           width: 20,
@@ -44,7 +50,7 @@ class SalesEvolutionCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Expanded(child: _sectionLabel('Evolution des achats', Icons.show_chart_outlined)),
+              Expanded(child: _sectionLabel('Évolution des achats', Icons.show_chart_outlined)),
               dateChipBuilder(dateRange, () {}),
             ],
           ),
@@ -53,12 +59,15 @@ class SalesEvolutionCard extends StatelessWidget {
             children: [
               legendLine(color: _green),
               const SizedBox(width: 6),
-              const Text('Saison courante', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: _dark)),
+              const Text('Montant des achats confirmés, en DT', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: _dark)),
             ],
           ),
           const SizedBox(height: 16),
-          SizedBox(
+          Container(
             height: 140,
+            // Les libellés sont centrés sous les points : ceux des bords
+            // dépasseraient de la carte.
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: LineChart(
               LineChartData(
                 gridData: FlGridData(
@@ -74,11 +83,11 @@ class SalesEvolutionCard extends StatelessWidget {
                   bottomTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
-                      interval: 1,
+                      interval: pasLibelles.toDouble(),
                       reservedSize: 22,
                       getTitlesWidget: (v, _) {
                         final i = v.toInt();
-                        if (i < 0 || i >= effectivePoints.length) return const SizedBox();
+                        if (i != v || i < 0 || i >= effectivePoints.length) return const SizedBox();
                         return Text(
                           effectivePoints[i].label,
                           style: TextStyle(fontSize: 10, color: Colors.grey.shade400, fontWeight: FontWeight.w600),
@@ -88,10 +97,23 @@ class SalesEvolutionCard extends StatelessWidget {
                   ),
                 ),
                 borderData: FlBorderData(show: false),
-                minX: 0,
-                maxX: (effectivePoints.length - 1).toDouble(),
+                // Une seule tranche (un seul jour choisi) reste un point visible.
+                minX: dernierPoint == 0 ? -0.5 : 0,
+                maxX: dernierPoint == 0 ? 0.5 : dernierPoint,
                 minY: 0,
                 maxY: maxVal,
+                lineTouchData: LineTouchData(
+                  touchTooltipData: LineTouchTooltipData(
+                    getTooltipItems: (spots) => spots
+                        .map(
+                          (spot) => LineTooltipItem(
+                            MontantAchat.formaterMontant(spot.y),
+                            const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white),
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ),
                 lineBarsData: [
                   LineChartBarData(
                     spots: List.generate(
@@ -100,6 +122,7 @@ class SalesEvolutionCard extends StatelessWidget {
                     ),
                     isCurved: true,
                     curveSmoothness: 0.3,
+                    preventCurveOverShooting: true,
                     color: _green,
                     barWidth: 2.5,
                     dotData: FlDotData(
@@ -130,20 +153,15 @@ class SalesEvolutionCard extends StatelessWidget {
             decoration: BoxDecoration(border: Border(top: BorderSide(color: Colors.black.withValues(alpha: 0.05)))),
             child: Row(
               children: [
-                Expanded(child: _kpiMini(_fmt(values.fold(0.0, (s, e) => s + e)), 'Valeur totale', _green)),
+                Expanded(child: _kpiMini(MontantAchat.formaterMontant(total), 'Montant sur la période', _green)),
                 Container(width: 1, height: 32, color: Colors.grey.shade100),
-                Expanded(child: _kpiMini('${effectivePoints.length}', 'Periodes', _dark)),
+                Expanded(child: _kpiMini('$nombreAchats', nombreAchats > 1 ? 'Achats confirmés' : 'Achat confirmé', _dark)),
               ],
             ),
           ),
         ],
       ),
     );
-  }
-
-  String _fmt(double value) {
-    if (value >= 1000) return '${(value / 1000).toStringAsFixed(0)}k';
-    return value.toStringAsFixed(0);
   }
 
   Widget _kpiMini(String value, String label, Color color) => Column(

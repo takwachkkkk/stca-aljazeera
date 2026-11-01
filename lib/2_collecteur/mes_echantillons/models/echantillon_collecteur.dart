@@ -73,6 +73,29 @@ class PlanificationLivraison {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// ACHAT SAISI — ce que le collecteur remplit en concluant l'achat
+// ─────────────────────────────────────────────────────────────────────────────
+class AchatSaisi {
+  final String prixFinal;
+  final String remarqueCollecteur;
+  final String? numCiterne;
+
+  /// Date exacte, ou début de la période de livraison du stock.
+  final DateTime? livraisonDebut;
+
+  /// Fin de la période ; vide pour une date exacte.
+  final DateTime? livraisonFin;
+
+  const AchatSaisi({
+    required this.prixFinal,
+    required this.remarqueCollecteur,
+    this.numCiterne,
+    this.livraisonDebut,
+    this.livraisonFin,
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // ECHANTILLON COLLECTEUR
 // ─────────────────────────────────────────────────────────────────────────────
 class EchantillonCollecteur {
@@ -174,6 +197,8 @@ class EchantillonCollecteur {
         return StatutCollecteur.enNegociation;
       case 'achatConfirme':
         return StatutCollecteur.achatConfirme;
+      case 'achatNonConclu':
+        return StatutCollecteur.achatNonConclu;
       default:
         try {
           return StatutCollecteurX.fromJson(raw);
@@ -200,7 +225,11 @@ class EchantillonCollecteur {
         achatConfirme:
             (json['statut_collecteur'] == 'achat_confirme' ||
             json['statut_collecteur'] == 'achatConfirme'),
-        livraison: null,
+        livraison: json['livraison'] is Map<String, dynamic>
+            ? PlanificationLivraison.fromJson(
+                json['livraison'] as Map<String, dynamic>,
+              )
+            : null,
         dateArriveeEchantillon: json['date_arrivee_echantillon'] != null
             ? DateTime.parse(json['date_arrivee_echantillon'] as String)
             : null,

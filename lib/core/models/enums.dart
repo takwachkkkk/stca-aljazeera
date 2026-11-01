@@ -75,7 +75,7 @@ extension RoleUtilisateurX on RoleUtilisateur {
 // ── Sample statuses — one per actor view ─────────────────────────────────────
 
 /// Collector-facing sample status (statut_collecteur on echantillons table).
-enum StatutCollecteur { receptionne, enNegociation, achatConfirme }
+enum StatutCollecteur { receptionne, enNegociation, achatConfirme, achatNonConclu }
 
 extension StatutCollecteurX on StatutCollecteur {
   String get toJson {
@@ -86,6 +86,8 @@ extension StatutCollecteurX on StatutCollecteur {
         return 'en_negociation';
       case StatutCollecteur.achatConfirme:
         return 'achat_confirme';
+      case StatutCollecteur.achatNonConclu:
+        return 'achat_non_conclu';
     }
   }
 
@@ -97,6 +99,8 @@ extension StatutCollecteurX on StatutCollecteur {
         return 'Prix en négociation';
       case StatutCollecteur.achatConfirme:
         return 'Achat conclu';
+      case StatutCollecteur.achatNonConclu:
+        return 'Achat non conclu';
     }
   }
 
@@ -108,6 +112,8 @@ extension StatutCollecteurX on StatutCollecteur {
         return StatutCollecteur.enNegociation;
       case 'achat_confirme':
         return StatutCollecteur.achatConfirme;
+      case 'achat_non_conclu':
+        return StatutCollecteur.achatNonConclu;
       default:
         return StatutCollecteur.receptionne;
     }
@@ -210,7 +216,8 @@ extension StatutLaboX on StatutLabo {
 }
 
 /// CEO-facing sample status (statut_ceo on echantillons table).
-enum StatutCeo { selectionne, enNegociation, achatConfirme, refuse }
+/// [achatNonConclu] : le collecteur n'a pas abouti ; la direction peut rouvrir.
+enum StatutCeo { selectionne, enNegociation, achatConfirme, achatNonConclu, refuse }
 
 extension StatutCeoX on StatutCeo {
   String get toJson {
@@ -221,6 +228,8 @@ extension StatutCeoX on StatutCeo {
         return 'en_negociation';
       case StatutCeo.achatConfirme:
         return 'achat_confirme';
+      case StatutCeo.achatNonConclu:
+        return 'achat_non_conclu';
       case StatutCeo.refuse:
         return 'refuse';
     }
@@ -234,6 +243,8 @@ extension StatutCeoX on StatutCeo {
         return 'En négociation';
       case StatutCeo.achatConfirme:
         return 'Achat confirmé';
+      case StatutCeo.achatNonConclu:
+        return 'Achat non conclu';
       case StatutCeo.refuse:
         return 'Refusé';
     }
@@ -247,6 +258,8 @@ extension StatutCeoX on StatutCeo {
         return StatutCeo.enNegociation;
       case 'achat_confirme':
         return StatutCeo.achatConfirme;
+      case 'achat_non_conclu':
+        return StatutCeo.achatNonConclu;
       case 'refuse':
         return StatutCeo.refuse;
       default:

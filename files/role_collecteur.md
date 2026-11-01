@@ -43,8 +43,9 @@ External participant who collects samples from across Tunisia.
 |-------|------|--------|-------|
 | `Réceptionné` | All fields | ✅ Yes | Not yet physically at company |
 | `Réceptionné (reçu physiquement)` | Limited fields only | ❌ No | Taster confirmed physical arrival. **Edits are tracked** — previous value visible to all actors |
-| `En négociation` | — | ❌ No | CEO approved for purchase. CEO's `budgetNegociation` + `dateLivraisonStockSouhaitee` shown in collapsible section. Collector can confirm purchase. |
-| `Achat confirmé` | `planificationLivraison` only | ❌ No | Collector confirmed purchase with `prixFinal`, `camionLivraison`, `planificationLivraison`. |
+| `En négociation` | — | ❌ No | CEO approved for purchase. CEO's `budgetNegociation` (DT/kg, with the derived DT/tonne) + `dateLivraisonStockSouhaitee` shown in collapsible section. The collector closes the negotiation himself: **Confirmer l'achat** or **Achat non conclu**. No CEO validation step. |
+| `Achat confirmé` | price, tank, delivery date, remark | ❌ No | Collector confirmed purchase with `prixFinal` (DT/kg), `numCiterne`, stock delivery date (`date_livraison_stock`, optional `_fin`), `remarqueCollecteur`. The CEO is notified. |
+| `Achat non conclu` | — | ❌ No | Negotiation failed. Optional reason in `raison_non_conclu` (separate from the CEO's `raison_refus`). The CEO is notified and can reopen the negotiation. |
 
 ---
 
@@ -55,7 +56,9 @@ External participant who collects samples from across Tunisia.
 | Register → Réceptionné | Collector or Taster | All sample fields, optionally `dateArriveeEchantillon` |
 | Réceptionné → recuPhysiquement | Taster | `recuPhysiquement = true`, `dateReceptionEchantillon` |
 | Réceptionné → En négociation | CEO | `budgetNegociation`, `dateLivraisonStockSouhaitee` |
-| En négociation → Achat confirmé | Collector | `prixFinal`, `camionLivraison`, `planificationLivraison` |
+| En négociation → Achat confirmé | Collector (`confirmer-achat`) | `prixFinal`, `numCiterne`, `date_livraison_stock(_fin)`, `remarqueCollecteur` |
+| En négociation → Achat non conclu | Collector (`non-conclu`) | `raison_non_conclu` (optional) |
+| Achat non conclu → En négociation | CEO (`approuver`) | new `budgetNegociation`; `nb_renegociations` +1 |
 | Achat confirmé → Stock reçu | CEO or Collector | `dateArriveeStock` |
 
 ---

@@ -16,6 +16,7 @@ FIXTURES_ROOT = Path(__file__).resolve().parents[2] / 'test' / 'fixtures' / 'api
 PASSWORD = 'Test@12345'
 
 
+@override_settings(LABO_ACTIF=True)
 class ParcoursBoutEnBoutApiTests(APITestCase):
     maxDiff = None
 
@@ -156,26 +157,19 @@ class ParcoursBoutEnBoutApiTests(APITestCase):
             },
         )
         self.assertEqual(approved_sample['statut_collecteur'], 'en_negociation')
-        proposal = self._patch(
+        # Le collecteur conclut lui-meme : plus de validation par la direction.
+        confirmed = self._patch(
             self.collecteur,
             f'/api/echantillons/{self.sample_id}/confirmer-achat/',
             {
                 'prix_final': '7.40',
-                'budget_negociation': '7.40',
-                'quantite_cible_t': '11.5',
-                'camion_reserve': 'TR-AUDIT',
                 'remarque_collecteur': 'Prix accepte par le fournisseur.',
                 'date_livraison_stock': '2026-10-02T08:00:00Z',
                 'date_livraison_stock_fin': '2026-10-03T16:00:00Z',
             },
         )
-        self.assertEqual(proposal['statut_ceo'], 'en_negociation')
-        confirmed = self._post(
-            self.direction,
-            f'/api/echantillons/{self.sample_id}/confirmer-achat/',
-            {},
-        )
         self.assertEqual(confirmed['statut_collecteur'], 'achat_confirme')
+        self.assertEqual(confirmed['statut_ceo'], 'achat_confirme')
         self._snapshot('06_achat_confirme')
 
         message = self._post(

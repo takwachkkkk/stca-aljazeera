@@ -18,10 +18,10 @@ import '../widgets/shared_evaluation_form_sheet.dart';
 import '../echantillons/echantillons_ceo_page.dart';
 import '../analyse_laboratoire/analyse_laboratoire_ceo_page.dart';
 import '../achats_confirmes/achats_confirmes_ceo_page.dart';
-import '../validation_achats/validation_achats_ceo_page.dart';
 import '../tableau_de_bord/tableau_de_bord.dart';
 import '../profil_ceo_page.dart';
 import '../../main.dart';
+import '../../core/utils/montant_achat.dart';
 import '../utilisateurs/models/mock_data_patch.dart';
 import '../utilisateurs/utilisateurs_ceo_page.dart';
 import 'package:project3/core/widgets/search_date_filter_bar.dart';
@@ -404,27 +404,26 @@ class _AnalyseOrganoleptiqueCeoPageState
     final isEdit = e.statut == StatutCeo.enNegociation;
     final isAchatConfirme = e.statut == StatutCeo.achatConfirme;
 
+    // L'achat a été conclu par le collecteur : le serveur refuse de rouvrir
+    // la négociation, pour ne pas défaire un achat déjà engagé.
     if (isAchatConfirme) {
-      final confirmed = await showDialog<bool>(
+      await showDialog<void>(
         context: context,
         builder: (_) => AlertDialog(
           title: const Text('Achat déjà confirmé'),
           content: const Text(
-            'Cet échantillon a un achat confirmé. Voulez-vous vraiment modifier la décision ?',
+            "Le collecteur a confirmé l'achat de cet échantillon. "
+            'La négociation ne peut plus être modifiée.',
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Annuler'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Continuer'),
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Compris'),
             ),
           ],
         ),
       );
-      if (confirmed != true) return;
+      return;
     }
 
     if (!mounted) return;
@@ -487,6 +486,7 @@ class _AnalyseOrganoleptiqueCeoPageState
       e.dateLivraisonStockSouhaitee = dateSouhaitee;
       e.noteInterne = note;
       e.raisonRefus = null;
+      e.raisonNonConclu = null;
     });
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -578,7 +578,6 @@ class _AnalyseOrganoleptiqueCeoPageState
         onAnalyseOrganoleptique: () =>
             goToPage(const AnalyseOrganoleptiqueCeoPage()),
         onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoireCeoPage()),
-        onValidationAchats: () => goToPage(const ValidationAchatsCeoPage()),
         onAchatsConfirmes: () => goToPage(const AchatsConfirmesCeoPage()),
         onTableauDeBord: () => goToPage(const HomePageCeo()),
         onProfil: () => goToPage(const ProfilceoPage()),
@@ -751,15 +750,8 @@ class _AnalyseOrganoleptiqueCeoPageState
                                 numero: e.numero,
                                 tintColor: Colors.white,
                                 accentColor: _cardAccent(e),
-                                badge: CardBadgeRow(
-                                  badges: [
-                                    if (e.quantiteEstimee != null)
-                                      CardBadge(
-                                        label: 'Qté : ${e.quantiteEstimee}T',
-                                        color: kOlive,
-                                      ),
-                                  ],
-                                ),
+                                // Pas de badge : la référence garde toute la
+                                // largeur. La quantité reste dans les détails.
                                 detailItems: [
                                   DetailItem('N° échantillon', e.numero),
                                   DetailItem(
@@ -793,6 +785,16 @@ class _AnalyseOrganoleptiqueCeoPageState
                                     "Confirmation réception d'échantillon",
                                     e.recuPhysiquement ? 'Oui' : 'Non',
                                   ),
+                                  if (MontantAchat.formaterPrixParKg(
+                                        e.budgetNegociation,
+                                      ) !=
+                                      null)
+                                    DetailItem(
+                                      'Prix proposé',
+                                      MontantAchat.formaterPrixParKg(
+                                        e.budgetNegociation,
+                                      )!,
+                                    ),
                                 ],
                                 deliveryWidget: SampleDeliveryIndicator(e: e),
                                 bottomSection: PanelSection(

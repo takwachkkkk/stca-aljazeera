@@ -3,6 +3,7 @@ from datetime import timedelta
 
 from django.core import mail
 from django.core.cache import cache
+from django.test import override_settings
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -554,6 +555,7 @@ class UserManagementApiTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+    @override_settings(LABO_ACTIF=True)
     def test_chef_can_create_user(self):
         mail.outbox = []
         self.client.force_authenticate(user=self.chef)

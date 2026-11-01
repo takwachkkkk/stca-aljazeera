@@ -20,7 +20,7 @@ List<NotificationCollecteur> mockNotifications() {
       titre: 'Échantillon approuvé — négociation ouverte',
       message:
           "La direction a approuvé l'échantillon ECH-2026-041 pour achat. "
-          "Budget alloué : 7.80 TND/T. Livraison du stock souhaitée avant le 10/05/2026. "
+          "Budget alloué : 7.80 DT/kg. Livraison du stock souhaitée avant le 10/05/2026. "
           "Confirmez l'achat depuis votre liste d'échantillons.",
       echantillonId: 'ech-1',
       echantillonReference: 'ECH-2026-041',
@@ -68,7 +68,7 @@ List<NotificationCollecteur> mockNotifications() {
       titre: 'Échantillon approuvé — négociation ouverte',
       message:
           "La direction a approuvé l'échantillon ECH-2026-035 pour achat. "
-          "Budget alloué : 8.50 TND/T. Livraison du stock souhaitée avant le 05/05/2026. "
+          "Budget alloué : 8.50 DT/kg. Livraison du stock souhaitée avant le 05/05/2026. "
           "Confirmez l'achat depuis votre liste d'échantillons.",
       echantillonId: 'ech-4',
       echantillonReference: 'ECH-2026-035',
@@ -116,7 +116,7 @@ List<NotificationCollecteur> mockNotifications() {
       titre: 'Échantillon approuvé — négociation ouverte',
       message:
           "La direction a approuvé l'échantillon ECH-2026-025 pour achat. "
-          "Budget alloué : 7.20 TND/T. Livraison du stock souhaitée avant le 01/05/2026. "
+          "Budget alloué : 7.20 DT/kg. Livraison du stock souhaitée avant le 01/05/2026. "
           "Confirmez l'achat depuis votre liste d'échantillons.",
       echantillonId: 'ech-7',
       echantillonReference: 'ECH-2026-025',

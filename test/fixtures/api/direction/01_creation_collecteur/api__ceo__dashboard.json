@@ -13,21 +13,52 @@
       "receptionnes": 1,
       "en_negociation": 0,
       "achat_confirme": 0,
+      "achats_non_conclus": 0,
       "refuses": 0,
       "stocks_arrives": 0,
       "evaluations_en_attente": 0,
       "analyses_soumises": 0,
       "investissement_total": 0.0
     },
-    "pipeline": {
-      "receptionne": 1,
-      "en_negociation": 0,
-      "achat_confirme": 0,
-      "refuse": 0
+    "achats": {
+      "montant_total": 0.0,
+      "quantite_totale_t": 0.0,
+      "nombre": 0,
+      "sans_quantite": 0,
+      "categories": [
+        {
+          "cle": "extra_vierge",
+          "quantite_t": 0.0,
+          "montant": 0.0,
+          "nombre": 0
+        },
+        {
+          "cle": "vierge",
+          "quantite_t": 0.0,
+          "montant": 0.0,
+          "nombre": 0
+        },
+        {
+          "cle": "vierge_ordinaire",
+          "quantite_t": 0.0,
+          "montant": 0.0,
+          "nombre": 0
+        },
+        {
+          "cle": "lampante",
+          "quantite_t": 0.0,
+          "montant": 0.0,
+          "nombre": 0
+        }
+      ],
+      "dernier_prix": {
+        "extra_vierge": null,
+        "vierge": null
+      }
     },
     "performance_collecteurs": [
       {
-        "collecteur_id": "6f3faa4b-b13d-4437-8dc2-242ed6928355",
+        "collecteur_id": "04b32a25-339e-40c9-aab0-3ef146cf5ab8",
         "nom": "Audit Collecteur",
         "name": "Audit Collecteur",
         "initials": "AC",
@@ -40,7 +71,7 @@
     ],
     "collecteurs": [
       {
-        "collecteur_id": "6f3faa4b-b13d-4437-8dc2-242ed6928355",
+        "collecteur_id": "04b32a25-339e-40c9-aab0-3ef146cf5ab8",
         "nom": "Audit Collecteur",
         "name": "Audit Collecteur",
         "initials": "AC",
@@ -65,32 +96,32 @@
     },
     "evolution_achats": [
       {
-        "label": "May 2026",
+        "label": "Jun 26",
         "count": 0,
         "valeur": 0.0
       },
       {
-        "label": "Jun 2026",
+        "label": "Jul 26",
         "count": 0,
         "valeur": 0.0
       },
       {
-        "label": "Jul 2026",
+        "label": "Aoû 26",
         "count": 0,
         "valeur": 0.0
       },
       {
-        "label": "Aug 2026",
+        "label": "Sep 26",
         "count": 0,
         "valeur": 0.0
       },
       {
-        "label": "Sep 2026",
+        "label": "Oct 26",
         "count": 0,
         "valeur": 0.0
       },
       {
-        "label": "Oct 2026",
+        "label": "Nov 26",
         "count": 0,
         "valeur": 0.0
       }

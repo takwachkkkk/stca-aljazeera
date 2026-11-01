@@ -26,8 +26,7 @@ class EchantillonCollecteurService {
   //   budget_negociation       → budget_negociation  (Decimal/null → String?/null)
   //   prix_final               → prix_final          (Decimal/null → String?/null)
   //
-  // Fields always null (not in this endpoint):
-  //   livraison                → always null  (planification not in this endpoint)
+  //   date_livraison_stock(_fin) → livraison (date de livraison du stock)
   // ──────────────────────────────────────────────────────────────────────────
 
   /// Converts a Django `statut_collecteur` snake_case value to the Dart enum
@@ -37,6 +36,7 @@ class EchantillonCollecteurService {
   /// receptionne    → receptionne
   /// en_negociation → enNegociation
   /// achat_confirme → achatConfirme
+  /// achat_non_conclu → achatNonConclu
   String _mapStatut(String djangoStatut) {
     switch (djangoStatut) {
       case 'receptionne':
@@ -45,6 +45,8 @@ class EchantillonCollecteurService {
         return 'enNegociation';
       case 'achat_confirme':
         return 'achatConfirme';
+      case 'achat_non_conclu':
+        return 'achatNonConclu';
       default:
         return djangoStatut;
     }
@@ -68,7 +70,7 @@ class EchantillonCollecteurService {
       'quantite_estimee': api['quantite_estimee'],
       'variete': api['variete'],
       'achat_confirme': statutCollecteur == 'achat_confirme',
-      'livraison': null,
+      'livraison': _livraisonFromApi(api['date_livraison_stock']),
       'date_arrivee_echantillon': api['date_arrivee_echantillon'],
       'recu_physiquement': api['recu_physiquement'] ?? false,
       'date_reception_echantillon': api['date_reception_echantillon'],
@@ -249,30 +251,81 @@ class EchantillonCollecteurService {
     await _api.delete('/api/echantillons/$id/');
   }
 
-  /// Confirms the purchase of an echantillon.
+  /// La date de livraison du stock revient du serveur : sans elle, la date
+  /// saisie par le collecteur disparaissait au rechargement.
+  Map<String, dynamic>? _livraisonFromApi(dynamic value) {
+    final date = DateTime.tryParse(value?.toString() ?? '')?.toLocal();
+    if (date == null) return null;
+    return PlanificationLivraison.exact(
+      date: date,
+      heure: '',
+      lieu: '',
+    ).toJson();
+  }
+
+  Map<String, dynamic> _corpsAchat(AchatSaisi achat) => {
+    'prix_final': achat.prixFinal,
+    'remarque_collecteur': achat.remarqueCollecteur,
+    if (achat.numCiterne != null) 'num_citerne': achat.numCiterne,
+    if (achat.livraisonDebut != null)
+      'date_livraison_stock': achat.livraisonDebut!.toUtc().toIso8601String(),
+    if (achat.livraisonFin != null)
+      'date_livraison_stock_fin': achat.livraisonFin!.toUtc().toIso8601String(),
+  };
+
+  /// Le collecteur conclut la négociation : l'achat est confirmé tout de
+  /// suite, sans validation de la direction (qui est notifiée).
   ///
-  /// Calls `PATCH /api/echantillons/<id>/confirmer_achat/` with optional
-  /// [prixFinal], [camionLivraison], and [remarqueCollecteur] values.
+  /// Calls `PATCH /api/echantillons/<id>/confirmer-achat/`.
   Future<EchantillonCollecteur> confirmerAchat(
-    String id, {
-    String? prixFinal,
-    String? camionLivraison,
-    String? remarqueCollecteur,
-  }) async {
+    String id,
+    AchatSaisi achat,
+  ) async {
     if (_usingMockData) {
       throw StateError(
         'Confirmation indisponible avec les données de démonstration.',
       );
     }
-    final body = <String, dynamic>{};
-    if (prixFinal != null) body['prix_final'] = prixFinal;
-    if (camionLivraison != null) body['camion_reserve'] = camionLivraison;
-    if (remarqueCollecteur != null) {
-      body['remarque_collecteur'] = remarqueCollecteur;
-    }
     final response = await _api.patch(
       '/api/echantillons/$id/confirmer-achat/',
-      body,
+      _corpsAchat(achat),
+    );
+    return EchantillonCollecteur.fromJson(_toFlutterMap(response));
+  }
+
+  /// La négociation n'a pas abouti. La raison est facultative ; la direction
+  /// est notifiée et peut rouvrir la négociation.
+  ///
+  /// Calls `POST /api/echantillons/<id>/non-conclu/`.
+  Future<EchantillonCollecteur> declarerNonConclu(
+    String id, {
+    String? raison,
+  }) async {
+    if (_usingMockData) {
+      throw StateError(
+        'Action indisponible avec les données de démonstration.',
+      );
+    }
+    final response = await _api.post('/api/echantillons/$id/non-conclu/', {
+      'raison_non_conclu': raison ?? '',
+    });
+    return EchantillonCollecteur.fromJson(_toFlutterMap(response));
+  }
+
+  /// Après confirmation, le collecteur peut encore corriger le prix, la
+  /// citerne, la date de livraison ou sa remarque.
+  Future<EchantillonCollecteur> modifierAchat(
+    String id,
+    AchatSaisi achat,
+  ) async {
+    if (_usingMockData) {
+      throw StateError(
+        'Action indisponible avec les données de démonstration.',
+      );
+    }
+    final response = await _api.patch(
+      '/api/echantillons/$id/',
+      _corpsAchat(achat),
     );
     return EchantillonCollecteur.fromJson(_toFlutterMap(response));
   }

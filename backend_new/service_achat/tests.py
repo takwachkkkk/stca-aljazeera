@@ -58,6 +58,52 @@ class ServiceAchatTests(APITestCase):
         response = self.client.get('/api/service-achat/achats/')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+    def _facturer(self, reference='ACH-1'):
+        echantillon = Echantillon.objects.get(reference_bouteille=reference)
+        return self.client.post(f'/api/service-achat/achats/{echantillon.id}/facturer/')
+
+    def test_facturer_garde_la_date_et_l_auteur(self):
+        self.client.force_authenticate(user=self.achat)
+        avant = self.client.get('/api/service-achat/achats/').json()[0]
+        self.assertFalse(avant['facture'])
+
+        response = self._facturer()
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+        self.assertTrue(response.data['facture'])
+        self.assertIsNotNone(response.data['date_facture'])
+        self.assertEqual(response.data['facture_par_nom'], 'P N')
+        apres = self.client.get('/api/service-achat/achats/').json()[0]
+        self.assertTrue(apres['facture'])
+
+    def test_une_deuxieme_personne_n_ecrase_pas_la_premiere(self):
+        self.client.force_authenticate(user=self.achat)
+        premiere = self._facturer().data
+        collegue = User.objects.create_user(
+            email='achat2@example.com', password='Test@12345', nom='Z', prenom='Y',
+            role=User.Role.SERVICE_ACHAT,
+        )
+        self.client.force_authenticate(user=collegue)
+
+        seconde = self._facturer()
+
+        self.assertEqual(seconde.status_code, status.HTTP_200_OK)
+        self.assertEqual(seconde.data['facture_par_nom'], 'P N')
+        self.assertEqual(seconde.data['date_facture'], premiere['date_facture'])
+
+    def test_facturer_seulement_un_achat_confirme(self):
+        self.client.force_authenticate(user=self.achat)
+        response = self._facturer('ACH-2')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        echantillon = Echantillon.objects.get(reference_bouteille='ACH-2')
+        self.assertFalse(echantillon.facture)
+
+    def test_facturer_reserve_au_service_achat(self):
+        self.client.force_authenticate(user=self.chef)
+        self.assertEqual(self._facturer().status_code, status.HTTP_403_FORBIDDEN)
+        echantillon = Echantillon.objects.get(reference_bouteille='ACH-1')
+        self.assertFalse(echantillon.facture)
+
     def test_le_chef_cree_un_compte_service_achat_qui_peut_se_connecter(self):
         self.client.force_authenticate(user=self.chef)
         response = self.client.post(

@@ -1,5 +1,6 @@
 import '../api_client.dart';
 import '../models/user_profile.dart';
+import 'alerte_message_service.dart';
 import 'fournisseur_service.dart';
 import 'variete_service.dart';
 
@@ -22,6 +23,7 @@ class AuthService {
   }
 
   Future<void> logout() async {
+    alerteMessages.arreter();
     await apiClient.logout();
     _invalidateSuggestionCaches();
   }

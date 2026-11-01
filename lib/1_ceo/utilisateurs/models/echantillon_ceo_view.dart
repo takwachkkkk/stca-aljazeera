@@ -45,13 +45,21 @@ class EchantillonCeoView {
   /// ferme. Vide = prix unique.
   String? budgetNegociationMax;
 
-  /// Nombre de fois que la direction a renvoyé la proposition en négociation.
-  /// Alimente le marqueur « Renégocié ×N » sur la carte.
+  /// Nombre de fois que la direction a rouvert la négociation après un achat
+  /// non conclu. Alimente le marqueur « Renégocié ×N » sur la carte.
   int nbRenegociations;
   String? dateLivraisonStockSouhaitee; // CEO's desired delivery date for stock
   String? quantiteCibleT;
   String? camionReserve;
   String? noteInterne;
+
+  // Issue de la négociation, saisie par le collecteur.
+  String? prixFinal;
+  String? remarqueCollecteur;
+
+  /// Raison facultative donnée par le collecteur quand l'achat n'aboutit pas.
+  /// Distincte de [raisonRefus], qui est celle de la direction.
+  String? raisonNonConclu;
   bool stockArrive;
   String? dateLivraisonStock;
   String? dateLivraisonStockFin; // end of range when stock delivery is a period
@@ -88,6 +96,9 @@ class EchantillonCeoView {
     this.quantiteCibleT,
     this.camionReserve,
     this.noteInterne,
+    this.prixFinal,
+    this.remarqueCollecteur,
+    this.raisonNonConclu,
     this.stockArrive = false,
     this.dateLivraisonStock,
     this.dateLivraisonStockFin,

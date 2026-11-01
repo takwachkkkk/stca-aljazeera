@@ -2,7 +2,7 @@
 <uses-permission android:name="android.permission.INTERNET"/>
 
     <application
-        android:label="project3"
+        android:label="Al Jazeera STCA"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="true">

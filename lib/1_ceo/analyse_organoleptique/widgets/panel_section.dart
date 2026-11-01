@@ -64,83 +64,130 @@ class PanelSection extends StatelessWidget {
           behavior: HitTestBehavior.opaque,
           child: Padding(
             padding: const EdgeInsets.fromLTRB(14, 11, 14, 10),
-            child: Row(
+            child: Column(
               children: [
-                if (showDecisions) ...[
-                  DecisionButton(
-                    label: 'Approuver',
-                    active: approved,
-                    dimmed: false,
-                    activeColor: kGreen,
-                    onTap: onApprouver ?? () {},
-                  ),
-                  const SizedBox(width: 6),
-                  DecisionButton(
-                    label: 'Refuser',
-                    active: refused,
-                    dimmed: false,
-                    activeColor: Colors.red.shade500,
-                    onTap: onRefuser ?? () {},
-                  ),
-                ] else
-                  // Sans les boutons, l'en-tête annonce ce que la section
-                  // contient — sinon la ligne serait vide jusqu'au chevron.
-                  Text(
-                    'Évaluations du panel',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: kOlive,
-                    ),
-                  ),
-                const Spacer(),
-                if (showRecu)
-                  RecuPhysiqueIndicator(recuPhysiquement: e.recuPhysiquement),
-                if (showDecisions)
-                  Tooltip(
-                    message: 'Demander en urgence',
-                    child: GestureDetector(
-                      onTap: onUrgent ?? () {},
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: isUrgent
-                              ? const Color(0xFFD07B2F).withValues(alpha: 0.10)
-                              : Colors.transparent,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: isUrgent
-                                ? const Color(
-                                    0xFFD07B2F,
-                                  ).withValues(alpha: 0.40)
-                                : Colors.grey.shade300,
-                            width: isUrgent ? 1.4 : 1.0,
+                Row(
+                  children: [
+                    if (showDecisions)
+                      // FittedBox : sur un petit écran, les boutons rétrécissent
+                      // au lieu de pousser l'urgence et le chevron hors de la
+                      // carte.
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                DecisionButton(
+                                  // Après un achat non conclu, approuver rouvre
+                                  // la négociation avec le collecteur.
+                                  label: e.statut == StatutCeo.achatNonConclu
+                                      ? 'Rouvrir'
+                                      : 'Approuver',
+                                  active: approved,
+                                  dimmed: false,
+                                  activeColor: kGreen,
+                                  onTap: onApprouver ?? () {},
+                                ),
+                                const SizedBox(width: 6),
+                                DecisionButton(
+                                  label: 'Refuser',
+                                  active: refused,
+                                  dimmed: false,
+                                  activeColor: Colors.red.shade500,
+                                  onTap: onRefuser ?? () {},
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                        child: Icon(
-                          isUrgent
-                              ? Icons.notification_important
-                              : Icons.notification_important_outlined,
-                          size: 16,
-                          color: isUrgent
-                              ? const Color(0xFFD07B2F)
-                              : Colors.grey.shade400,
+                      )
+                    else ...[
+                      // Sans les boutons, l'en-tête annonce ce que la section
+                      // contient — sinon la ligne serait vide jusqu'au chevron.
+                      Text(
+                        'Évaluations du panel',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: kOlive,
                         ),
+                      ),
+                      Expanded(
+                        child: showRecu
+                            ? Align(
+                                alignment: Alignment.centerRight,
+                                child: RecuPhysiqueIndicator(
+                                  recuPhysiquement: e.recuPhysiquement,
+                                ),
+                              )
+                            : const SizedBox.shrink(),
+                      ),
+                    ],
+                    if (showDecisions)
+                      Tooltip(
+                        message: 'Demander en urgence',
+                        child: GestureDetector(
+                          onTap: onUrgent ?? () {},
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: isUrgent
+                                  ? const Color(
+                                      0xFFD07B2F,
+                                    ).withValues(alpha: 0.10)
+                                  : Colors.transparent,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: isUrgent
+                                    ? const Color(
+                                        0xFFD07B2F,
+                                      ).withValues(alpha: 0.40)
+                                    : Colors.grey.shade300,
+                                width: isUrgent ? 1.4 : 1.0,
+                              ),
+                            ),
+                            child: Icon(
+                              isUrgent
+                                  ? Icons.notification_important
+                                  : Icons.notification_important_outlined,
+                              size: 16,
+                              color: isUrgent
+                                  ? const Color(0xFFD07B2F)
+                                  : Colors.grey.shade400,
+                            ),
+                          ),
+                        ),
+                      ),
+                    const SizedBox(width: 8),
+                    AnimatedRotation(
+                      turns: isExpanded ? 0.5 : 0.0,
+                      duration: const Duration(milliseconds: 180),
+                      child: const Icon(
+                        Icons.keyboard_arrow_down,
+                        size: 18,
+                        color: kOlive,
+                      ),
+                    ),
+                  ],
+                ),
+                // Les boutons de décision ne laissent pas la place à la
+                // pastille : comme sur la carte du dégustateur, la coche a sa
+                // propre ligne et la pastille s'ouvre à sa gauche.
+                if (showDecisions && showRecu && e.recuPhysiquement)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 6),
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: RecuPhysiqueIndicator(
+                        recuPhysiquement: e.recuPhysiquement,
                       ),
                     ),
                   ),
-                const SizedBox(width: 8),
-                AnimatedRotation(
-                  turns: isExpanded ? 0.5 : 0.0,
-                  duration: const Duration(milliseconds: 180),
-                  child: const Icon(
-                    Icons.keyboard_arrow_down,
-                    size: 18,
-                    color: kOlive,
-                  ),
-                ),
               ],
             ),
           ),

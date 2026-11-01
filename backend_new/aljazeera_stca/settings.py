@@ -27,6 +27,10 @@ SECRET_KEY = config('SECRET_KEY', default='dev-only-change-me')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
 
+# Laboratoire masque : le code et les donnees restent, mais le role ne peut plus
+# se connecter, n'apparait plus et ne recoit plus rien. LABO_ACTIF=True le remet.
+LABO_ACTIF = config('LABO_ACTIF', default=False, cast=bool)
+
 ALLOWED_HOSTS = config(
     'ALLOWED_HOSTS',
     default='localhost,127.0.0.1,0.0.0.0,*',

@@ -1,7 +1,7 @@
 // ═════════════════════════════════════════════════════════════════════════════
 // FILE    : 6_service_achat/achats/services/achats_service_achat_service.dart
-// PURPOSE : Lecture des achats confirmés pour le Service achat
-//           (/api/service-achat/achats/, lecture seule).
+// PURPOSE : Achats confirmés du Service achat (/api/service-achat/achats/) et
+//           signalement qu'un stock est facturé.
 // ═════════════════════════════════════════════════════════════════════════════
 
 import '../../../core/api_client.dart';
@@ -17,5 +17,10 @@ class AchatsServiceAchatService {
     return items
         .map((e) => AchatServiceAchat.fromJson(e as Map<String, dynamic>))
         .toList();
+  }
+
+  Future<AchatServiceAchat> facturer(String id) async {
+    final data = await _api.post('/api/service-achat/achats/$id/facturer/', {});
+    return AchatServiceAchat.fromJson(data);
   }
 }

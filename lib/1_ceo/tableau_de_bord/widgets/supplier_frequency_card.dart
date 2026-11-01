@@ -69,8 +69,17 @@ class SupplierFrequencyCard extends StatelessWidget {
               ],
             ),
           ),
+          if (suppliers.isEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+              child: Text(
+                'Aucun achat confirmé sur cette période.',
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+              ),
+            )
+          else
           SizedBox(
-            height: 168,
+            height: 212,
             child: ListView.builder(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               physics: const BouncingScrollPhysics(),
@@ -81,29 +90,23 @@ class SupplierFrequencyCard extends StatelessWidget {
                 final pct = (share * 100).toStringAsFixed(1);
                 final color = _supplierGreenStops[i.clamp(0, _supplierGreenStops.length - 1)];
                 return Padding(
-                  padding: EdgeInsets.only(bottom: i < suppliers.length - 1 ? 12 : 0),
-                  child: Row(
+                  padding: EdgeInsets.only(bottom: i < suppliers.length - 1 ? 14 : 0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      SizedBox(
-                        width: 80,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              s.name,
-                              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: _dark),
-                              overflow: TextOverflow.ellipsis, maxLines: 1,
-                            ),
-                            Text(s.region, style: TextStyle(fontSize: 11, color: Colors.grey.shade400)),
-                          ],
-                        ),
+                      // Le nom a toute la largeur : il n'est jamais coupé.
+                      Row(
+                        children: [
+                          Expanded(child: _NomFournisseur(s.name)),
+                          const SizedBox(width: 10),
+                          Text('$pct%', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: _green)),
+                        ],
                       ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: ClipRRect(
+                      const SizedBox(height: 4),
+                      ClipRRect(
                           borderRadius: BorderRadius.circular(6),
                           child: Container(
-                            height: 24,
+                            height: 10,
                             color: const Color(0xFFEEF4F0),
                             child: TweenAnimationBuilder<double>(
                               tween: Tween(begin: 0, end: share),
@@ -114,27 +117,18 @@ class SupplierFrequencyCard extends StatelessWidget {
                                 widthFactor: v.clamp(0.05, 1.0),
                                 child: Container(
                                   decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(6)),
-                                  alignment: Alignment.centerLeft,
-                                  padding: const EdgeInsets.only(left: 8),
-                                  child: v > 0.3
-                                      ? Text('$pct%', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white))
-                                      : const SizedBox(),
                                 ),
                               ),
                             ),
                           ),
-                        ),
                       ),
-                      const SizedBox(width: 8),
-                      SizedBox(
-                        width: 36,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text('$pct%', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: color)),
-                            Text('${s.achats} ach.', style: TextStyle(fontSize: 11, color: Colors.grey.shade400)),
-                          ],
-                        ),
+                      const SizedBox(height: 3),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(s.region, style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
+                          Text('${s.achats} achat${s.achats > 1 ? 's' : ''}', style: TextStyle(fontSize: 11, color: Colors.grey.shade500)),
+                        ],
                       ),
                     ],
                   ),
@@ -142,6 +136,7 @@ class SupplierFrequencyCard extends StatelessWidget {
               },
             ),
           ),
+          if (suppliers.length > 3) ...[
           Container(height: 1, color: Colors.black.withValues(alpha: 0.05)),
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
@@ -157,8 +152,43 @@ class SupplierFrequencyCard extends StatelessWidget {
               ],
             ),
           ),
+          ],
         ],
       ),
+    );
+  }
+}
+
+/// Le nom complet s'il tient sur la ligne, sinon « James.N ».
+class _NomFournisseur extends StatelessWidget {
+  final String nom;
+
+  const _NomFournisseur(this.nom);
+
+  static const _style = TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: _dark);
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, contraintes) {
+        final mesure = TextPainter(
+          text: TextSpan(text: nom, style: _style),
+          maxLines: 1,
+          textDirection: TextDirection.ltr,
+          textScaler: MediaQuery.textScalerOf(context),
+        )..layout();
+        final tientSurLaLigne = mesure.width <= contraintes.maxWidth;
+        mesure.dispose();
+        return FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text(
+            tientSurLaLigne ? nom : nomFournisseurCourt(nom),
+            style: _style,
+            maxLines: 1,
+          ),
+        );
+      },
     );
   }
 }

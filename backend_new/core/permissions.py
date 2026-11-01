@@ -1,3 +1,4 @@
+from django.conf import settings
 from rest_framework.permissions import BasePermission
 
 
@@ -40,7 +41,11 @@ class IsDegustateur(BasePermission):
 
 class IsLaboratoire(BasePermission):
     def has_permission(self, request, view):
-        return request.user.is_authenticated and request.user.role == 'laboratoire'
+        return (
+            settings.LABO_ACTIF
+            and request.user.is_authenticated
+            and request.user.role == 'laboratoire'
+        )
 
 
 class IsChefDegustation(BasePermission):

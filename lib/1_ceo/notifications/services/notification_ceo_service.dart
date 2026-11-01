@@ -1,4 +1,5 @@
 import '../../../core/api_client.dart';
+import '../../../core/fonctionnalites.dart';
 import '../../../core/services/resultat_service.dart';
 import '../models/notification_ceo.dart';
 
@@ -15,18 +16,19 @@ class NotificationCeoService {
       isRead: false,
       dateCreation: DateTime(2026, 5, 5, 9, 15),
     ),
-    NotificationCeo(
-      id: 'n-ceo-002',
-      type: 'ANALYSE_SOUMISE',
-      titre: 'Analyse laboratoire disponible',
-      message:
-          'L\'analyse chimique de OUESLATI-C2 est disponible. Acidité : 0.55 %.',
-      echantillonId: '2026/0005',
-      echantillonReference: 'OUESLATI-C2',
-      section: 'ANALYSES',
-      isRead: false,
-      dateCreation: DateTime(2026, 5, 4, 14, 30),
-    ),
+    if (kLaboActif)
+      NotificationCeo(
+        id: 'n-ceo-002',
+        type: 'ANALYSE_SOUMISE',
+        titre: 'Analyse laboratoire disponible',
+        message:
+            'L\'analyse chimique de OUESLATI-C2 est disponible. Acidité : 0.55 %.',
+        echantillonId: '2026/0005',
+        echantillonReference: 'OUESLATI-C2',
+        section: 'ANALYSES',
+        isRead: false,
+        dateCreation: DateTime(2026, 5, 4, 14, 30),
+      ),
     NotificationCeo(
       id: 'n-ceo-003',
       type: 'ACHAT_CONFIRME',
@@ -88,36 +90,35 @@ class NotificationCeoService {
     ),
     NotificationCeo(
       id: 'n-ceo-008',
-      type: 'proposition_achat_attente',
-      titre: "Proposition d'achat en attente",
-      message:
-          "CHEMLALI-K7 (40 T) : Ahmed Dridi propose 8.20 TND/L. À valider.",
+      type: 'ACHAT_CONFIRME',
+      titre: 'Achat confirmé',
+      message: "Ahmed Dridi a confirmé l'achat de CHEMLALI-K7 à 8.200 DT/kg.",
       echantillonId: '2026/0012',
       echantillonReference: 'CHEMLALI-K7',
-      section: 'ACHATS_VALIDATION',
+      section: 'ACHATS',
       isRead: false,
       dateCreation: DateTime(2026, 5, 20, 14, 45),
     ),
     NotificationCeo(
       id: 'n-ceo-009',
-      type: 'proposition_achat_attente',
-      titre: "Proposition d'achat en attente",
-      message: "CHETOUI-J3 (28 T) : Sami Khaled propose 7.95 TND/L. À valider.",
+      type: 'ACHAT_NON_CONCLU',
+      titre: 'Achat non conclu',
+      message:
+          "Sami Khaled n'a pas conclu l'achat de CHETOUI-J3. Raison : le fournisseur a vendu ailleurs.",
       echantillonId: '2026/0013',
       echantillonReference: 'CHETOUI-J3',
-      section: 'ACHATS_VALIDATION',
+      section: 'ACHATS',
       isRead: true,
       dateCreation: DateTime(2026, 5, 19, 11, 20),
     ),
     NotificationCeo(
       id: 'n-ceo-010',
-      type: 'proposition_achat_attente',
-      titre: "Proposition d'achat en attente",
-      message:
-          "OUESLATI-M1 (15 T) : Mounir Zouaghi propose 8.50 TND/L. À valider.",
+      type: 'ACHAT_CONFIRME',
+      titre: 'Achat confirmé',
+      message: "Mounir Zouaghi a confirmé l'achat de OUESLATI-M1 à 8.500 DT/kg.",
       echantillonId: '2026/0014',
       echantillonReference: 'OUESLATI-M1',
-      section: 'ACHATS_VALIDATION',
+      section: 'ACHATS',
       isRead: true,
       dateCreation: DateTime(2026, 5, 17, 9, 0),
     ),

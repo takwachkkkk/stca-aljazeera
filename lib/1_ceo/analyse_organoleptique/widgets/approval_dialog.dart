@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:project3/core/widgets/champ_prix_kg.dart';
 import 'package:project3/core/widgets/saisie_protegee.dart';
 import '../../../../2_collecteur/mes_echantillons/widgets/dialogs/date_livraison_section.dart'
     show DateLivraisonSection, ModePlanificationUI;
@@ -124,13 +125,12 @@ class _ApprovalDialogState extends State<ApprovalDialog> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _label('Budget proposé *'),
+                    _label('Prix proposé par kg *'),
                     const SizedBox(height: 6),
-                    TextField(
+                    ChampPrixKg(
                       controller: _budgetCtrl,
-                      decoration: _deco('ex: 9.50', Icons.payments_outlined),
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      style: const TextStyle(fontSize: 14),
+                      decoration: _deco('ex: 8.750', Icons.payments_outlined),
+                      afficherPrixTonne: false,
                     ),
                     const SizedBox(height: 16),
                     // La quantite existait deja en base (quantite_cible_t) et

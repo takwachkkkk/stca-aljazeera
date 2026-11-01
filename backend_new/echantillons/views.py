@@ -4,7 +4,8 @@ from decimal import Decimal, InvalidOperation
 
 from django.utils import timezone
 from django.utils.dateparse import parse_date, parse_datetime
-from django.db.models import Count, Q
+from django.db import transaction
+from django.db.models import Count, Prefetch, Q
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied, ValidationError
@@ -16,6 +17,7 @@ from django.core.files.base import ContentFile
 from rest_framework.views import APIView
 from django_filters.rest_framework import DjangoFilterBackend
 
+from ceo.models import DecisionDirection
 from core.ocr_azure import (
     OCR_INACTIVE_DETAIL,
     OCR_UNAVAILABLE_DETAIL,
@@ -66,7 +68,7 @@ def _datetime_from_payload(value):
 def _format_decimal(value):
     if value is None:
         return '-'
-    text = f"{value:.2f}"
+    text = f"{value:.3f}"
     return text.rstrip('0').rstrip('.') if '.' in text else text
 
 
@@ -148,6 +150,11 @@ class EchantillonViewSet(viewsets.ModelViewSet):
             qs = qs.filter(recu_physiquement=True)
         elif user.role == User.Role.COLLECTEUR:
             qs = qs.filter(collecteur=user)
+        elif user.role == User.Role.DIRECTION:
+            qs = qs.prefetch_related(Prefetch(
+                'decisions_direction',
+                queryset=DecisionDirection.objects.select_related('direction'),
+            ))
         return qs.order_by('-date_ajout')
 
     def get_permissions(self):
@@ -293,8 +300,19 @@ class EchantillonViewSet(viewsets.ModelViewSet):
         # The CEO approves a sample for negotiation.
         # This moves the sample to "en_negociation" for both the CEO and the collector.
         # Optionally sets the negotiation budget and internal notes.
+        # Also reopens a purchase the collector declared "non conclu".
         obj = self.get_object()
+        if obj.statut_collecteur == Echantillon.StatutCollecteur.ACHAT_CONFIRME:
+            return Response(
+                {'detail': "L'achat de cet echantillon est deja confirme."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         old_budget = obj.budget_negociation
+        type_decision = DecisionDirection.Type.NEGOCIATION
+        if obj.statut_collecteur == Echantillon.StatutCollecteur.ACHAT_NON_CONCLU:
+            type_decision = DecisionDirection.Type.REOUVERTURE
+            obj.nb_renegociations = (obj.nb_renegociations or 0) + 1
+            obj.raison_non_conclu = ''
         obj.statut_ceo = Echantillon.StatutCEO.EN_NEGOCIATION
         obj.statut_collecteur = Echantillon.StatutCollecteur.EN_NEGOCIATION
         if request.data.get('budget_negociation'):
@@ -303,9 +321,26 @@ class EchantillonViewSet(viewsets.ModelViewSet):
             obj.quantite_cible_t = _decimal_from_display(request.data['quantite_cible_t'])
         if request.data.get('note_interne'):
             obj.note_interne = request.data['note_interne']
-        obj.save()
+        self._enregistrer_decision(obj, type_decision)
         self._notify_negotiation_proposal(obj, old_budget)
         return Response(EchantillonSerializer(obj, context={'request': request}).data)
+
+    def _enregistrer_decision(self, obj, type_decision):
+        # L'echantillon et son journal changent ensemble : une decision sans
+        # auteur connu ne doit pas exister.
+        with transaction.atomic():
+            obj.save()
+            DecisionDirection.objects.create(
+                echantillon=obj,
+                direction=self.request.user,
+                type=type_decision,
+                budget_negociation=obj.budget_negociation,
+                quantite_cible_t=obj.quantite_cible_t,
+                note_interne=obj.note_interne,
+                raison_refus=obj.raison_refus,
+            )
+        # Vide les decisions prechargees : la reponse doit inclure la nouvelle.
+        obj.refresh_from_db()
 
     def _notify_negotiation_proposal(self, obj, old_budget):
         if not obj.collecteur or obj.budget_negociation is None:
@@ -318,7 +353,7 @@ class EchantillonViewSet(viewsets.ModelViewSet):
         )
         title = 'Negociation mise a jour' if is_update else 'Proposition de negociation'
         ref = obj.reference_bouteille or obj.numero
-        price = f"{_format_decimal(obj.budget_negociation)} TND/L"
+        price = f"{_format_decimal(obj.budget_negociation)} DT/kg"
         quantity = (
             f"{_format_decimal(obj.quantite_cible_t)} T"
             if obj.quantite_cible_t is not None
@@ -339,50 +374,26 @@ class EchantillonViewSet(viewsets.ModelViewSet):
         obj = self.get_object()
         obj.statut_ceo = Echantillon.StatutCEO.REFUSE
         obj.raison_refus = request.data.get('raison_refus', '')
-        obj.save()
+        self._enregistrer_decision(obj, DecisionDirection.Type.REFUS)
         return Response(EchantillonSerializer(obj, context={'request': request}).data)
 
-    def _notify_purchase_proposal(self, obj):
-        recipients = User.objects.filter(role=User.Role.DIRECTION, is_active=True)
-        price = f"{_format_decimal(obj.budget_negociation)} TND/L"
-        quantity = _format_decimal(obj.quantite_cible_t) if obj.quantite_cible_t is not None else (obj.quantite_estimee or '-')
-        ref = obj.reference_bouteille or obj.numero
-        collector = f"{obj.collecteur.prenom} {obj.collecteur.nom}" if obj.collecteur else '-'
-        notifications = [
-            Notification(
-                destinataire=user,
-                type=Notification.Type.PROPOSITION_ACHAT_ATTENTE,
-                titre="Proposition d'achat en attente",
-                message=f"{ref} ({quantity} T) : {collector} propose {price}. A valider.",
-                echantillon=obj,
-                section=Notification.Section.ACHATS_VALIDATION,
-            )
-            for user in recipients
-        ]
-        if notifications:
-            Notification.objects.bulk_create(notifications)
-
     def _apply_purchase_payload(self, obj, request):
-        price = request.data.get('budget_negociation') or request.data.get('prix_final')
-        if price:
-            obj.budget_negociation = _decimal_from_display(price)
+        # Le collecteur ne remplit que ses propres champs. budget_negociation et
+        # quantite_cible_t restent ceux de la direction : les ecraser ici
+        # effacerait l'offre qu'elle a faite.
         if request.data.get('prix_final'):
             obj.prix_final = _decimal_from_display(request.data['prix_final'])
         if 'remarque_collecteur' in request.data:
             obj.remarque_collecteur = request.data.get('remarque_collecteur') or ''
-        if request.data.get('quantite_cible_t'):
-            obj.quantite_cible_t = _decimal_from_display(request.data['quantite_cible_t'])
-        if request.data.get('camion_reserve'):
-            obj.camion_reserve = request.data['camion_reserve']
         if request.data.get('num_citerne'):
             obj.num_citerne = request.data['num_citerne']
         if request.data.get('date_livraison_stock'):
             obj.date_livraison_stock = _datetime_from_payload(request.data['date_livraison_stock'])
-        if request.data.get('date_livraison_stock_fin'):
-            obj.date_livraison_stock_fin = _datetime_from_payload(request.data['date_livraison_stock_fin'])
+            # Une date exacte remplace une ancienne periode : la fin repart a vide.
+            fin = request.data.get('date_livraison_stock_fin')
+            obj.date_livraison_stock_fin = _datetime_from_payload(fin) if fin else None
 
-    def _submit_purchase_proposal(self, request):
-        obj = self.get_object()
+    def _verifier_negociation_du_collecteur(self, request, obj):
         if obj.collecteur != request.user:
             return Response({'detail': 'Not your sample.'}, status=status.HTTP_403_FORBIDDEN)
         if obj.statut_collecteur != Echantillon.StatutCollecteur.EN_NEGOCIATION:
@@ -390,157 +401,51 @@ class EchantillonViewSet(viewsets.ModelViewSet):
                 {'detail': 'Le statut doit etre en_negociation.'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        self._apply_purchase_payload(obj, request)
-        obj.statut_collecteur = Echantillon.StatutCollecteur.EN_NEGOCIATION
-        obj.statut_ceo = Echantillon.StatutCEO.EN_NEGOCIATION
-        obj.save()
-        self._notify_purchase_proposal(obj)
-        return Response(EchantillonSerializer(obj, context={'request': request}).data)
-
-    def _confirm_purchase_proposal(self, request):
-        obj = self.get_object()
-        if obj.statut_ceo != Echantillon.StatutCEO.EN_NEGOCIATION or obj.budget_negociation is None:
-            return Response(
-                {'detail': 'Aucune proposition d achat en attente pour cet echantillon.'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        obj.statut_collecteur = Echantillon.StatutCollecteur.ACHAT_CONFIRME
-        obj.statut_ceo = Echantillon.StatutCEO.ACHAT_CONFIRME
-        obj.stock_arrive = False
-        obj.save(update_fields=['statut_collecteur', 'statut_ceo', 'stock_arrive', 'updated_at'])
-        return Response(EchantillonSerializer(obj, context={'request': request}).data)
+        return None
 
     def _confirmer_achat(self, request):
-        if request.user.role == User.Role.DIRECTION:
-            return self._confirm_purchase_proposal(request)
-        return self._submit_purchase_proposal(request)
-        # The collector confirms the purchase after the CEO has approved negotiation.
-        # Guards:
-        #   - Only the collector who owns this sample can confirm it
-        #   - The sample must be in "en_negociation" status
-        # On success: sets the final price and reserved truck, moves to "achat_confirme".
+        # Le collecteur conclut lui-meme la negociation : l'achat est confirme
+        # sans validation de la direction, qui en est notifiee (signal).
         obj = self.get_object()
-        if obj.collecteur != request.user:
-            return Response({'detail': 'Not your sample.'}, status=status.HTTP_403_FORBIDDEN)
-        if obj.statut_collecteur != Echantillon.StatutCollecteur.EN_NEGOCIATION:
+        refus = self._verifier_negociation_du_collecteur(request, obj)
+        if refus:
+            return refus
+        if not request.data.get('prix_final'):
             return Response(
-                {'detail': 'Le statut doit être en_negociation.'},
+                {'prix_final': ['Le prix convenu est obligatoire.']},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        self._apply_purchase_payload(obj, request)
         obj.statut_collecteur = Echantillon.StatutCollecteur.ACHAT_CONFIRME
         obj.statut_ceo = Echantillon.StatutCEO.ACHAT_CONFIRME
-        if request.data.get('prix_final'):
-            obj.prix_final = request.data['prix_final']
-        if request.data.get('camion_reserve'):
-            obj.camion_reserve = request.data['camion_reserve']
+        obj.date_achat_confirme = timezone.now()
+        obj.stock_arrive = False
+        obj.raison_non_conclu = ''
         obj.save()
         return Response(EchantillonSerializer(obj, context={'request': request}).data)
 
-    @action(detail=True, methods=['patch', 'post'], permission_classes=[IsCollecteur | IsDirection])
+    @action(detail=True, methods=['patch', 'post'], permission_classes=[IsCollecteur])
     def confirmer_achat(self, request, pk=None):
         return self._confirmer_achat(request)
 
-    @action(detail=True, methods=['post', 'patch'], permission_classes=[IsCollecteur | IsDirection], url_path='confirmer-achat')
+    @action(detail=True, methods=['post', 'patch'], permission_classes=[IsCollecteur], url_path='confirmer-achat')
     def confirmer_achat_hyphen(self, request, pk=None):
         return self._confirmer_achat(request)
 
-    @action(detail=True, methods=['post'], permission_classes=[IsDirection],
-            url_path='renvoyer-en-negociation')
-    def renvoyer_en_negociation(self, request, pk=None):
-        # La direction refuse le PRIX, pas le stock.
-        #
-        # L'echantillon garde son statut « en negociation » : on ne cree pas un
-        # etat supplementaire dans le cycle de vie. Ce qui change, c'est la
-        # contre-proposition et le compteur de tours, que la carte affiche.
+    @action(detail=True, methods=['post'], permission_classes=[IsCollecteur], url_path='non-conclu')
+    def non_conclu(self, request, pk=None):
+        # La negociation a echoue. La raison est facultative. La direction est
+        # notifiee (signal) et peut rouvrir la negociation avec approuver.
         obj = self.get_object()
-
-        raison = request.data.get('raison_refus', '').strip()
-        if not raison:
-            return Response(
-                {'raison_refus': ['La raison est obligatoire.']},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        if obj.statut_ceo != Echantillon.StatutCEO.EN_NEGOCIATION or obj.budget_negociation is None:
-            return Response(
-                {'detail': 'Aucune proposition d achat en attente pour cet echantillon.'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        contre_prix = request.data.get('budget_negociation')
-        if not contre_prix:
-            return Response(
-                {'budget_negociation': ['Le contre-prix est obligatoire.']},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        prix_min = _decimal_from_display(contre_prix)
-        prix_max = _decimal_from_display(request.data.get('budget_negociation_max')) \
-            if request.data.get('budget_negociation_max') else None
-        if prix_max is not None and prix_min is not None and prix_max < prix_min:
-            return Response(
-                {'budget_negociation_max': ['Le prix haut doit etre superieur au prix bas.']},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        obj.budget_negociation = prix_min
-        obj.budget_negociation_max = prix_max
-        obj.raison_refus = raison
-        obj.nb_renegociations = (obj.nb_renegociations or 0) + 1
-
-        champs = [
-            'budget_negociation', 'budget_negociation_max',
-            'raison_refus', 'nb_renegociations', 'updated_at',
-        ]
-        if request.data.get('quantite_cible_t'):
-            obj.quantite_cible_t = _decimal_from_display(request.data['quantite_cible_t'])
-            champs.append('quantite_cible_t')
-        if request.data.get('date_livraison_stock'):
-            obj.date_livraison_stock = _datetime_from_payload(request.data['date_livraison_stock'])
-            champs.append('date_livraison_stock')
-        if request.data.get('date_livraison_stock_fin'):
-            obj.date_livraison_stock_fin = _datetime_from_payload(request.data['date_livraison_stock_fin'])
-            champs.append('date_livraison_stock_fin')
-
-        obj.save(update_fields=champs)
-        self._notify_renegociation(obj)
-        return Response(EchantillonSerializer(obj, context={'request': request}).data)
-
-    def _notify_renegociation(self, obj):
-        # Le collecteur est le seul a pouvoir agir sur la contre-proposition.
-        if not obj.collecteur:
-            return
-        if obj.budget_negociation_max is not None:
-            prix = (f"{_format_decimal(obj.budget_negociation)} - "
-                    f"{_format_decimal(obj.budget_negociation_max)} TND/L")
-        else:
-            prix = f"{_format_decimal(obj.budget_negociation)} TND/L"
-        ref = obj.reference_bouteille or obj.numero
-        Notification.objects.create(
-            destinataire=obj.collecteur,
-            type=Notification.Type.NEGOCIATION_A_REVOIR,
-            titre='Negociation a revoir',
-            message=f"{ref} : la direction propose {prix}. Motif : {obj.raison_refus}",
-            echantillon=obj,
-            section=Notification.Section.ACHATS_VALIDATION,
-        )
-
-    @action(detail=True, methods=['post'], permission_classes=[IsDirection], url_path='refuser-achat')
-    def refuser_achat(self, request, pk=None):
-        obj = self.get_object()
-        raison = request.data.get('raison_refus', '').strip()
-        if not raison:
-            return Response(
-                {'raison_refus': ['La raison du refus est obligatoire.']},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        if obj.statut_ceo != Echantillon.StatutCEO.EN_NEGOCIATION or obj.budget_negociation is None:
-            return Response(
-                {'detail': 'Aucune proposition d achat en attente pour cet echantillon.'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        obj.statut_ceo = Echantillon.StatutCEO.REFUSE
-        obj.raison_refus = raison
-        obj.save(update_fields=['statut_ceo', 'raison_refus', 'updated_at'])
+        refus = self._verifier_negociation_du_collecteur(request, obj)
+        if refus:
+            return refus
+        obj.statut_collecteur = Echantillon.StatutCollecteur.ACHAT_NON_CONCLU
+        obj.statut_ceo = Echantillon.StatutCEO.ACHAT_NON_CONCLU
+        obj.raison_non_conclu = (request.data.get('raison_non_conclu') or '').strip()
+        obj.save(update_fields=[
+            'statut_collecteur', 'statut_ceo', 'raison_non_conclu', 'updated_at',
+        ])
         return Response(EchantillonSerializer(obj, context={'request': request}).data)
 
     @action(detail=False, methods=['post'], permission_classes=[IsCollecteur])

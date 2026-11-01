@@ -681,11 +681,12 @@ class CollectorEchantillonApiTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertTrue(Echantillon.objects.filter(id=sample.id).exists())
 
-    def test_collector_purchase_action_submits_proposal_only_when_in_negotiation(self):
+    def test_collector_confirms_purchase_directly(self):
         sample = self.create_sample(
             self.collector,
             statut_collecteur=Echantillon.StatutCollecteur.EN_NEGOCIATION,
             statut_ceo=Echantillon.StatutCEO.EN_NEGOCIATION,
+            budget_negociation='15.00',
             quantite_cible_t='40',
         )
         self.authenticate(self.collector)
@@ -693,22 +694,47 @@ class CollectorEchantillonApiTests(APITestCase):
 
         response = self.client.post(
             f'/api/echantillons/{sample.id}/confirmer-achat/',
-            {'prix_final': '14.50 TND/L', 'camion_reserve': 'TU-1234'},
+            {
+                'prix_final': '14.50 TND/L',
+                'num_citerne': 'Z7',
+                'date_livraison_stock': '2026-11-02T08:00:00Z',
+            },
             format='json',
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         sample.refresh_from_db()
-        self.assertEqual(sample.statut_collecteur, Echantillon.StatutCollecteur.EN_NEGOCIATION)
-        self.assertEqual(sample.statut_ceo, Echantillon.StatutCEO.EN_NEGOCIATION)
-        self.assertEqual(str(sample.budget_negociation), '14.50')
-        self.assertEqual(str(sample.prix_final), '14.50')
+        self.assertEqual(sample.statut_collecteur, Echantillon.StatutCollecteur.ACHAT_CONFIRME)
+        self.assertEqual(sample.statut_ceo, Echantillon.StatutCEO.ACHAT_CONFIRME)
+        self.assertEqual(str(sample.prix_final), '14.500')
+        self.assertEqual(sample.num_citerne, 'Z7')
+        self.assertIsNotNone(sample.date_livraison_stock)
+        self.assertIsNone(sample.date_livraison_stock_fin)
+        # L'offre de la direction n'est pas ecrasee par le prix du collecteur.
+        self.assertEqual(str(sample.budget_negociation), '15.000')
+        self.assertEqual(str(sample.quantite_cible_t), '40.00')
         notification = Notification.objects.get(
             destinataire=self.direction,
-            type=Notification.Type.PROPOSITION_ACHAT_ATTENTE,
+            type=Notification.Type.ACHAT_CONFIRME,
         )
-        self.assertEqual(notification.section, Notification.Section.ACHATS_VALIDATION)
         self.assertEqual(notification.echantillon, sample)
+        self.assertIn('14.5', notification.message)
+
+    def test_collector_purchase_needs_final_price(self):
+        sample = self.create_sample(
+            self.collector,
+            statut_collecteur=Echantillon.StatutCollecteur.EN_NEGOCIATION,
+            statut_ceo=Echantillon.StatutCEO.EN_NEGOCIATION,
+        )
+        self.authenticate(self.collector)
+
+        response = self.client.post(
+            f'/api/echantillons/{sample.id}/confirmer-achat/', {}, format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        sample.refresh_from_db()
+        self.assertEqual(sample.statut_collecteur, Echantillon.StatutCollecteur.EN_NEGOCIATION)
 
     def test_collector_purchase_remark_is_stored_and_reloaded(self):
         sample = self.create_sample(
@@ -886,32 +912,7 @@ class CollectorEchantillonApiTests(APITestCase):
         self.assertIn(str(own.id), chef_ids)
         self.assertIn(str(other.id), chef_ids)
 
-    def test_direction_confirms_purchase_proposal(self):
-        sample = self.create_sample(
-            self.collector,
-            statut_collecteur=Echantillon.StatutCollecteur.EN_NEGOCIATION,
-            statut_ceo=Echantillon.StatutCEO.EN_NEGOCIATION,
-            budget_negociation='8.20',
-        )
-        self.authenticate(self.direction)
-        Notification.objects.all().delete()
-
-        response = self.client.post(f'/api/echantillons/{sample.id}/confirmer-achat/', {}, format='json')
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        sample.refresh_from_db()
-        self.assertEqual(sample.statut_collecteur, Echantillon.StatutCollecteur.ACHAT_CONFIRME)
-        self.assertEqual(sample.statut_ceo, Echantillon.StatutCEO.ACHAT_CONFIRME)
-        self.assertFalse(sample.stock_arrive)
-        self.assertTrue(
-            Notification.objects.filter(
-                destinataire=self.direction,
-                type=Notification.Type.ACHAT_CONFIRME,
-                echantillon=sample,
-            ).exists()
-        )
-
-    def test_direction_refuses_purchase_proposal_with_reason(self):
+    def test_direction_no_longer_confirms_purchases(self):
         sample = self.create_sample(
             self.collector,
             statut_collecteur=Echantillon.StatutCollecteur.EN_NEGOCIATION,
@@ -921,15 +922,94 @@ class CollectorEchantillonApiTests(APITestCase):
         self.authenticate(self.direction)
 
         response = self.client.post(
-            f'/api/echantillons/{sample.id}/refuser-achat/',
-            {'raison_refus': 'Prix trop eleve'},
+            f'/api/echantillons/{sample.id}/confirmer-achat/',
+            {'prix_final': '8.20'},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        sample.refresh_from_db()
+        self.assertEqual(sample.statut_ceo, Echantillon.StatutCEO.EN_NEGOCIATION)
+
+    def test_collector_declares_purchase_not_concluded_with_reason(self):
+        sample = self.create_sample(
+            self.collector,
+            reference_bouteille='NONCONCLU-1',
+            statut_collecteur=Echantillon.StatutCollecteur.EN_NEGOCIATION,
+            statut_ceo=Echantillon.StatutCEO.EN_NEGOCIATION,
+            budget_negociation='8.20',
+        )
+        self.authenticate(self.collector)
+        Notification.objects.all().delete()
+
+        response = self.client.post(
+            f'/api/echantillons/{sample.id}/non-conclu/',
+            {'raison_non_conclu': '  Le fournisseur a vendu ailleurs  '},
             format='json',
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['raison_non_conclu'], 'Le fournisseur a vendu ailleurs')
         sample.refresh_from_db()
-        self.assertEqual(sample.statut_ceo, Echantillon.StatutCEO.REFUSE)
-        self.assertEqual(sample.raison_refus, 'Prix trop eleve')
+        self.assertEqual(sample.statut_collecteur, Echantillon.StatutCollecteur.ACHAT_NON_CONCLU)
+        self.assertEqual(sample.statut_ceo, Echantillon.StatutCEO.ACHAT_NON_CONCLU)
+        # La raison du collecteur ne prend pas la place de celle de la direction.
+        self.assertEqual(sample.raison_refus, '')
+        notification = Notification.objects.get(
+            destinataire=self.direction,
+            type=Notification.Type.ACHAT_NON_CONCLU,
+        )
+        self.assertEqual(notification.echantillon, sample)
+        self.assertIn('NONCONCLU-1', notification.message)
+        self.assertIn('vendu ailleurs', notification.message)
+
+    def test_purchase_not_concluded_reason_is_optional(self):
+        sample = self.create_sample(
+            self.collector,
+            statut_collecteur=Echantillon.StatutCollecteur.EN_NEGOCIATION,
+            statut_ceo=Echantillon.StatutCEO.EN_NEGOCIATION,
+        )
+        self.authenticate(self.collector)
+
+        response = self.client.post(
+            f'/api/echantillons/{sample.id}/non-conclu/', {}, format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        sample.refresh_from_db()
+        self.assertEqual(sample.statut_collecteur, Echantillon.StatutCollecteur.ACHAT_NON_CONCLU)
+        self.assertEqual(sample.raison_non_conclu, '')
+
+    def test_purchase_not_concluded_only_during_negotiation(self):
+        sample = self.create_sample(self.collector)
+        self.authenticate(self.collector)
+
+        response = self.client.post(
+            f'/api/echantillons/{sample.id}/non-conclu/', {}, format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_other_collector_cannot_close_a_negotiation(self):
+        sample = self.create_sample(
+            self.collector,
+            statut_collecteur=Echantillon.StatutCollecteur.EN_NEGOCIATION,
+            statut_ceo=Echantillon.StatutCEO.EN_NEGOCIATION,
+        )
+        self.authenticate(self.other_collector)
+
+        for url in ('non-conclu', 'confirmer-achat'):
+            response = self.client.post(
+                f'/api/echantillons/{sample.id}/{url}/',
+                {'prix_final': '8.00'},
+                format='json',
+            )
+            self.assertIn(
+                response.status_code,
+                (status.HTTP_403_FORBIDDEN, status.HTTP_404_NOT_FOUND),
+            )
+        sample.refresh_from_db()
+        self.assertEqual(sample.statut_collecteur, Echantillon.StatutCollecteur.EN_NEGOCIATION)
 
     def test_degustateur_can_confirm_physical_reception(self):
         sample = self.create_sample(self.collector, recu_physiquement=False)
@@ -1044,12 +1124,10 @@ class CollectorEchantillonApiTests(APITestCase):
         self.assertIn('14', notification.message)
 
 
-class RenvoiEnNegociationTests(APITestCase):
+class RouvertureNegociationTests(APITestCase):
     """
-    Refus scinde : la direction refuse le PRIX sans tuer le stock.
-
-    L'echantillon garde son statut « en negociation » ; ce qui change, c'est la
-    contre-proposition et le compteur de tours (PR CEO, partie 3).
+    Apres un achat non conclu, la direction peut rouvrir la negociation en
+    approuvant a nouveau l'echantillon. Chaque reouverture compte un tour.
     """
 
     def setUp(self):
@@ -1066,101 +1144,79 @@ class RenvoiEnNegociationTests(APITestCase):
             collecteur=self.collecteur,
             gouvernorat='Sfax',
             variete='Chemlali',
-            statut_ceo=Echantillon.StatutCEO.EN_NEGOCIATION,
-            statut_collecteur=Echantillon.StatutCollecteur.EN_NEGOCIATION,
+            statut_ceo=Echantillon.StatutCEO.ACHAT_NON_CONCLU,
+            statut_collecteur=Echantillon.StatutCollecteur.ACHAT_NON_CONCLU,
+            raison_non_conclu='Prix trop bas pour le fournisseur',
             budget_negociation='8.00',
         )
-        self.url = f'/api/echantillons/{self.sample.id}/renvoyer-en-negociation/'
+        self.url = f'/api/echantillons/{self.sample.id}/approuver/'
 
-    def renvoyer(self, **champs):
-        payload = {'raison_refus': 'Prix trop eleve', 'budget_negociation': '7.00'}
+    def rouvrir(self, **champs):
+        payload = {'budget_negociation': '8.60'}
         payload.update(champs)
-        return self.client.post(self.url, payload, format='json')
+        return self.client.patch(self.url, payload, format='json')
 
-    def test_direction_renvoie_avec_un_prix_ferme(self):
+    def test_direction_rouvre_un_achat_non_conclu(self):
         self.client.force_authenticate(user=self.direction)
-        response = self.renvoyer()
+        response = self.rouvrir()
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         self.sample.refresh_from_db()
-        self.assertEqual(str(self.sample.budget_negociation), '7.00')
-        self.assertIsNone(self.sample.budget_negociation_max)
-        self.assertEqual(self.sample.nb_renegociations, 1)
-        # Le statut ne bouge pas : c'est tout l'interet du refus scinde.
+        self.assertEqual(self.sample.statut_collecteur, Echantillon.StatutCollecteur.EN_NEGOCIATION)
         self.assertEqual(self.sample.statut_ceo, Echantillon.StatutCEO.EN_NEGOCIATION)
+        self.assertEqual(str(self.sample.budget_negociation), '8.600')
+        self.assertEqual(self.sample.nb_renegociations, 1)
+        self.assertEqual(self.sample.raison_non_conclu, '')
 
-    def test_intervalle_de_prix_et_details(self):
+    def test_le_collecteur_est_notifie_de_la_nouvelle_offre(self):
         self.client.force_authenticate(user=self.direction)
-        response = self.renvoyer(
-            budget_negociation='7.00',
-            budget_negociation_max='7.40',
-            quantite_cible_t='28',
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        self.sample.refresh_from_db()
-        self.assertEqual(str(self.sample.budget_negociation_max), '7.40')
-        self.assertEqual(str(self.sample.quantite_cible_t), '28.00')
-
-    def test_compteur_s_incremente_a_chaque_tour(self):
-        self.client.force_authenticate(user=self.direction)
-        for attendu in (1, 2, 3):
-            self.renvoyer()
-            self.sample.refresh_from_db()
-            self.assertEqual(self.sample.nb_renegociations, attendu)
-
-    def test_le_collecteur_est_notifie(self):
-        self.client.force_authenticate(user=self.direction)
-        self.renvoyer(budget_negociation='7.00', budget_negociation_max='7.40')
+        self.rouvrir()
 
         notif = Notification.objects.filter(
             destinataire=self.collecteur,
-            type=Notification.Type.NEGOCIATION_A_REVOIR,
+            type=Notification.Type.NEGOCIATION_MISE_A_JOUR,
         ).first()
         self.assertIsNotNone(notif)
         self.assertIn('RENEGO-001', notif.message)
-        self.assertIn('7', notif.message)
+        self.assertIn('8.6', notif.message)
 
-    def test_raison_obligatoire(self):
+    def test_compteur_s_incremente_a_chaque_reouverture(self):
+        for attendu in (1, 2):
+            self.client.force_authenticate(user=self.direction)
+            self.rouvrir()
+            self.client.force_authenticate(user=self.collecteur)
+            self.client.post(
+                f'/api/echantillons/{self.sample.id}/non-conclu/', {}, format='json',
+            )
+            self.sample.refresh_from_db()
+            self.assertEqual(self.sample.nb_renegociations, attendu)
+
+    def test_un_achat_confirme_ne_se_rouvre_pas(self):
+        self.sample.statut_ceo = Echantillon.StatutCEO.ACHAT_CONFIRME
+        self.sample.statut_collecteur = Echantillon.StatutCollecteur.ACHAT_CONFIRME
+        self.sample.save(update_fields=['statut_ceo', 'statut_collecteur'])
         self.client.force_authenticate(user=self.direction)
-        response = self.renvoyer(raison_refus='   ')
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('raison_refus', response.json())
 
-    def test_contre_prix_obligatoire(self):
-        self.client.force_authenticate(user=self.direction)
-        response = self.client.post(
-            self.url, {'raison_refus': 'Prix trop eleve'}, format='json'
-        )
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('budget_negociation', response.json())
+        response = self.rouvrir()
 
-    def test_prix_haut_inferieur_au_prix_bas_refuse(self):
-        self.client.force_authenticate(user=self.direction)
-        response = self.renvoyer(budget_negociation='7.50', budget_negociation_max='7.00')
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('budget_negociation_max', response.json())
+        self.sample.refresh_from_db()
+        self.assertEqual(self.sample.statut_ceo, Echantillon.StatutCEO.ACHAT_CONFIRME)
 
-    def test_refuse_si_aucune_proposition_en_attente(self):
-        self.sample.statut_ceo = Echantillon.StatutCEO.SELECTIONNE
-        self.sample.save(update_fields=['statut_ceo'])
-        self.client.force_authenticate(user=self.direction)
-        response = self.renvoyer()
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-    def test_le_collecteur_ne_peut_pas_renvoyer(self):
+    def test_le_collecteur_ne_peut_pas_rouvrir(self):
         self.client.force_authenticate(user=self.collecteur)
-        response = self.renvoyer()
+        response = self.rouvrir()
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_le_compteur_n_est_pas_modifiable_par_le_client(self):
+    def test_les_champs_du_circuit_ne_sont_pas_modifiables_par_le_client(self):
         self.client.force_authenticate(user=self.direction)
         self.client.patch(
             f'/api/echantillons/{self.sample.id}/',
-            {'nb_renegociations': 99}, format='json',
+            {'nb_renegociations': 99, 'raison_non_conclu': 'autre'}, format='json',
         )
         self.sample.refresh_from_db()
         self.assertEqual(self.sample.nb_renegociations, 0)
+        self.assertEqual(self.sample.raison_non_conclu, 'Prix trop bas pour le fournisseur')
 
 
 class PhotoModificationTests(APITestCase):

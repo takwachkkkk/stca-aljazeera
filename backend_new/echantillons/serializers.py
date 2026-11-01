@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from ceo.serializers import DecisionDirectionSerializer
 from fournisseurs.models import Fournisseur
 from users.models import User
 
@@ -19,6 +20,7 @@ class EchantillonSerializer(serializers.ModelSerializer):
         allow_null=True,
     )
     modifiable = serializers.SerializerMethodField()
+    decisions_direction = serializers.SerializerMethodField()
 
     class Meta:
         model = Echantillon
@@ -33,18 +35,23 @@ class EchantillonSerializer(serializers.ModelSerializer):
             'date_reception_echantillon',
             'budget_negociation', 'budget_negociation_max', 'nb_renegociations',
             'quantite_cible_t', 'camion_reserve',
-            'note_interne', 'raison_refus',
-            'prix_final', 'remarque_collecteur',
+            'note_interne', 'raison_refus', 'decisions_direction',
+            'prix_final', 'remarque_collecteur', 'raison_non_conclu',
             'stock_arrive', 'date_livraison_stock', 'date_livraison_stock_fin',
             'classification', 'remarques',
             'date_ajout', 'updated_at',
         ]
         # nb_renegociations n'est jamais pose par le client : seule l'action
-        # renvoyer-en-negociation l'incremente, ce qui garantit qu'il compte
-        # bien des tours reels et pas ce que l'app veut afficher.
+        # approuver l'incremente quand elle rouvre un achat non conclu, ce qui
+        # garantit qu'il compte bien des tours reels. raison_non_conclu passe
+        # uniquement par l'action non-conclu du collecteur. Les decisions de la
+        # direction ne passent que par approuver et refuser, seules a les
+        # journaliser : une modification ordinaire ecraserait son travail.
         read_only_fields = [
             'id', 'numero',
-            'nb_renegociations', 'date_reception_echantillon',
+            'nb_renegociations', 'raison_non_conclu', 'date_reception_echantillon',
+            'statut_ceo', 'budget_negociation', 'budget_negociation_max',
+            'quantite_cible_t', 'note_interne', 'raison_refus',
             'date_ajout', 'updated_at',
         ]
         extra_kwargs = {
@@ -169,3 +176,11 @@ class EchantillonSerializer(serializers.ModelSerializer):
             and obj.enregistre_par_id == user.id
             and not obj.recu_physiquement
         )
+
+    def get_decisions_direction(self, obj):
+        # Qui a decide quoi reste une information interne a la direction.
+        request = self.context.get('request')
+        user = getattr(request, 'user', None)
+        if not user or not user.is_authenticated or user.role != User.Role.DIRECTION:
+            return []
+        return DecisionDirectionSerializer(obj.decisions_direction.all(), many=True).data

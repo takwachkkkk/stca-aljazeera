@@ -161,7 +161,7 @@ final List<EchantillonCeoView> mockEchantillons = [
     recuPhysiquement: true,
     statut: StatutCeo.achatConfirme,
     totalTasteurs: 5,
-    budgetNegociation: '8.50 TND/L',
+    budgetNegociation: '8.50 DT/kg',
     quantiteCibleT: '30',
     camionReserve: 'TRK-003',
     stockArrive: false,
@@ -302,7 +302,7 @@ final List<EchantillonCeoView> mockEchantillons = [
     recuPhysiquement: true,
     statut: StatutCeo.achatConfirme,
     totalTasteurs: 5,
-    budgetNegociation: '9.20 TND/L',
+    budgetNegociation: '9.20 DT/kg',
     quantiteCibleT: '25',
     camionReserve: 'TRK-007',
     noteInterne: 'Qualité extra vierge confirmée.',
@@ -323,7 +323,7 @@ final List<EchantillonCeoView> mockEchantillons = [
     recuPhysiquement: true,
     statut: StatutCeo.achatConfirme,
     totalTasteurs: 5,
-    budgetNegociation: '7.80 TND/L',
+    budgetNegociation: '7.80 DT/kg',
     quantiteCibleT: '18',
     stockArrive: true,
     dateLivraisonStock: '15/03/2026 à 07h30',
@@ -376,7 +376,7 @@ final List<EchantillonCeoView> mockEchantillons = [
     recuPhysiquement: true,
     statut: StatutCeo.achatConfirme,
     totalTasteurs: 5,
-    budgetNegociation: '9.00 TND/L',
+    budgetNegociation: '9.00 DT/kg',
     quantiteCibleT: '40',
     stockArrive: false,
     dateLivraisonStock: '01/04/2026',
@@ -423,7 +423,7 @@ final List<EchantillonCeoView> mockEchantillons = [
     collecteurNom: 'Ahmed Dridi',
     recuPhysiquement: true,
     statut: StatutCeo.enNegociation,
-    budgetNegociation: '8.20 TND/L',
+    budgetNegociation: '8.20 DT/kg',
     camionReserve: '204 TN 5621',
     numCiterne: 'CT-9821',
     quantiteCibleT: '40',
@@ -457,7 +457,7 @@ final List<EchantillonCeoView> mockEchantillons = [
     collecteurNom: 'Sami Khaled',
     recuPhysiquement: true,
     statut: StatutCeo.enNegociation,
-    budgetNegociation: '7.95 TND/L',
+    budgetNegociation: '7.95 DT/kg',
     camionReserve: 'TRK-009',
     numCiterne: 'CT-9745',
     quantiteCibleT: '28',
@@ -491,7 +491,7 @@ final List<EchantillonCeoView> mockEchantillons = [
     collecteurNom: 'Mounir Zouaghi',
     recuPhysiquement: true,
     statut: StatutCeo.enNegociation,
-    budgetNegociation: '8.50 TND/L',
+    budgetNegociation: '8.50 DT/kg',
     camionReserve: 'TRK-002',
     // no numCiterne → exercises optional rendering
     quantiteCibleT: '15',
@@ -529,7 +529,7 @@ final List<EchantillonCeoView> mockEchantillons = [
     recuPhysiquement: true,
     statut: StatutCeo.achatConfirme,
     totalTasteurs: 5,
-    budgetNegociation: '8.00 TND/L',
+    budgetNegociation: '8.00 DT/kg',
     quantiteCibleT: '22',
     stockArrive: false,
     // no dateLivraisonStock → shows "Livraison du stock non encore planifiée"
@@ -554,24 +554,6 @@ List<EchantillonCeoView> get mockEchantillonsLabo => mockEchantillons;
 /// Only confirmed purchases.
 List<EchantillonCeoView> get mockAchatsConfirmes =>
     mockEchantillons.where((e) => e.statut == StatutCeo.achatConfirme).toList();
-
-/// Used by validation_achats_ceo_page.dart
-/// Samples where the collector has submitted a purchase proposal (prix défini)
-/// and the CEO has not yet confirmed or refused.
-List<EchantillonCeoView> get mockPropositionsEnAttente => mockEchantillons
-    .where(
-      (e) => e.statut == StatutCeo.enNegociation && e.budgetNegociation != null,
-    )
-    .toList();
-
-/// All samples already decided by the CEO from a proposal (confirmed or refused).
-/// Used as the "Décidées" filter on validation_achats_ceo_page.dart.
-List<EchantillonCeoView> get mockPropositionsDecidees => mockEchantillons
-    .where(
-      (e) =>
-          e.statut == StatutCeo.achatConfirme || e.statut == StatutCeo.refuse,
-    )
-    .toList();
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ALL USERS — used by utilisateurs_ceo_page.dart

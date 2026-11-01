@@ -1,3 +1,4 @@
+from django.conf import settings
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -9,6 +10,14 @@ from .models import Notification
 from .serializers import NotificationSerializer
 
 
+def _notifications_de(user):
+    """Les notifications de `user`, sans celles du labo tant qu'il est masque."""
+    notifications = Notification.objects.filter(destinataire=user)
+    if not settings.LABO_ACTIF:
+        notifications = notifications.exclude(section=Notification.Section.ANALYSES)
+    return notifications
+
+
 class NotificationListView(generics.ListAPIView):
     """GET /api/notifications/ — list the authenticated user's notifications.
     Optional query param: ?is_read=false to get only unread."""
@@ -16,8 +25,8 @@ class NotificationListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        qs = Notification.objects.filter(destinataire=self.request.user)
-        is_read = self.request.query_params.get('is_read')
+        qs = _notifications_de(self.request.user)
+        is_read =self.request.query_params.get('is_read')
         if is_read is not None:
             qs = qs.filter(is_read=is_read.lower() == 'true')
         return qs
@@ -29,7 +38,7 @@ class NotificationMarkReadView(generics.UpdateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Notification.objects.filter(destinataire=self.request.user)
+        return _notifications_de(self.request.user)
 
     def partial_update(self, request, *args, **kwargs):
         notification = self.get_object()
@@ -43,8 +52,7 @@ class NotificationMarkAllReadView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        updated = Notification.objects.filter(
-            destinataire=request.user,
+        updated = _notifications_de(request.user).filter(
             is_read=False
         ).update(is_read=True)
         return Response({'updated': updated}, status=status.HTTP_200_OK)
@@ -55,7 +63,7 @@ class NotificationUnreadCountView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        count = Notification.objects.filter(destinataire=request.user, is_read=False).count()
+        count = _notifications_de(request.user).filter(is_read=False).count()
         return Response({'count': count})
 
 
@@ -63,6 +71,12 @@ class UrgentAnalysisRequestView(APIView):
     permission_classes = [IsDegustateurOrChef]
 
     def post(self, request):
+        if not settings.LABO_ACTIF:
+            return Response(
+                {'detail': 'Le laboratoire est indisponible.'},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
         echantillon_id = request.data.get('echantillon') or request.data.get('echantillon_id')
         if not echantillon_id:
             return Response(

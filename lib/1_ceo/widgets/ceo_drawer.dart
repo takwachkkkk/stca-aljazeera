@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:project3/core/fonctionnalites.dart';
+import 'package:project3/core/logout_navigation.dart';
 import 'package:project3/core/theme/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:project3/core/widgets/messagerie/messagerie_badge.dart';
@@ -6,7 +8,6 @@ import '../tableau_de_bord/tableau_de_bord.dart';
 import '../echantillons/echantillons_ceo_page.dart';
 import '../analyse_organoleptique/analyse_organoleptique_ceo_page.dart';
 import '../analyse_laboratoire/analyse_laboratoire_ceo_page.dart';
-import '../validation_achats/validation_achats_ceo_page.dart';
 import '../achats_confirmes/achats_confirmes_ceo_page.dart';
 import '../utilisateurs/utilisateurs_ceo_page.dart';
 import '../profil_ceo_page.dart';
@@ -19,7 +20,6 @@ enum CeoDestination {
   echantillons,
   organoleptique,
   laboratoire,
-  validation,
   achats,
   utilisateurs,
   messagerie,
@@ -31,7 +31,6 @@ class CeoDrawer extends StatelessWidget {
   final VoidCallback onEchantillons;
   final VoidCallback onAnalyseOrganoleptique;
   final VoidCallback onAnalyseLaboratoire;
-  final VoidCallback onValidationAchats;
   final VoidCallback onAchatsConfirmes;
   final VoidCallback onTableauDeBord;
   final VoidCallback onProfil;
@@ -45,7 +44,6 @@ class CeoDrawer extends StatelessWidget {
     required this.onEchantillons,
     required this.onAnalyseOrganoleptique,
     required this.onAnalyseLaboratoire,
-    required this.onValidationAchats,
     required this.onAchatsConfirmes,
     required this.onTableauDeBord,
     required this.onProfil,
@@ -62,17 +60,14 @@ class CeoDrawer extends StatelessWidget {
       CeoDestination.echantillons => const EchantillonsCeoPage(),
       CeoDestination.organoleptique => const AnalyseOrganoleptiqueCeoPage(),
       CeoDestination.laboratoire => const AnalyseLaboratoireCeoPage(),
-      CeoDestination.validation => const ValidationAchatsCeoPage(),
       CeoDestination.achats => const AchatsConfirmesCeoPage(),
       CeoDestination.utilisateurs => const UtilisateursCeoPage(),
-      CeoDestination.messagerie => const ConversationsPage(),
+      CeoDestination.messagerie => const ConversationsPage(
+        menu: _MenuMessagerie(),
+      ),
       CeoDestination.profil => const ProfilceoPage(),
     };
-    // La messagerie s'ouvre PAR-DESSUS la page courante : sa flèche de
-    // retour ramène à la page d'où l'on vient (elle n'a pas de menu).
-    if (destination == CeoDestination.messagerie) {
-      Navigator.push(context, MaterialPageRoute(builder: (_) => page));
-    } else if (destination == CeoDestination.accueil) {
+    if (destination == CeoDestination.accueil) {
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => page),
@@ -189,18 +184,14 @@ class CeoDrawer extends StatelessWidget {
                     onTap: () =>
                         _navigate(context, CeoDestination.organoleptique),
                   ),
-                  _DrawerItem(
-                    icon: Icons.biotech_outlined,
-                    label: 'Analyse laboratoire',
-                    active: currentPage == CeoDestination.laboratoire,
-                    onTap: () => _navigate(context, CeoDestination.laboratoire),
-                  ),
-                  _DrawerItem(
-                    icon: Icons.fact_check_outlined,
-                    label: 'Validation achats',
-                    active: currentPage == CeoDestination.validation,
-                    onTap: () => _navigate(context, CeoDestination.validation),
-                  ),
+                  if (kLaboActif)
+                    _DrawerItem(
+                      icon: Icons.biotech_outlined,
+                      label: 'Analyse laboratoire',
+                      active: currentPage == CeoDestination.laboratoire,
+                      onTap: () =>
+                          _navigate(context, CeoDestination.laboratoire),
+                    ),
                   _DrawerItem(
                     icon: Icons.handshake_outlined,
                     label: 'Achats confirmés',
@@ -259,6 +250,35 @@ class CeoDrawer extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// La messagerie est partagée entre les rôles : le menu de la direction lui est
+/// fourni ici. Seule la déconnexion passe par un rappel, le reste par _navigate.
+class _MenuMessagerie extends StatelessWidget {
+  const _MenuMessagerie();
+
+  static void _rien() {}
+
+  @override
+  Widget build(BuildContext context) {
+    return CeoDrawer(
+      currentPage: CeoDestination.messagerie,
+      onEchantillons: _rien,
+      onAnalyseOrganoleptique: _rien,
+      onAnalyseLaboratoire: _rien,
+      onAchatsConfirmes: _rien,
+      onTableauDeBord: _rien,
+      onProfil: _rien,
+      onutilisiateurs: _rien,
+      onMessagerie: _rien,
+      onDeconnexion: () {
+        // Le menu disparaît en se fermant : la page reste, elle.
+        final page = Scaffold.of(context).context;
+        Navigator.pop(context);
+        logoutAndShowLogin(page);
+      },
     );
   }
 }

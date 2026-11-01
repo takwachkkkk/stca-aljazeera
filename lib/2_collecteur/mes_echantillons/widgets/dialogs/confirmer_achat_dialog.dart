@@ -2,7 +2,7 @@
 // FILE : collecteur/mes_echantillons/widgets/dialogs/confirmer_achat_dialog.dart
 //
 // Dialog shown when the collector confirms (or modifies) a purchase.
-// Fields: prix convenu, camion, remarque, date de livraison du stock.
+// Fields: prix convenu, N° citerne, remarque, date de livraison du stock.
 // ═════════════════════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
@@ -11,6 +11,7 @@ import 'date_livraison_section.dart'
     show DateLivraisonSection, ModePlanificationUI;
 import '../../../widgets/col_colors.dart';
 import '../../../../core/utils/montant_achat.dart';
+import '../../../../core/widgets/champ_prix_kg.dart';
 import '../../../../core/widgets/saisie_protegee.dart';
 
 String? _dateStockStr(EchantillonCollecteur e) {
@@ -26,38 +27,31 @@ String? _dateStockStr(EchantillonCollecteur e) {
 Future<void> showConfirmerAchatDialog({
   required BuildContext context,
   required EchantillonCollecteur echantillon,
-  required void Function(
-    String prix,
-    String? camion,
-    PlanificationLivraison? livraison,
-    String? numCiterne,
-    String remarqueCollecteur,
-  )
-  onConfirm,
+  required void Function(AchatSaisi achat) onConfirm,
+  String titre = "Confirmer l'achat",
 }) async {
   await showDialog<void>(
     context: context,
     barrierDismissible: false,
     builder: (_) =>
-        _ConfirmerAchatDialog(echantillon: echantillon, onConfirm: onConfirm),
+        _ConfirmerAchatDialog(
+          echantillon: echantillon,
+          onConfirm: onConfirm,
+          titre: titre,
+        ),
   );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 class _ConfirmerAchatDialog extends StatefulWidget {
   final EchantillonCollecteur echantillon;
-  final void Function(
-    String prix,
-    String? camion,
-    PlanificationLivraison? livraison,
-    String? numCiterne,
-    String remarqueCollecteur,
-  )
-  onConfirm;
+  final void Function(AchatSaisi achat) onConfirm;
+  final String titre;
 
   const _ConfirmerAchatDialog({
     required this.echantillon,
     required this.onConfirm,
+    required this.titre,
   });
 
   @override
@@ -67,7 +61,6 @@ class _ConfirmerAchatDialog extends StatefulWidget {
 class _ConfirmerAchatDialogState extends State<_ConfirmerAchatDialog> {
   late final TextEditingController _prixCtrl;
   late final TextEditingController _numCiterneCtrl;
-  late final TextEditingController _camionCtrl;
   late final TextEditingController _remarqueCtrl;
 
   ModePlanificationUI _mode = ModePlanificationUI.dateExacte;
@@ -81,7 +74,6 @@ class _ConfirmerAchatDialogState extends State<_ConfirmerAchatDialog> {
     final e = widget.echantillon;
     _prixCtrl = TextEditingController(text: e.prixFinal ?? '');
     _numCiterneCtrl = TextEditingController(text: e.numCiterne ?? '');
-    _camionCtrl = TextEditingController(text: e.camionLivraison ?? '');
     _remarqueCtrl = TextEditingController(text: e.remarqueCollecteur ?? '');
     // Pre-fill delivery date if already set
     if (e.livraison?.dateExacte != null) {
@@ -93,26 +85,19 @@ class _ConfirmerAchatDialogState extends State<_ConfirmerAchatDialog> {
   void dispose() {
     _prixCtrl.dispose();
     _numCiterneCtrl.dispose();
-    _camionCtrl.dispose();
     _remarqueCtrl.dispose();
     super.dispose();
   }
 
-  PlanificationLivraison? _buildLivraison() {
-    final dt = _mode == ModePlanificationUI.dateExacte
-        ? _dateExacte
-        : _periodeDebut;
-    if (dt == null) return null;
-    final h = dt.hour % 12 == 0 ? 12 : dt.hour % 12;
-    final m = dt.minute.toString().padLeft(2, '0');
-    final period = dt.hour >= 12 ? 'PM' : 'AM';
-    return PlanificationLivraison.exact(
-      date: DateTime(dt.year, dt.month, dt.day),
-      heure: '$h:$m $period',
-      lieu: 'À préciser',
-      camion: _camionCtrl.text.trim().isNotEmpty
-          ? _camionCtrl.text.trim()
-          : null,
+  AchatSaisi _achat(String prix) {
+    final exacte = _mode == ModePlanificationUI.dateExacte;
+    final numCiterne = _numCiterneCtrl.text.trim();
+    return AchatSaisi(
+      prixFinal: prix,
+      remarqueCollecteur: _remarqueCtrl.text.trim(),
+      numCiterne: numCiterne.isEmpty ? null : numCiterne,
+      livraisonDebut: exacte ? _dateExacte : _periodeDebut,
+      livraisonFin: exacte ? null : _periodeFin,
     );
   }
 
@@ -151,9 +136,9 @@ class _ConfirmerAchatDialogState extends State<_ConfirmerAchatDialog> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Confirmer l\'achat',
-                          style: TextStyle(
+                        Text(
+                          widget.titre,
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
                             color: colDark,
@@ -212,7 +197,16 @@ class _ConfirmerAchatDialogState extends State<_ConfirmerAchatDialog> {
                             const SizedBox(height: 4),
                             if (e.budgetNegociation != null)
                               Text(
-                                'Budget : ${MontantAchat.formaterPrixParTonne(e.budgetNegociation)}',
+                                'Prix proposé : ${MontantAchat.formaterPrixParKg(e.budgetNegociation)}',
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: colDark,
+                                ),
+                              ),
+                            if (e.budgetNegociation != null)
+                              Text(
+                                'Prix par tonne : ${MontantAchat.formaterPrixParTonne(e.budgetNegociation)}',
                                 style: const TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,
@@ -233,15 +227,14 @@ class _ConfirmerAchatDialogState extends State<_ConfirmerAchatDialog> {
                       ),
 
                     // Prix final
-                    const _DialogLabel('Prix convenu *'),
+                    const _DialogLabel('Prix convenu par kg *'),
                     const SizedBox(height: 6),
-                    TextField(
+                    ChampPrixKg(
                       controller: _prixCtrl,
                       decoration: _inputDeco(
-                        'ex: 8 000 TND/T',
+                        'ex: 8.750',
                         Icons.payments_outlined,
                       ),
-                      style: const TextStyle(fontSize: 14),
                     ),
                     const SizedBox(height: 14),
 
@@ -251,16 +244,6 @@ class _ConfirmerAchatDialogState extends State<_ConfirmerAchatDialog> {
                     TextField(
                       controller: _numCiterneCtrl,
                       decoration: _inputDeco('ex: Z1', Icons.verified_outlined),
-                      style: const TextStyle(fontSize: 14),
-                    ),
-                    const SizedBox(height: 14),
-
-                    // Camion (no prefix icon)
-                    const _DialogLabel('Camion utilisé'),
-                    const SizedBox(height: 6),
-                    TextField(
-                      controller: _camionCtrl,
-                      decoration: _inputDecoNoIcon('ex: CAM-07'),
                       style: const TextStyle(fontSize: 14),
                     ),
                     const SizedBox(height: 14),
@@ -340,18 +323,9 @@ class _ConfirmerAchatDialogState extends State<_ConfirmerAchatDialog> {
                           );
                           return;
                         }
+                        final achat = _achat(prix);
                         Navigator.pop(context);
-                        widget.onConfirm(
-                          prix,
-                          _camionCtrl.text.trim().isEmpty
-                              ? null
-                              : _camionCtrl.text.trim(),
-                          _buildLivraison(),
-                          _numCiterneCtrl.text.trim().isEmpty
-                              ? null
-                              : _numCiterneCtrl.text.trim(),
-                          _remarqueCtrl.text.trim(),
-                        );
+                        widget.onConfirm(achat);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: colGreen,

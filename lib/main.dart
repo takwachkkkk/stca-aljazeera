@@ -9,10 +9,13 @@ import '5_chef_degustateur/tableau_de_bord/homepage_page.dart' as chef;
 import 'core/api_client.dart';
 import 'core/auth/changement_mot_de_passe_obligatoire_page.dart';
 import 'core/auth/mot_de_passe_oublie_page.dart';
+import 'core/fonctionnalites.dart';
 import 'core/models/enums.dart';
 import 'core/password_validation.dart';
+import 'core/services/alerte_message_service.dart';
 import 'core/services/auth_service.dart';
 import 'core/session_expiration.dart';
+import 'core/widgets/messagerie/alerte_message_hote.dart';
 
 final GlobalKey<NavigatorState> appNavigatorKey = sessionNavigatorKey;
 
@@ -36,6 +39,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _retourConnexionSessionExpiree(String message) {
+    alerteMessages.arreter();
     final navigator = appNavigatorKey.currentState;
     if (navigator == null) return;
 
@@ -51,6 +55,8 @@ class _MyAppState extends State<MyApp> {
       navigatorKey: appNavigatorKey,
       title: 'Tasting Panel',
       debugShowCheckedModeBanner: false,
+      builder: (context, child) =>
+          AlerteMessageHote(child: child ?? const SizedBox.shrink()),
       theme: ThemeData(
         primaryColor: const Color(0xFF38835A),
         scaffoldBackgroundColor: const Color(0xFFF9F6EF),
@@ -70,6 +76,10 @@ Widget _destinationForRole(RoleUtilisateur role) {
     RoleUtilisateur.serviceAchat => const AchatsServiceAchatPage(),
   };
 }
+
+/// Un compte laboratoire ne peut pas entrer tant que le labo est masqué.
+bool _roleMasque(RoleUtilisateur role) =>
+    !kLaboActif && role == RoleUtilisateur.laboratoire;
 
 class AuthGate extends StatefulWidget {
   const AuthGate({super.key});
@@ -99,6 +109,18 @@ class _AuthGateState extends State<AuthGate> {
         const Duration(seconds: 8),
       );
       if (!mounted) return;
+      if (_roleMasque(user.role)) {
+        await authService.logout();
+        if (!mounted) return;
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) =>
+                const LoginPage(messageInitial: 'Ce compte est désactivé.'),
+          ),
+        );
+        return;
+      }
       if (user.doitChangerMotDePasse) {
         await authService.logout();
         if (!mounted) return;
@@ -113,6 +135,7 @@ class _AuthGateState extends State<AuthGate> {
         );
         return;
       }
+      alerteMessages.demarrer(user.role);
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => _destinationForRole(user.role)),
@@ -199,9 +222,17 @@ class _LoginPageState extends State<LoginPage> {
 
       // 2. Use the returned profile role for navigation.
       final role = user.role;
+      if (_roleMasque(role)) {
+        await authService.logout();
+        if (mounted) {
+          setState(() => _errorMessage = 'Ce compte est désactivé.');
+        }
+        return;
+      }
 
       // 3. Navigate to the correct dashboard based on role.
       if (!mounted) return;
+      alerteMessages.demarrer(role);
       final destination = _destinationForRole(role);
       final page = user.doitChangerMotDePasse
           ? ChangementMotDePasseObligatoirePage(

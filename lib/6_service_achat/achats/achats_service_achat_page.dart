@@ -1,8 +1,9 @@
 // ═════════════════════════════════════════════════════════════════════════════
 // FILE    : 6_service_achat/achats/achats_service_achat_page.dart
 // PURPOSE : Page d'accueil du Service achat : les achats confirmés, la date de
-//           livraison prévue de chaque stock et le détail du produit. Lecture
-//           seule ; rien de la dégustation ni du laboratoire.
+//           livraison prévue de chaque stock et le détail du produit. Seule
+//           action : signaler qu'un stock est facturé. Rien de la dégustation
+//           ni du laboratoire.
 // ═════════════════════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
@@ -11,11 +12,14 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../1_ceo/widgets/base_sample_card.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/date_utils.dart';
+import '../../core/utils/montant_achat.dart';
 import '../../core/widgets/grille_details.dart';
 import '../../core/widgets/statut_chip.dart';
 import '../service_achat_drawer.dart';
 import 'models/achat_service_achat.dart';
 import 'services/achats_service_achat_service.dart';
+
+enum _Filtre { tous, aVenir, facture, livre }
 
 class AchatsServiceAchatPage extends StatefulWidget {
   final AchatsServiceAchatService? service;
@@ -34,7 +38,8 @@ class _AchatsServiceAchatPageState extends State<AchatsServiceAchatPage> {
   List<AchatServiceAchat> _achats = const [];
   bool _chargement = true;
   bool _erreur = false;
-  EtatLivraison? _filtre;
+  _Filtre _filtre = _Filtre.tous;
+  final Set<String> _facturationsEnCours = {};
 
   @override
   void initState() {
@@ -69,11 +74,68 @@ class _AchatsServiceAchatPageState extends State<AchatsServiceAchatPage> {
     }
   }
 
+  Future<void> _facturer(AchatServiceAchat achat) async {
+    final confirme = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(
+          'Facturer ce stock ?',
+          style: GoogleFonts.domine(
+            fontSize: 17,
+            fontWeight: FontWeight.w700,
+            color: kDark,
+          ),
+        ),
+        content: Text(
+          'La facture de ${achat.referenceBouteille} est établie. '
+          'Ce choix est définitif.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Annuler'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: kGreen),
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Facturer'),
+          ),
+        ],
+      ),
+    );
+    if (confirme != true || !mounted) return;
+
+    setState(() => _facturationsEnCours.add(achat.id));
+    try {
+      final facture = await _service.facturer(achat.id);
+      if (!mounted) return;
+      setState(() {
+        _achats = [for (final a in _achats) a.id == facture.id ? facture : a];
+        _facturationsEnCours.remove(achat.id);
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _facturationsEnCours.remove(achat.id));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "Le stock n'a pas été facturé. Vérifiez la connexion puis réessayez.",
+          ),
+        ),
+      );
+    }
+  }
+
   List<AchatServiceAchat> get _filtres {
     final q = _recherche.text.trim().toLowerCase();
     final maintenant = DateTime.now();
     final liste = _achats.where((a) {
-      final etatOk = _filtre == null || a.etatLivraison(maintenant) == _filtre;
+      final etatOk = switch (_filtre) {
+        _Filtre.tous => true,
+        _Filtre.aVenir => a.etatLivraison(maintenant) == EtatLivraison.aVenir,
+        _Filtre.facture => a.facture,
+        _Filtre.livre => a.etatLivraison(maintenant) == EtatLivraison.livre,
+      };
       final rechercheOk =
           q.isEmpty ||
           [
@@ -142,22 +204,18 @@ class _AchatsServiceAchatPageState extends State<AchatsServiceAchatPage> {
   }
 
   Widget _entete() {
-    Widget puce(
-      String libelle,
-      EtatLivraison? etat,
-      Color actif,
-      Color inactif,
-    ) => Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: StatutChip(
-        label: libelle,
-        activeColor: actif,
-        inactiveColor: inactif,
-        inactiveTextColor: actif,
-        selected: _filtre == etat,
-        onTap: () => setState(() => _filtre = etat),
-      ),
-    );
+    Widget puce(String libelle, _Filtre filtre, Color actif, Color inactif) =>
+        Padding(
+          padding: const EdgeInsets.only(right: 8),
+          child: StatutChip(
+            label: libelle,
+            activeColor: actif,
+            inactiveColor: inactif,
+            inactiveTextColor: actif,
+            selected: _filtre == filtre,
+            onTap: () => setState(() => _filtre = filtre),
+          ),
+        );
 
     return Container(
       color: kHeaderBg,
@@ -184,25 +242,15 @@ class _AchatsServiceAchatPageState extends State<AchatsServiceAchatPage> {
             scrollDirection: Axis.horizontal,
             child: Row(
               children: [
-                puce('Tous', null, kStatusGrey, kChipBgGrey),
+                puce('Tous', _Filtre.tous, kStatusGrey, kChipBgGrey),
                 puce(
                   'Livraison à venir',
-                  EtatLivraison.aVenir,
+                  _Filtre.aVenir,
                   kStatusBlue,
                   kChipBgBlue,
                 ),
-                puce(
-                  'En retard',
-                  EtatLivraison.enRetard,
-                  kStatusOrange,
-                  kChipBgOrange,
-                ),
-                puce(
-                  'Stock livré',
-                  EtatLivraison.livre,
-                  kStatusGreen,
-                  kChipBgGreen,
-                ),
+                puce('Facturer', _Filtre.facture, kOlive, kChipBgGreen),
+                puce('Stock livré', _Filtre.livre, kStatusGreen, kChipBgGreen),
               ],
             ),
           ),
@@ -312,7 +360,12 @@ class _AchatsServiceAchatPageState extends State<AchatsServiceAchatPage> {
           if (a.quantiteCibleT != null)
             DetailItem('Quantité achetée', quantite(a.quantiteCibleT)!),
           if (a.prix != null)
-            DetailItem('Prix', '${a.prix!.toStringAsFixed(3)} TND/L'),
+            DetailItem('Prix', '${a.prix!.toStringAsFixed(3)} DT/kg'),
+          if (a.prix != null)
+            DetailItem(
+              'Prix par tonne',
+              MontantAchat.formaterPrixParTonne(a.prix.toString())!,
+            ),
           if (a.numCiterne != null) DetailItem('N° citerne', a.numCiterne!),
           if (a.camionReserve != null)
             DetailItem('Camion réservé', a.camionReserve!),
@@ -321,7 +374,70 @@ class _AchatsServiceAchatPageState extends State<AchatsServiceAchatPage> {
           if (a.remarqueCollecteur != null)
             DetailItem('Remarque du collecteur', a.remarqueCollecteur!),
         ],
-        bottomSection: _livraison(a, etat, couleur, fond),
+        bottomSection: Column(
+          children: [_livraison(a, etat, couleur, fond), _facturation(a)],
+        ),
+      ),
+    );
+  }
+
+  /// Le bouton Facturer tant que la facture n'est pas signalée, puis la date et
+  /// l'auteur de la facturation.
+  Widget _facturation(AchatServiceAchat a) {
+    if (a.facture) {
+      final date = a.dateFacture == null
+          ? null
+          : DegDateUtils.formaterAffichage(a.dateFacture!.toIso8601String());
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+        child: Row(
+          children: [
+            const Icon(Icons.check_circle, color: kGreen, size: 20),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                [
+                  date == null ? 'Facturé' : 'Facturé le $date',
+                  if (a.factureParNom != null) 'par ${a.factureParNom}',
+                ].join(' '),
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: kGreen,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final enCours = _facturationsEnCours.contains(a.id);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+      child: SizedBox(
+        width: double.infinity,
+        height: 46,
+        child: FilledButton.icon(
+          style: FilledButton.styleFrom(
+            backgroundColor: kGreen,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+          onPressed: enCours ? null : () => _facturer(a),
+          icon: enCours
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : const Icon(Icons.check, size: 20),
+          label: const Text('Facturer'),
+        ),
       ),
     );
   }

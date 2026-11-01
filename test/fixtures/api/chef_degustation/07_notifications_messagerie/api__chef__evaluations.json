@@ -3,18 +3,18 @@
   "route": "/api/chef/evaluations/",
   "data": [
     {
-      "echantillon_id": "f43c5a9d-3b90-4e7a-9a3e-5d212b39a09c",
-      "sample_id": "f43c5a9d-3b90-4e7a-9a3e-5d212b39a09c",
+      "echantillon_id": "78f36a60-636b-44d4-8ebc-f2beb2641e73",
+      "sample_id": "78f36a60-636b-44d4-8ebc-f2beb2641e73",
       "echantillon_numero": "2026/0001",
       "numero": "2026/0001",
       "reference_bouteille": "AUDIT-BOUT-001",
       "gouvernorat": "Sfax",
       "delegation": "Sakiet Ezzit",
       "variete": "Chemlali",
-      "date_ajout": "2026-10-27T11:27:03.784695+00:00",
+      "date_ajout": "2026-11-01T22:15:30.091120+00:00",
       "recu_physiquement": true,
-      "date_reception_physique": "2026-10-27T11:27:04.290047+00:00",
-      "date_reception_echantillon": "2026-10-27T11:27:04.290047+00:00",
+      "date_reception_physique": "2026-11-01T22:15:32.392117+00:00",
+      "date_reception_echantillon": "2026-11-01T22:15:32.392117+00:00",
       "date_arrivee_echantillon": "2026-09-25T09:00:00+00:00",
       "date_livraison_stock": "2026-10-02T08:00:00+00:00",
       "num_citerne": "C-47",
@@ -22,8 +22,8 @@
       "fournisseur_nom": "Domaine Audit",
       "evaluations": [
         {
-          "id": "604c49a8-c934-46f9-9554-acde66cc502d",
-          "degustateur_id": "59a4c1dd-ddf4-4b83-b675-6dd7e4934f1b",
+          "id": "df8eab75-2cc3-4980-9b28-018a9bcc9a44",
+          "degustateur_id": "6ab3c344-4252-42bb-8b8c-3c05baa374f8",
           "degustateur": "Audit Chef",
           "degustateur_nom": "Audit Chef",
           "taster_name": "Audit Chef",
@@ -91,13 +91,13 @@
           ],
           "classification": "extra_vierge",
           "statut": "soumis",
-          "date_eval": "2026-10-27T11:27:05.398835+00:00",
-          "soumis_le": "2026-10-27T11:27:05.398835+00:00",
+          "date_eval": "2026-11-01T22:15:36.546313+00:00",
+          "soumis_le": "2026-11-01T22:15:36.546313+00:00",
           "commentaire": "Evaluation audit par chef@audit.test"
         },
         {
-          "id": "918f9c19-05ba-4cc8-89b6-f3ee7bedfc9f",
-          "degustateur_id": "bb9faa89-8dbc-4f99-9f48-95d2f46a1bc0",
+          "id": "6426611e-5bf9-4598-9317-d3ada5012174",
+          "degustateur_id": "c7c1927b-bd90-4252-ae22-dc9601698502",
           "degustateur": "Audit Degustateur",
           "degustateur_nom": "Audit Degustateur",
           "taster_name": "Audit Degustateur",
@@ -165,8 +165,8 @@
           ],
           "classification": "extra_vierge",
           "statut": "soumis",
-          "date_eval": "2026-10-27T11:27:05.384597+00:00",
-          "soumis_le": "2026-10-27T11:27:05.384597+00:00",
+          "date_eval": "2026-11-01T22:15:36.492601+00:00",
+          "soumis_le": "2026-11-01T22:15:36.492601+00:00",
           "commentaire": "Evaluation audit par degustateur@audit.test"
         }
       ],

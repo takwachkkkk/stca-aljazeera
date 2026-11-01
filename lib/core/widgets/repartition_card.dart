@@ -116,7 +116,10 @@ class RepartitionCardState extends State<RepartitionCard> {
     final totalAchats = _lignes.fold(0, (s, l) => s + l.achats);
     final max = _lignes.isEmpty
         ? 1
-        : _lignes.map((l) => l.echantillons).reduce((a, b) => a > b ? a : b);
+        // Un achat peut tomber dans la période sans son échantillon.
+        : _lignes
+              .expand((l) => [l.echantillons, l.achats])
+              .reduce((a, b) => a > b ? a : b);
 
     return Container(
       decoration: BoxDecoration(

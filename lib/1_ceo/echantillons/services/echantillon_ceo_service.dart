@@ -1,8 +1,11 @@
 import '../../../core/api_client.dart';
+import '../../../core/fonctionnalites.dart';
 import '../../../core/services/resultat_service.dart';
 import '../../utilisateurs/models/echantillon_ceo_view.dart';
 
 class EchantillonCeoService {
+  /// Ouvre la négociation, ou la rouvre après un achat non conclu. L'achat
+  /// lui-même est conclu (ou non) par le collecteur, pas par la direction.
   Future<void> approuver(
     String id, {
     String? budgetNegociation,
@@ -24,60 +27,6 @@ class EchantillonCeoService {
     });
   }
 
-  // ── Décision de la direction sur une proposition d'achat ──────────────────
-  // À ne pas confondre avec [approuver] / [refuser] ci-dessus, qui ouvrent et
-  // ferment la NÉGOCIATION. Les deux méthodes ci-dessous tranchent l'ACHAT.
-  // Le serveur refuse la décision si l'échantillon n'a pas de proposition en
-  // attente, ce qui évite de confirmer un achat qui n'existe pas.
-
-  /// Confirme l'achat : l'échantillon passe en « achat confirmé ».
-  Future<void> confirmerAchat(String id) async {
-    await apiClient.post('/api/echantillons/$id/confirmer-achat/', {});
-  }
-
-  /// Refuse l'achat. La raison est obligatoire côté serveur.
-  Future<void> refuserAchat(String id, String raisonRefus) async {
-    await apiClient.post('/api/echantillons/$id/refuser-achat/', {
-      'raison_refus': raisonRefus,
-    });
-  }
-
-  /// Renvoie la proposition en négociation avec une contre-offre.
-  ///
-  /// La direction refuse le prix, pas le stock : l'échantillon garde son statut
-  /// « en négociation » et le serveur incrémente son compteur de tours.
-  /// [contrePrixMax] est facultatif — vide, le contre-prix est un prix ferme.
-  Future<void> renvoyerEnNegociation(
-    String id, {
-    required String raisonRefus,
-    required String contrePrix,
-    String? contrePrixMax,
-    String? quantiteCibleT,
-    String? dateLivraisonStock,
-    String? dateLivraisonStockFin,
-  }) async {
-    final body = <String, dynamic>{
-      'raison_refus': raisonRefus,
-      'budget_negociation': contrePrix,
-    };
-    if (contrePrixMax != null && contrePrixMax.isNotEmpty) {
-      body['budget_negociation_max'] = contrePrixMax;
-    }
-    if (quantiteCibleT != null && quantiteCibleT.isNotEmpty) {
-      body['quantite_cible_t'] = quantiteCibleT;
-    }
-    if (dateLivraisonStock != null && dateLivraisonStock.isNotEmpty) {
-      body['date_livraison_stock'] = dateLivraisonStock;
-    }
-    if (dateLivraisonStockFin != null && dateLivraisonStockFin.isNotEmpty) {
-      body['date_livraison_stock_fin'] = dateLivraisonStockFin;
-    }
-    await apiClient.post(
-      '/api/echantillons/$id/renvoyer-en-negociation/',
-      body,
-    );
-  }
-
   Future<List<dynamic>> fetchEchantillons() async {
     return await apiClient.getList('/api/echantillons/');
   }
@@ -87,7 +36,9 @@ class EchantillonCeoService {
   ) => avecSecours(() async {
     final samples = await apiClient.getList('/api/echantillons/');
     final evaluations = await _fetchEvaluationsBySample();
-    final analyses = await _fetchAnalysesBySample();
+    final analyses = kLaboActif
+        ? await _fetchAnalysesBySample()
+        : <String, RapportLabo>{};
     final panelCount = await _fetchPanelCount();
 
     return samples
@@ -171,6 +122,9 @@ class EchantillonCeoService {
       quantiteCibleT: sample['quantite_cible_t']?.toString(),
       camionReserve: sample['camion_reserve'] as String?,
       noteInterne: sample['note_interne'] as String?,
+      prixFinal: sample['prix_final']?.toString(),
+      remarqueCollecteur: sample['remarque_collecteur'] as String?,
+      raisonNonConclu: sample['raison_non_conclu'] as String?,
       stockArrive: sample['stock_arrive'] as bool? ?? false,
       dateLivraisonStock: _formatDate(sample['date_livraison_stock']),
       dateLivraisonStockFin: _formatDate(sample['date_livraison_stock_fin']),

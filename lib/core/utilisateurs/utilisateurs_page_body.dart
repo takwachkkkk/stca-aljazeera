@@ -7,6 +7,7 @@
 // ═════════════════════════════════════════════════════════════════════════════
 
 import 'package:flutter/material.dart';
+import 'package:project3/core/fonctionnalites.dart';
 import 'package:project3/core/theme/app_colors.dart';
 import 'package:project3/core/utils/date_utils.dart';
 import 'package:project3/core/utils/rafraichissement_periodique.dart';
@@ -286,12 +287,13 @@ class _UtilisateursPageBodyState extends State<UtilisateursPageBody>
         activeBg: Color(0xFFE6F1FB),
         activeFg: Color(0xFF185FA5),
       ),
-      (
-        label: 'Laboratoire',
-        role: UserRole.laboratoire as UserRole?,
-        activeBg: Color(0xFFFAEEDA),
-        activeFg: Color(0xFF854F0B),
-      ),
+      if (kLaboActif)
+        (
+          label: 'Laboratoire',
+          role: UserRole.laboratoire as UserRole?,
+          activeBg: Color(0xFFFAEEDA),
+          activeFg: Color(0xFF854F0B),
+        ),
       (
         label: 'Dégustateur',
         role: UserRole.degustateur as UserRole?,
@@ -833,6 +835,10 @@ class _UtilisateursPageBodyState extends State<UtilisateursPageBody>
                           ),
                         ),
                         items: UserRole.values
+                            .where(
+                              (role) =>
+                                  kLaboActif || role != UserRole.laboratoire,
+                            )
                             .map(
                               (role) => DropdownMenuItem<UserRole>(
                                 value: role,

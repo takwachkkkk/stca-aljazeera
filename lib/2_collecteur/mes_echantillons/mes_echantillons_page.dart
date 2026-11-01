@@ -293,33 +293,116 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
     showConfirmerAchatDialog(
       context: context,
       echantillon: e,
-      onConfirm:
-          (prix, camion, livraison, numCiterne, remarqueCollecteur) async {
-            try {
-              final saved = await _service.confirmerAchat(
-                e.id,
-                prixFinal: prix,
-                camionLivraison: camion,
-                remarqueCollecteur: remarqueCollecteur,
-              );
-              if (!mounted) return;
-              setState(() {
-                final index = _echantillons.indexWhere(
-                  (item) => item.id == e.id,
-                );
-                if (livraison != null) saved.livraison = livraison;
-                if (numCiterne != null) saved.numCiterne = numCiterne;
-                if (index != -1) _echantillons[index] = saved;
-              });
-              _showPropositionEnvoyeeDialog(saved.referenceBouteille);
-            } catch (error) {
-              if (mounted) _showError(_service.messageFor(error));
-            }
-          },
+      onConfirm: (achat) async {
+        try {
+          final saved = await _service.confirmerAchat(e.id, achat);
+          if (!mounted) return;
+          _remplacer(saved);
+          _showAchatConfirmeDialog(saved.referenceBouteille);
+        } catch (error) {
+          if (mounted) _showError(_service.messageFor(error));
+        }
+      },
     );
   }
 
-  void _showPropositionEnvoyeeDialog(String reference) {
+  void _remplacer(EchantillonCollecteur saved) {
+    setState(() {
+      final index = _echantillons.indexWhere((item) => item.id == saved.id);
+      if (index != -1) _echantillons[index] = saved;
+    });
+  }
+
+  /// La négociation n'a pas abouti : raison facultative, la direction est
+  /// prévenue et peut rouvrir la négociation.
+  Future<void> _onNonConclu(EchantillonCollecteur e) async {
+    final raisonCtrl = TextEditingController();
+    final confirme = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        backgroundColor: Colors.white,
+        title: const Text(
+          'Achat non conclu',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: colDark,
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'La négociation pour "${e.referenceBouteille}" n\'a pas abouti. '
+              'La direction sera prévenue et pourra la rouvrir.',
+              style: const TextStyle(
+                fontSize: 13,
+                color: Color(0xFF6B8E7A),
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 14),
+            TextField(
+              controller: raisonCtrl,
+              minLines: 2,
+              maxLines: 4,
+              decoration: InputDecoration(
+                hintText: 'Raison (facultatif)',
+                hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
+                filled: true,
+                fillColor: const Color(0xFFF7F9F8),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: Colors.grey.shade200),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: Colors.grey.shade200),
+                ),
+              ),
+              style: const TextStyle(fontSize: 14),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            style: TextButton.styleFrom(foregroundColor: Colors.grey.shade600),
+            child: const Text('Annuler'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            style: TextButton.styleFrom(foregroundColor: colDark),
+            child: const Text(
+              'Déclarer non conclu',
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
+      ),
+    );
+    final raison = raisonCtrl.text.trim();
+    raisonCtrl.dispose();
+    if (confirme != true) return;
+    try {
+      final saved = await _service.declarerNonConclu(e.id, raison: raison);
+      if (!mounted) return;
+      _remplacer(saved);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Achat non conclu pour "${saved.referenceBouteille}". La direction est prévenue.',
+          ),
+        ),
+      );
+    } catch (error) {
+      if (mounted) _showError(_service.messageFor(error));
+    }
+  }
+
+  void _showAchatConfirmeDialog(String reference) {
     showDialog<void>(
       context: context,
       builder: (_) => AlertDialog(
@@ -335,11 +418,15 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
                 color: Color(0xFFE9F4EE),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.send_outlined, color: colGreen, size: 28),
+              child: const Icon(
+                Icons.handshake_outlined,
+                color: colGreen,
+                size: 28,
+              ),
             ),
             const SizedBox(height: 16),
             const Text(
-              'Proposition envoyée',
+              'Achat confirmé',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
@@ -349,8 +436,8 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
             ),
             const SizedBox(height: 10),
             Text(
-              'Votre proposition pour "$reference" a été transmise à la direction. '
-              'L\'achat sera finalisé après validation par le CEO.',
+              'L\'achat de "$reference" est confirmé. '
+              'La direction en est informée.',
               style: const TextStyle(
                 fontSize: 13,
                 color: Color(0xFF6B8E7A),
@@ -561,19 +648,24 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
     showConfirmerAchatDialog(
       context: context,
       echantillon: e,
-      onConfirm: (prix, camion, livraison, numCiterne, remarqueCollecteur) {
-        setState(() {
-          e.prixFinal = prix;
-          if (camion != null) e.camionLivraison = camion;
-          if (livraison != null) e.livraison = livraison;
-          if (numCiterne != null) e.numCiterne = numCiterne;
-          e.remarqueCollecteur = remarqueCollecteur;
-        });
-        _saveEchantillon(
-          e,
-          successMessage:
-              'Livraison mise a jour pour "${e.referenceBouteille}"',
-        );
+      titre: 'Modifier l\'achat',
+      // La date de livraison part au serveur : avant, elle ne vivait que sur
+      // le téléphone et disparaissait au rechargement.
+      onConfirm: (achat) async {
+        try {
+          final saved = await _service.modifierAchat(e.id, achat);
+          if (!mounted) return;
+          _remplacer(saved);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Livraison mise à jour pour "${saved.referenceBouteille}"',
+              ),
+            ),
+          );
+        } catch (error) {
+          if (mounted) _showError(_service.messageFor(error));
+        }
       },
     );
   }
@@ -686,6 +778,8 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
         return 'Échantillons en cours de négociation avec le fournisseur.';
       case StatutCollecteur.achatConfirme:
         return "Échantillons dont l'achat est confirmé.";
+      case StatutCollecteur.achatNonConclu:
+        return "Négociations qui n'ont pas abouti.";
     }
   }
 
@@ -1005,6 +1099,24 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
                                       StatutCollecteur.achatConfirme;
                                 }),
                               ),
+                              const SizedBox(width: 7),
+                              _StatutChip(
+                                label: 'Non conclu',
+                                activeBg: const Color(
+                                  0xFF616161,
+                                ).withValues(alpha: 0.12),
+                                activeFg: const Color(0xFF616161),
+                                inactiveBg: const Color(0xFFF0F0F0),
+                                inactiveFg: const Color(0xFF9E9E9E),
+                                selected:
+                                    _filtreStatut ==
+                                    StatutCollecteur.achatNonConclu,
+                                onTap: () => setState(() {
+                                  _selectionEchantillonId = null;
+                                  _filtreStatut =
+                                      StatutCollecteur.achatNonConclu;
+                                }),
+                              ),
                             ],
                           ),
                         ),
@@ -1148,6 +1260,9 @@ class _MesEchantillonsPageState extends State<MesEchantillonsPage>
                                         : null,
                                     onConfirmerAchat: e.canConfirm
                                         ? () => _onConfirmerAchat(e)
+                                        : null,
+                                    onNonConclu: e.canConfirm
+                                        ? () => _onNonConclu(e)
                                         : null,
                                     onPlanifierLivraison: e.canPlanifier
                                         ? () => _onPlanifierLivraison(e)

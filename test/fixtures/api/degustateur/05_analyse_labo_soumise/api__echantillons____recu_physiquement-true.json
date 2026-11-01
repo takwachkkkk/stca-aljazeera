@@ -7,12 +7,12 @@
     "previous": null,
     "results": [
       {
-        "id": "f43c5a9d-3b90-4e7a-9a3e-5d212b39a09c",
+        "id": "78f36a60-636b-44d4-8ebc-f2beb2641e73",
         "numero": "2026/0001",
         "reference_bouteille": "AUDIT-BOUT-001",
-        "fournisseur": "38b44ad4-6280-451a-ab4c-1a1af132e9fb",
+        "fournisseur": "a44f0473-897d-47d9-b045-5c636b079626",
         "fournisseur_nom": "Domaine Audit",
-        "collecteur": "6f3faa4b-b13d-4437-8dc2-242ed6928355",
+        "collecteur": "04b32a25-339e-40c9-aab0-3ef146cf5ab8",
         "collecteur_nom": "Audit Collecteur",
         "modifiable": false,
         "gouvernorat": "Sfax",
@@ -21,14 +21,14 @@
         "variete": "Chemlali",
         "num_citerne": "C-47",
         "quantite_estimee": "12",
-        "image_url": "/media/echantillons/dbad7bd501a14831b05c12ed7dc61ead.jpg",
+        "image_url": "/media/echantillons/891c91e4512a43499751883be73565da.jpg",
         "statut_collecteur": "receptionne",
         "statut_degustateur": "soumis",
         "statut_labo": "soumis",
         "statut_ceo": "selectionne",
         "recu_physiquement": true,
         "date_arrivee_echantillon": "2026-09-25T10:00:00+01:00",
-        "date_reception_echantillon": "2026-10-27T12:27:04.290047+01:00",
+        "date_reception_echantillon": "2026-11-01T23:15:32.392117+01:00",
         "budget_negociation": null,
         "budget_negociation_max": null,
         "nb_renegociations": 0,
@@ -36,15 +36,17 @@
         "camion_reserve": "",
         "note_interne": "",
         "raison_refus": "",
+        "decisions_direction": [],
         "prix_final": null,
         "remarque_collecteur": "",
+        "raison_non_conclu": "",
         "stock_arrive": false,
         "date_livraison_stock": null,
         "date_livraison_stock_fin": null,
         "classification": "",
         "remarques": "Echantillon de parcours audit",
-        "date_ajout": "2026-10-27T12:27:03.784695+01:00",
-        "updated_at": "2026-10-27T12:27:05.988694+01:00"
+        "date_ajout": "2026-11-01T23:15:30.091120+01:00",
+        "updated_at": "2026-11-01T23:15:38.456399+01:00"
       }
     ]
   }

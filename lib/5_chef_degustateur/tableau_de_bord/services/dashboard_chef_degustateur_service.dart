@@ -68,7 +68,7 @@ class DashboardChefDegustateurService {
         titre: 'Session Rkhami - Sfax',
         date: '02/05/2026',
         heure: '11:00',
-        lieu: 'Laboratoire 1',
+        lieu: 'Salle de dégustation B',
         proposePar: 'Ichrak C.',
       ),
     ],

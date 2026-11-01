@@ -1,4 +1,5 @@
 import '../../../core/api_client.dart';
+import '../../../core/fonctionnalites.dart';
 import '../../../core/services/resultat_service.dart';
 import 'package:project3/core/models/notification_degustateur.dart';
 
@@ -67,18 +68,19 @@ class NotificationDegustateurService {
         isRead: false,
         dateCreation: now.subtract(const Duration(hours: 2)),
       ),
-      NotificationDegustateur(
-        id: '4',
-        type: 'ANALYSE_SOUMISE',
-        titre: 'Analyse laboratoire soumise',
-        message:
-            "Le technicien a soumis l'analyse laboratoire complète de l'échantillon ECH-2026-036. Les résultats sont disponibles.",
-        echantillonId: 'ech-4',
-        echantillonReference: 'ECH-2026-036',
-        section: 'ANALYSES',
-        isRead: false,
-        dateCreation: now.subtract(const Duration(hours: 4)),
-      ),
+      if (kLaboActif)
+        NotificationDegustateur(
+          id: '4',
+          type: 'ANALYSE_SOUMISE',
+          titre: 'Analyse laboratoire soumise',
+          message:
+              "Le technicien a soumis l'analyse laboratoire complète de l'échantillon ECH-2026-036. Les résultats sont disponibles.",
+          echantillonId: 'ech-4',
+          echantillonReference: 'ECH-2026-036',
+          section: 'ANALYSES',
+          isRead: false,
+          dateCreation: now.subtract(const Duration(hours: 4)),
+        ),
       // ── Hier ─────────────────────────────────────────────────────────────
       NotificationDegustateur(
         id: '5',
@@ -116,18 +118,19 @@ class NotificationDegustateurService {
         isRead: true,
         dateCreation: now.subtract(const Duration(days: 1, hours: 6)),
       ),
-      NotificationDegustateur(
-        id: '8',
-        type: 'ANALYSE_MODIFIEE',
-        titre: 'Analyse laboratoire mise à jour',
-        message:
-            "Le technicien a soumis une nouvelle version de l'analyse de l'échantillon ECH-2026-029. Les valeurs précédentes ont été remplacées.",
-        echantillonId: 'ech-8',
-        echantillonReference: 'ECH-2026-029',
-        section: 'ANALYSES',
-        isRead: true,
-        dateCreation: now.subtract(const Duration(days: 1, hours: 9)),
-      ),
+      if (kLaboActif)
+        NotificationDegustateur(
+          id: '8',
+          type: 'ANALYSE_MODIFIEE',
+          titre: 'Analyse laboratoire mise à jour',
+          message:
+              "Le technicien a soumis une nouvelle version de l'analyse de l'échantillon ECH-2026-029. Les valeurs précédentes ont été remplacées.",
+          echantillonId: 'ech-8',
+          echantillonReference: 'ECH-2026-029',
+          section: 'ANALYSES',
+          isRead: true,
+          dateCreation: now.subtract(const Duration(days: 1, hours: 9)),
+        ),
       NotificationDegustateur(
         id: '9',
         type: 'SESSION_SUGGEREE',

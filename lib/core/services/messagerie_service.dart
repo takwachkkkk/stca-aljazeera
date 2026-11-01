@@ -30,6 +30,14 @@ class MessagerieService {
     }
   }
 
+  /// Les derniers messages reçus et pas encore lus, du plus récent au plus ancien.
+  Future<List<Message>> fetchDerniersNonLus() async {
+    final data = await apiClient.get('/api/messages/non-lus/');
+    return ((data['derniers'] as List<dynamic>?) ?? const [])
+        .map((item) => Message.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
   Future<Message> sendMessage(
     String destinataireId,
     String contenu, {

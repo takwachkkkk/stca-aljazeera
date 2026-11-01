@@ -55,7 +55,7 @@ class Echantillon {
   String? dateReceptionEchantillon; // ISO 8601 — physical reception timestamp
 
   // ── CEO negotiation & purchase fields ────────────────────────────────────────
-  double? budgetNegociation; // negotiation budget in TND/L
+  double? budgetNegociation; // negotiation price in DT/kg
   double? quantiteCibleT; // target quantity in tonnes
   String? camionReserve; // truck ID reserved for transport
   String? noteInterne; // internal note — Direction only

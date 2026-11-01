@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.core.management.base import BaseCommand
 
 from users.models import User
@@ -22,9 +23,10 @@ class Command(BaseCommand):
             ('direction@stca.tn', 'Direction', 'Admin', User.Role.DIRECTION),
             ('collecteur@stca.tn', 'Collecteur', 'Amine', User.Role.COLLECTEUR),
             ('degustateur@stca.tn', 'Degustateur', 'Salma', User.Role.DEGUSTATEUR),
-            ('labo@stca.tn', 'Laboratoire', 'Nour', User.Role.LABORATOIRE),
             ('chef@stca.tn', 'Chef', 'Dégustation', User.Role.CHEF_DEGUSTATION),
         ]
+        if settings.LABO_ACTIF:
+            users.append(('labo@stca.tn', 'Laboratoire', 'Nour', User.Role.LABORATOIRE))
 
         for email, nom, prenom, role in users:
             user, created = User.objects.update_or_create(

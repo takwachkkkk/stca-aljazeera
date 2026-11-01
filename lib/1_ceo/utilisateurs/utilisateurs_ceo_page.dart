@@ -10,7 +10,6 @@ import '../analyse_organoleptique/analyse_organoleptique_ceo_page.dart';
 import '../echantillons/echantillons_ceo_page.dart';
 import '../profil_ceo_page.dart';
 import '../tableau_de_bord/tableau_de_bord.dart';
-import '../validation_achats/validation_achats_ceo_page.dart';
 import '../widgets/ceo_drawer.dart';
 import '../widgets/ceo_nav_mixin.dart';
 
@@ -33,7 +32,6 @@ class _UtilisateursCeoPageState extends State<UtilisateursCeoPage>
         onAnalyseOrganoleptique: () =>
             goToPage(const AnalyseOrganoleptiqueCeoPage()),
         onAnalyseLaboratoire: () => goToPage(const AnalyseLaboratoireCeoPage()),
-        onValidationAchats: () => goToPage(const ValidationAchatsCeoPage()),
         onAchatsConfirmes: () => goToPage(const AchatsConfirmesCeoPage()),
         onTableauDeBord: () => goToPage(const HomePageCeo()),
         onProfil: () => goToPage(const ProfilceoPage()),

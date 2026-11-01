@@ -9,6 +9,7 @@ import '../../utilisateurs/models/echantillon_ceo_view.dart';
 import '../../widgets/sample_card_echantillon.dart';
 import '../../../core/widgets/grille_details.dart';
 import '../../../core/utils/date_utils.dart';
+import '../../../core/utils/montant_achat.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ACHAT SECTION
@@ -121,8 +122,11 @@ class AchatDetails extends StatelessWidget {
             items: [
               if (e.quantiteCibleT != null)
                 DetailItem('Quantité achetée', '${e.quantiteCibleT} T'),
-              if (e.budgetNegociation != null)
-                DetailItem('Prix négocié', e.budgetNegociation!),
+              if (MontantAchat.formaterPrixParKg(e.budgetNegociation) != null)
+                DetailItem(
+                  'Prix négocié',
+                  MontantAchat.formaterPrixParKg(e.budgetNegociation)!,
+                ),
               if (e.camionReserve != null)
                 DetailItem('Camion réservé', e.camionReserve!),
             ],

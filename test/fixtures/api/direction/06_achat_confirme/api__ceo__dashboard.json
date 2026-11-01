@@ -13,52 +13,86 @@
       "receptionnes": 0,
       "en_negociation": 0,
       "achat_confirme": 1,
+      "achats_non_conclus": 0,
       "refuses": 0,
       "stocks_arrives": 0,
       "evaluations_en_attente": 0,
       "analyses_soumises": 1,
-      "investissement_total": 7.4
+      "investissement_total": 85100.0
     },
-    "pipeline": {
-      "receptionne": 0,
-      "en_negociation": 0,
-      "achat_confirme": 1,
-      "refuse": 0
+    "achats": {
+      "montant_total": 85100.0,
+      "quantite_totale_t": 11.5,
+      "nombre": 1,
+      "sans_quantite": 0,
+      "categories": [
+        {
+          "cle": "extra_vierge",
+          "quantite_t": 11.5,
+          "montant": 85100.0,
+          "nombre": 1
+        },
+        {
+          "cle": "vierge",
+          "quantite_t": 0.0,
+          "montant": 0.0,
+          "nombre": 0
+        },
+        {
+          "cle": "vierge_ordinaire",
+          "quantite_t": 0.0,
+          "montant": 0.0,
+          "nombre": 0
+        },
+        {
+          "cle": "lampante",
+          "quantite_t": 0.0,
+          "montant": 0.0,
+          "nombre": 0
+        }
+      ],
+      "dernier_prix": {
+        "extra_vierge": {
+          "prix": 7.4,
+          "date": "2026-11-01"
+        },
+        "vierge": null
+      }
     },
     "performance_collecteurs": [
       {
-        "collecteur_id": "6f3faa4b-b13d-4437-8dc2-242ed6928355",
+        "collecteur_id": "04b32a25-339e-40c9-aab0-3ef146cf5ab8",
         "nom": "Audit Collecteur",
         "name": "Audit Collecteur",
         "initials": "AC",
         "samples": 1,
         "nb": 1,
         "approval_rate": 1.0,
-        "total_value": 7.4,
+        "total_value": 85100.0,
         "avg_days_to_close": 0.0
       }
     ],
     "collecteurs": [
       {
-        "collecteur_id": "6f3faa4b-b13d-4437-8dc2-242ed6928355",
+        "collecteur_id": "04b32a25-339e-40c9-aab0-3ef146cf5ab8",
         "nom": "Audit Collecteur",
         "name": "Audit Collecteur",
         "initials": "AC",
         "samples": 1,
         "nb": 1,
         "approval_rate": 1.0,
-        "total_value": 7.4,
+        "total_value": 85100.0,
         "avg_days_to_close": 0.0
       }
     ],
     "fournisseurs": [
       {
-        "fournisseur_id": "38b44ad4-6280-451a-ab4c-1a1af132e9fb",
+        "fournisseur_id": "a44f0473-897d-47d9-b045-5c636b079626",
         "name": "Domaine Audit",
         "nom": "Domaine Audit",
         "region": "Sfax",
         "achats": 1,
-        "valeur": 7.4
+        "valeur": 85100.0
       }
     ],
     "classifications": {
@@ -74,34 +108,34 @@
     },
     "evolution_achats": [
       {
-        "label": "May 2026",
+        "label": "Jun 26",
         "count": 0,
         "valeur": 0.0
       },
       {
-        "label": "Jun 2026",
+        "label": "Jul 26",
         "count": 0,
         "valeur": 0.0
       },
       {
-        "label": "Jul 2026",
+        "label": "Aoû 26",
         "count": 0,
         "valeur": 0.0
       },
       {
-        "label": "Aug 2026",
+        "label": "Sep 26",
         "count": 0,
         "valeur": 0.0
       },
       {
-        "label": "Sep 2026",
+        "label": "Oct 26",
         "count": 0,
         "valeur": 0.0
       },
       {
-        "label": "Oct 2026",
+        "label": "Nov 26",
         "count": 1,
-        "valeur": 7.4
+        "valeur": 85100.0
       }
     ]
   }

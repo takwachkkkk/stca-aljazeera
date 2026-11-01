@@ -299,6 +299,12 @@ class CollecteurSuggestionListView(generics.ListAPIView):
 class UserListCreateView(generics.ListCreateAPIView):
     queryset = User.objects.all().order_by('date_creation', 'nom', 'prenom')
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        if not settings.LABO_ACTIF:
+            queryset = queryset.exclude(role=User.Role.LABORATOIRE)
+        return queryset
+
     def get_permissions(self):
         if self.request.method == 'POST':
             return [IsChefDegustation()]

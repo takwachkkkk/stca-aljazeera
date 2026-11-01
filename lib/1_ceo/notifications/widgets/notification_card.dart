@@ -22,6 +22,8 @@ class CeoNotificationCard extends StatelessWidget {
     'TOUTES_EVALUATIONS':       (Icons.group_outlined,           Color(0xFF38835A), Color(0xFFE6F4ED)),
     'ANALYSE_SOUMISE':          (Icons.biotech_outlined,         Color(0xFF0277BD), Color(0xFFE1F5FE)),
     'ACHAT_CONFIRME':           (Icons.handshake_outlined,       Color(0xFF38835A), Color(0xFFE6F4ED)),
+    'ACHAT_NON_CONCLU':         (Icons.do_not_disturb_on_outlined, Color(0xFF616161), Color(0xFFF0F0F0)),
+    // Ancien circuit de validation des achats : notifications déjà reçues.
     'proposition_achat_attente':(Icons.pending_actions_outlined, Color(0xFFD07B2F), Color(0xFFFEF3E8)),
   };
 
